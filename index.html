@@ -369,6 +369,7 @@ body.sb.has-tr .transit{display:block}
 .tr-row b{font-size:4.6rem;font-weight:700}
 .tr-row span{font-size:4.6rem;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tr-row em{font-style:normal;font-weight:600;color:var(--bad)}
+.tr-row .tr-x{margin-left:.6rem;font-size:2.4rem;font-weight:600;color:var(--rain)}
 .tr-none{font-size:3rem;color:var(--text-dim)}
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
@@ -1746,7 +1747,7 @@ function renderBoard() {
     }
     const arr = ((board && board.sub[it.station]) || []).filter(a => a.sid === it.sid && a.updn === it.updn).slice(0, 2);
     return `<div class="tr-item"><div class="tr-head">${esc(it.station)}역<small>${esc(it.label)}</small></div>`
-      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text)))}</span></div></div>`;
+      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text) + (a.express ? '<small class="tr-x">급행</small>' : '')))}</span></div></div>`;
   }).join('') + (board ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
 }
 

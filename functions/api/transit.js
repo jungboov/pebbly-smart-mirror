@@ -68,7 +68,7 @@ export async function onRequestGet({ request, env }) {
           catch (e) { out.errors.push(`${src === 'gg' ? '경기' : '서울'} 버스: ${msg(e)}`); }
         }),
         ...sub.map(async station => {
-          try { out.sub[station] = (await subway(env, station, 30)).map(subwayArrival); }
+          try { out.sub[station] = (await subway(env, station, 30)).map(subwayArrival).filter(Boolean).sort((x, y) => x.ord - y.ord); }
           catch (e) { out.errors.push(`지하철: ${msg(e)}`); }
         })
       ]);
@@ -160,22 +160,31 @@ async function subway(env, station, ttl) {
   if (em.code && em.code !== 'INFO-000') throw new Error(`${em.code} ${em.message}`);
   return list(data.realtimeArrivalList);
 }
-// 도착까지 초(barvlDt)가 있으면 분으로, 없으면 안내 문구('전역 도착', '3번째 전역' 등)
+// 열차 하나 → { min(도착까지 분) 또는 text('전역', '3정거장 전'), ord(가까운 순 정렬값), express }
+// arvlCd: 0 진입 · 1 도착 · 2 출발(이미 떠남 → 뺌) · 3 전역출발 · 4 전역진입 · 5 전역도착 · 99 운행 중
+// 1호선·서해선은 남은 초(barvlDt)가 0으로 오는 경우가 많아 '[N]번째 전역' 문구로 정거장 수를 씀
 function subwayArrival(a) {
-  const sec = Number(a.barvlDt) || 0, m = String(a.arvlMsg2 || '');
-  let min = sec > 0 ? sec / 60 : null, text = null;
-  if (min == null) {
-    const t = m.match(/(\d+)분/), n = m.match(/\[(\d+)\]번째/);
-    if (t) min = Number(t[1]);
-    else if (/진입|도착/.test(m) && !/전역/.test(m)) min = 0;
-    else if (n) text = `${n[1]}정거장 전`;
-    else if (/전역/.test(m)) text = '전역';
-    else text = m.replace(/\(.*\)/, '').trim() || null;
-  }
-  return { sid: String(a.subwayId), updn: a.updnLine, min, text, dest: a.bstatnNm || '' };
+  const code = String(a.arvlCd), sec = Number(a.barvlDt) || 0, m = String(a.arvlMsg2 || '');
+  if (code === '2') return null;
+  const t = m.match(/(\d+)분/), n = m.match(/\[(\d+)\]번째/);
+  let min = null, text = null;
+  if (code === '0' || code === '1') min = 0;
+  else if (sec > 0) min = sec / 60;
+  else if (t) min = Number(t[1]);
+  else if (['3', '4', '5'].includes(code) || /전역/.test(m)) text = '전역';
+  else if (n) text = `${n[1]}정거장 전`;
+  else text = m.replace(/\(.*\)/, '').trim() || null;
+  const ord = min != null ? min : text === '전역' ? 1.5 : n ? Number(n[1]) * 2 : 99;
+  return {
+    sid: String(a.subwayId), updn: a.updnLine, min, text, ord,
+    express: /급행|특급/.test(`${a.btrainSttus || ''} ${a.trainLineNm || ''}`), dest: a.bstatnNm || ''
+  };
 }
-// '인천행 - 송내방면' → '송내방면'
-const direction = s => { const m = String(s || '').split('-'); return (m[1] || m[0] || '').trim(); };
+// '인천행 - 송내방면 (급행)' → '송내방면'
+const direction = s => {
+  const m = String(s || '').split('-');
+  return (m[1] || m[0] || '').replace(/\(.*?\)/g, '').trim();
+};
 
 // ── 공통 ──
 function dataKey(env) {
