@@ -1,13 +1,14 @@
 // 에어코리아 실측 미세먼지 중계 — Cloudflare Pages Functions (/api/air?lat=37.37&lon=127.11)
-// 공공데이터포털 키는 Cloudflare Pages 설정의 환경 변수 AIRKOREA_KEY(비밀)로 넣음. 코드·저장소엔 없음
-//   필요한 활용신청: 한국환경공단_에어코리아_측정소정보, 한국환경공단_에어코리아_대기오염정보 (같은 인증키)
+// 공공데이터포털 키는 Cloudflare Pages 설정의 환경 변수 DATA_GO_KR_KEY(비밀)로 넣음. 코드·저장소엔 없음
+//   (버스 중계 transit.js와 같은 키. 예전 이름 AIRKOREA_KEY도 읽음)
+//   필요한 활용신청: 한국환경공단_에어코리아_측정소정보, 한국환경공단_에어코리아_대기오염정보
 // 1) 좌표를 TM(중부원점)으로 바꿔 가까운 측정소 목록  2) 가까운 측정소부터 실시간 측정값 (점검 중이면 다음 측정소)
 // 응답: { station, time, pm10, pm25 } / 실패하면 오류 상태 코드 → 화면은 Open-Meteo 예측값으로 대신함
 
 const API = 'https://apis.data.go.kr/B552584';
 
 export async function onRequestGet({ request, env }) {
-  if (!env.AIRKOREA_KEY) return json({ error: 'AIRKOREA_KEY 없음' }, 503);
+  if (!(env.DATA_GO_KR_KEY || env.AIRKOREA_KEY)) return json({ error: 'DATA_GO_KR_KEY 없음' }, 503);
   const q = new URL(request.url).searchParams;
   const lat = Number(q.get('lat')), lon = Number(q.get('lon'));
   if (!(lat > 33 && lat < 39 && lon > 124 && lon < 132)) return json({ error: '국내 좌표가 아님' }, 400);
@@ -39,7 +40,8 @@ async function call(env, path, params, ttl) {
   let res = await cache.match(cacheKey);
   if (!res) {
     // 'Encoding' 키(%가 들어간 키)를 넣었어도 동작하도록 한 번 풀어서 씀
-    const key = env.AIRKOREA_KEY.includes('%') ? decodeURIComponent(env.AIRKOREA_KEY) : env.AIRKOREA_KEY;
+    const raw = env.DATA_GO_KR_KEY || env.AIRKOREA_KEY;
+    const key = raw.includes('%') ? decodeURIComponent(raw) : raw;
     const r = await fetch(`${API}/${path}?${qs}&serviceKey=${encodeURIComponent(key)}`);
     const text = await r.text();
     let data;
