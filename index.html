@@ -301,7 +301,38 @@ body.sb .stage{
   transition:opacity 3s, filter 3s, transform 2s;
 }
 body.sb .head, body.sb .zone, body.sb .phrase{display:none}
-body.sb .clock{padding-bottom:6rem}
+body.sb .clock{position:relative;padding-bottom:6rem}
+
+/* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
+   줄마다 라벨 | 숫자 | +·− 버튼, 셋째 줄 왼쪽에 이름과 시작·초기화 버튼 */
+.cm{display:none}
+body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"] #cm-al{display:grid}
+body.sb:not([data-cm="clock"]) #clock-in{visibility:hidden}
+.cm{position:absolute;inset:0 0 6rem;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto 1fr;
+  grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft .";align-items:end;column-gap:2rem;row-gap:.04em;
+  font-family:var(--num);font-weight:900;font-size:var(--clock);line-height:.82}
+.cm b{display:flex;height:.82em}
+/* 숫자 칸 폭을 고정해서 빨리 바뀌어도 흔들리지 않게 */
+.cm b i{display:inline-block;width:var(--dw, .834em);text-align:center;font-style:normal}
+.cm .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1}
+.cm-l1{grid-area:l1} .cm-l2{grid-area:l2} .cm-d1{grid-area:d1} .cm-d2{grid-area:d2}
+/* 셋째 줄 숫자(1/100초)는 시계의 초처럼 숫자 칸 오른쪽 끝, 절반 크기 */
+.cm-d3{grid-row:3;grid-column:2;justify-self:end;font-size:.5em}
+.cm-c1{grid-area:c1} .cm-c2{grid-area:c2}
+.cm-pm{display:flex;flex-direction:column;gap:1.4rem;align-self:center;justify-self:start}
+.cm-foot{grid-area:ft;align-self:end;display:flex;flex-direction:column;gap:1.6rem;font-size:2.6rem}
+.cm-name{font-family:var(--num);font-weight:500;color:var(--text-dim);letter-spacing:.06em;line-height:1}
+.cm-ctl{display:flex;gap:1.4rem}
+.cm button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3.2rem;line-height:1;
+  color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
+.cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
+.cm button.on{background:#fff;color:#000;border-color:#fff}
+/* 울림 */
+.ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:rgba(0,0,0,.85);animation:ring 1s steps(2) infinite}
+.ring[hidden]{display:none}
+@keyframes ring{50%{background:rgba(255,255,255,.22)}}
+.ring b{font-family:var(--num);font-size:9rem;font-weight:900}
+.ring button{font:inherit;font-size:4.4rem;font-weight:700;padding:2.4rem 7rem;border:0;border-radius:999px;background:#fff;color:#000}
 /* 세로 라벨 | 숫자 — 시 / 분 / 초(절반 크기) 3줄. 크기는 JS(fitClock)가 칸 폭·남는 높이에 맞춤 */
 body.sb .clock-in{width:100%;grid-template-columns:auto auto 1fr;grid-template-areas:"lh hh ds" "lm mm ds" ". ss ds";justify-content:start;column-gap:2rem;row-gap:.04em}
 body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
@@ -509,6 +540,23 @@ body.sb.phone.night::after{background:#ff3b30}
       <!-- 시계 강조 화면용 날짜: 시계 오른쪽에 눕혀서 '2026년 10월 27일 … 화요일' -->
       <div class="ds"><span id="ds-date" class="ds-date"></span><span id="ds-wd" class="ds-wd"></span><span id="ds-hol" class="ds-hol"></span></div>
     </div>
+    <!-- 시계 쪽을 밀면 나오는 기능 (시계 강조 화면): 스톱워치 / 타이머 / 알람 -->
+    <div id="cm-sw" class="cm">
+      <span class="lbl cm-l1">min</span><b id="sw-m" class="cm-d1"></b>
+      <span class="lbl cm-l2">sec</span><b id="sw-s" class="cm-d2"></b>
+      <b id="sw-cs" class="cm-d3"></b>
+      <div class="cm-foot"><span class="cm-name">stopwatch</span><div class="cm-ctl"><button id="sw-go" data-sw="go"></button><button data-sw="reset">초기화</button></div></div>
+    </div>
+    <div id="cm-tm" class="cm">
+      <span class="lbl cm-l1">min</span><b id="tm-m" class="cm-d1"></b><div class="cm-pm cm-c1"><button data-tm="60">+</button><button data-tm="-60">−</button></div>
+      <span class="lbl cm-l2">sec</span><b id="tm-s" class="cm-d2"></b><div class="cm-pm cm-c2"><button data-tm="10">+</button><button data-tm="-10">−</button></div>
+      <div class="cm-foot"><span class="cm-name">timer</span><div class="cm-ctl"><button id="tm-go" data-tm="go"></button><button data-tm="reset">초기화</button></div></div>
+    </div>
+    <div id="cm-al" class="cm">
+      <span class="lbl cm-l1">hour</span><b id="al-h" class="cm-d1"></b><div class="cm-pm cm-c1"><button data-al="60">+</button><button data-al="-60">−</button></div>
+      <span class="lbl cm-l2">min</span><b id="al-m" class="cm-d2"></b><div class="cm-pm cm-c2"><button data-al="1">+</button><button data-al="-1">−</button></div>
+      <div class="cm-foot"><span class="cm-name">alarm</span><div class="cm-ctl"><button id="al-go" data-al="toggle"></button></div></div>
+    </div>
   </section>
 
   <section id="date" class="date">
@@ -612,6 +660,9 @@ body.sb.phone.night::after{background:#ff3b30}
   <div class="sb-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 </main>
 
+<!-- 타이머 끝·알람 시각: 화면 전체가 깜빡이며 소리. 아무 데나 누르면 끔 -->
+<div id="ring" class="ring" hidden><b id="ring-title"></b><button>끄기</button></div>
+
 <div id="settings" class="settings" hidden>
   <div class="set-card">
     <div class="set-title">설정</div>
@@ -635,7 +686,7 @@ body.sb.phone.night::after{background:#ff3b30}
         <ul id="tr-res" class="tr-res"></ul>
       </div>
     </div>
-    <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨는 화면을 밀어서 넘길 수 있어요.</p>
+    <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
     <button class="set-close">닫기</button>
   </div>
 </div>
@@ -673,7 +724,8 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), rotate: 10, transit: [] },
+  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), rotate: 10, transit: [],
+    alarm: { on: false, h: 7, m: 0 } },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
 function saveSettings() {
@@ -772,7 +824,9 @@ function fitClock() {
     const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
     size = $('clock').clientWidth / widestEm;
   }
-  inner.style.setProperty('--clock', (size / rem * .99) + 'rem');
+  // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
+  $('clock').style.setProperty('--clock', (size / rem * .99) + 'rem');
+  $('clock').style.setProperty('--dw', wmax + 'em');
 }
 
 // ===== 시계 =====
@@ -815,6 +869,8 @@ function tickClock() {
     else renderSun();
     shiftPixels(d.getMinutes());
   }
+  checkAlarm(d);
+  cmIdleCheck();
   document.body.classList.toggle('night', isNight(d.getHours()));
   setTimeout(tickClock, 1000 - d.getMilliseconds() + 5);
 }
@@ -1297,6 +1353,7 @@ function applySettings() {
   renderWeather();   // 시간별 칸 수가 달라짐 (시계 강조 6 / 상세 12)
   fitClock();
   showPanel(panel);   // 바뀐 주기로 다시 시작
+  showCm(S.focus ? cm : 0);   // 스톱워치·타이머·알람은 시계 강조 화면에서만
   document.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b =>
     b.classList.toggle('on', b.dataset.v === String(+S[seg.dataset.key]))));
   $('set-rotate').textContent = S.rotate + '초';
@@ -1349,16 +1406,25 @@ function showPanel(p) {
 }
 
 // ===== 터치 =====
-// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전 위젯 / 두 번 탭(더블클릭): 설정 열기
+// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전
+//   시계 쪽에서 밀면 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면), 나머지는 날씨 위젯
+// 두 번 탭(더블클릭): 설정 열기. 버튼을 누를 때는 둘 다 안 함
 let touchStart = null, lastTap = 0;
-document.addEventListener('pointerdown', e => { touchStart = { x: e.clientX, y: e.clientY }; });
+document.addEventListener('pointerdown', e => {
+  if (e.target.closest('button') || !$('ring').hidden) { touchStart = null; return; }
+  const r = $('clock').getBoundingClientRect();
+  const inClock = S.focus && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  touchStart = { x: e.clientX, y: e.clientY, clock: inClock };
+});
 document.addEventListener('pointerup', e => {
   const s = touchStart;
   touchStart = null;
   if (!s || !$('settings').hidden) return;
   const dx = e.clientX - s.x, dy = e.clientY - s.y;
   if (Math.hypot(dx, dy) >= Math.min(innerWidth, innerHeight) * .08) {
-    showPanel(panel + ((Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? 1 : -1));
+    const dir = (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? 1 : -1;
+    if (s.clock) showCm(cm + dir);
+    else showPanel(panel + dir);
     lastTap = 0;
   } else if (e.timeStamp - lastTap < 400) {
     openSettings();
@@ -1367,6 +1433,146 @@ document.addEventListener('pointerup', e => {
     lastTap = e.timeStamp;
   }
 });
+
+// ===== 시계 쪽 기능: 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면에서 시계 쪽을 밀어서 넘김) =====
+// 화면(앱)이 켜져 있어야 울림. 스톱워치·타이머는 새로고침하면 초기화, 알람 시각은 설정에 저장
+const CM = ['clock', 'sw', 'tm', 'al'];
+let cm = 0, cmAt = 0;
+function showCm(i) {
+  cm = (i + CM.length) % CM.length;
+  document.body.dataset.cm = CM[cm];
+  cmAt = Date.now();
+  renderCm();
+}
+function renderCm() {
+  if (CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); }
+  else if (CM[cm] === 'tm') renderTm();
+  else if (CM[cm] === 'al') renderAl();
+}
+// 숫자마다 고정 폭 칸에 넣어서 빨리 바뀌어도 흔들리지 않게
+const digits = (el, s) => { const h = [...s].map(c => `<i>${c}</i>`).join(''); if (el.innerHTML !== h) el.innerHTML = h; };
+
+// 스톱워치: 분 / 초 / 1/100초
+const sw = { from: 0, acc: 0, run: false };
+const swTime = () => sw.acc + (sw.run ? performance.now() - sw.from : 0);
+function renderSw() {
+  const t = swTime();
+  digits($('sw-m'), pad(Math.floor(t / 6e4)));
+  digits($('sw-s'), pad(Math.floor(t / 1e3) % 60));
+  digits($('sw-cs'), pad(Math.floor(t / 10) % 100));
+  $('sw-go').textContent = sw.run ? '정지' : t ? '계속' : '시작';
+  $('sw-go').classList.toggle('on', sw.run);
+}
+function swLoop() { if (sw.run && CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); } }
+
+// 타이머: 분·초를 +/−로 맞추고 시작. 끝나면 울림
+const tm = { set: 300, left: 300, end: 0, run: false };   // 초
+const tmLeft = () => tm.run ? Math.max(0, (tm.end - Date.now()) / 1e3) : tm.left;
+function renderTm() {
+  const t = Math.ceil(tmLeft());
+  digits($('tm-m'), pad(Math.floor(t / 60)));
+  digits($('tm-s'), pad(t % 60));
+  $('tm-go').textContent = tm.run ? '정지' : tm.left < tm.set ? '계속' : '시작';
+  $('tm-go').classList.toggle('on', tm.run);
+}
+setInterval(() => {
+  if (!tm.run) return;
+  if (tmLeft() <= 0) { tm.run = false; tm.left = tm.set; ring('타이머 끝'); }
+  if (CM[cm] === 'tm') renderTm();
+}, 250);
+
+// 알람: 시·분을 +/−로 맞추고 켜기 (24시간 기준, 설정에 저장)
+function renderAl() {
+  digits($('al-h'), pad(S.alarm.h));
+  digits($('al-m'), pad(S.alarm.m));
+  $('al-go').textContent = S.alarm.on ? '켜짐' : '꺼짐';
+  $('al-go').classList.toggle('on', S.alarm.on);
+}
+function checkAlarm(d) {
+  if (S.alarm.on && d.getSeconds() === 0 && d.getHours() === S.alarm.h && d.getMinutes() === S.alarm.m) {
+    ring(`알람 ${pad(S.alarm.h)}:${pad(S.alarm.m)}`);
+  }
+}
+
+// 버튼: +/−는 누르고 있으면 빠르게 반복, 나머지는 한 번
+function cmStep(b) {
+  const d = b.dataset;
+  if (d.tm && !isNaN(d.tm) && !tm.run) {
+    tm.set = Math.min(99 * 60 + 59, Math.max(10, tm.set + Number(d.tm)));
+    tm.left = tm.set;
+    renderTm();
+  } else if (d.al && !isNaN(d.al)) {
+    const t = ((S.alarm.h * 60 + S.alarm.m + Number(d.al)) % 1440 + 1440) % 1440;
+    S.alarm.h = Math.floor(t / 60); S.alarm.m = t % 60;
+    saveSettings(); renderAl();
+  }
+}
+let holdTimer;
+$('clock').addEventListener('pointerdown', e => {
+  const b = e.target.closest('.cm-pm button');
+  if (!b) return;
+  unlockSound();
+  cmAt = Date.now();
+  cmStep(b);
+  holdTimer = setTimeout(function again() { cmStep(b); holdTimer = setTimeout(again, 90); }, 450);
+});
+document.addEventListener('pointerup', () => clearTimeout(holdTimer));
+document.addEventListener('pointercancel', () => clearTimeout(holdTimer));
+$('clock').addEventListener('click', e => {
+  const b = e.target.closest('.cm-ctl button');
+  if (!b) return;
+  unlockSound();
+  cmAt = Date.now();
+  const d = b.dataset;
+  if (d.sw === 'go') {
+    if (sw.run) { sw.acc = swTime(); sw.run = false; } else { sw.from = performance.now(); sw.run = true; }
+  } else if (d.sw === 'reset') { sw.run = false; sw.acc = 0; }
+  else if (d.tm === 'go') {
+    if (tm.run) { tm.left = tmLeft(); tm.run = false; } else { tm.end = Date.now() + tm.left * 1e3; tm.run = true; }
+  } else if (d.tm === 'reset') { tm.run = false; tm.left = tm.set; }
+  else if (d.al === 'toggle') { S.alarm.on = !S.alarm.on; saveSettings(); }
+  renderCm();
+});
+
+// 울림: 소리(삐삐삐)·진동을 1.5초마다, 3분 동안. 아무 데나 누르면 끔
+// 브라우저는 사람이 화면을 한 번 누른 뒤에만 소리를 내게 해서, 버튼을 누를 때 소리를 미리 켜 둠
+let actx = null, ringTimer = null;
+function unlockSound() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+}
+function beep() {
+  if (!actx) return;
+  const t = actx.currentTime;
+  [0, .22, .44].forEach(k => {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(.0001, t + k);
+    g.gain.exponentialRampToValueAtTime(.35, t + k + .02);
+    g.gain.exponentialRampToValueAtTime(.0001, t + k + .18);
+    o.connect(g).connect(actx.destination);
+    o.start(t + k); o.stop(t + k + .2);
+  });
+}
+function ring(title) {
+  $('ring-title').textContent = title;
+  $('ring').hidden = false;
+  const until = Date.now() + 180e3;
+  clearInterval(ringTimer);
+  const once = () => {
+    if (Date.now() > until) return stopRing();
+    beep();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+  };
+  once();
+  ringTimer = setInterval(once, 1500);
+}
+function stopRing() { clearInterval(ringTimer); $('ring').hidden = true; }
+$('ring').addEventListener('click', stopRing);
+
+// 시계가 아닌 화면에서 3분 동안 아무것도 안 하면(돌아가는 게 없으면) 시계로 돌아감
+function cmIdleCheck() {
+  if (cm && !sw.run && !tm.run && Date.now() - cmAt > 180e3) showCm(0);
+}
 
 // ===== 설정 화면 =====
 let settingsAt = 0;
