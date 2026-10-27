@@ -476,9 +476,11 @@ body.sb.night::after{background:#ff3b30}
 
 <script>
 // ===== 설정 =====
-// URL 파라미터로 바꿀 수 있음: index.html?lat=35.1796&lon=129.0756&name=부산
+// 위치: 기본은 기기 위치(처음 한 번 위치 권한 허용). 주소에 좌표를 주면 그 위치로 고정
+//   index.html?lat=35.1796&lon=129.0756&name=부산
 // mode=standby: 스탠바이 화면 강제 / mode=mirror: 스탠바이 끔 (없으면 화면 크기로 자동)
 const params = new URLSearchParams(location.search);
+const MANUAL_LOC = params.has('lat') && params.has('lon');
 const CONFIG = {
   lat: parseFloat(params.get('lat')) || 37.5665,
   lon: parseFloat(params.get('lon')) || 126.9780,
@@ -652,15 +654,21 @@ function load(key, maxAge) {
   return null;
 }
 
+// 요청하는 사이 위치가 바뀌었으면(기기 위치 확인 직후) 늦게 온 이전 위치 응답은 버림
+const sameLoc = ({ lat, lon }) => lat === CONFIG.lat && lon === CONFIG.lon;
+
 async function loadWeather() {
+  const at = { lat: CONFIG.lat, lon: CONFIG.lon };
   const url = 'https://api.open-meteo.com/v1/forecast?' + new URLSearchParams({
-    latitude: CONFIG.lat, longitude: CONFIG.lon, timezone: 'auto', past_days: 1, forecast_days: 6,
+    latitude: at.lat, longitude: at.lon, timezone: 'auto', past_days: 1, forecast_days: 6,
     current: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,uv_index',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
     hourly: 'temperature_2m,weather_code,precipitation_probability,is_day'
   });
   try {
-    state.weather = await getJSON(url);
+    const data = await getJSON(url);
+    if (!sameLoc(at)) return;
+    state.weather = data;
     state.weatherAt = Date.now();
     state.weatherErr = false;
     save('weather', state.weather);
@@ -673,11 +681,14 @@ async function loadWeather() {
 }
 
 async function loadAir() {
+  const at = { lat: CONFIG.lat, lon: CONFIG.lon };
   const url = 'https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
-    latitude: CONFIG.lat, longitude: CONFIG.lon, timezone: 'auto', current: 'pm10,pm2_5'
+    latitude: at.lat, longitude: at.lon, timezone: 'auto', current: 'pm10,pm2_5'
   });
   try {
-    state.air = await getJSON(url);
+    const data = await getJSON(url);
+    if (!sameLoc(at)) return;
+    state.air = data;
     state.airErr = false;
     save('air', state.air);
   } catch (e) {
@@ -686,6 +697,47 @@ async function loadAir() {
   }
   renderAir();
   renderFoot();
+}
+
+// ===== 위치 =====
+// 기기 위치 → 동네 이름(OpenStreetMap)으로 바꿔 저장. 실패하면 마지막 위치, 그것도 없으면 서울
+// 좌표는 소수 둘째 자리(약 1km)까지만 써서 바깥 API로 보냄
+const LOC_KEY = 'mirror_loc';
+const round2 = v => Math.round(v * 100) / 100;
+const FALLBACK_NAME = '내 위치';
+
+function savedLoc() {
+  try { return JSON.parse(localStorage.getItem(LOC_KEY)); } catch (e) { return null; }
+}
+function useLoc(loc) {
+  CONFIG.lat = loc.lat; CONFIG.lon = loc.lon; CONFIG.name = loc.name;
+}
+
+// 예: 서울 강남구, 성남시 분당구, 양평군, 제주시
+async function placeName(lat, lon) {
+  const r = await getJSON('https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({
+    format: 'jsonv2', lat, lon, zoom: 14, 'accept-language': 'ko'
+  }));
+  const a = r.address || {};
+  const city = (a.city || a.province || '').replace(/(특별시|광역시|특별자치시)$/, '');
+  const district = a.borough || a.county;
+  return district ? (a.city ? city + ' ' : '') + district : city || FALLBACK_NAME;
+}
+
+function locate() {
+  if (MANUAL_LOC || !navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = round2(pos.coords.latitude), lon = round2(pos.coords.longitude);
+    const prev = savedLoc();
+    if (prev && prev.lat === lat && prev.lon === lon && prev.name !== FALLBACK_NAME) return;
+    let name = FALLBACK_NAME;
+    try { name = await placeName(lat, lon); } catch (e) { console.warn('지역 이름 확인 실패', e); }
+    const loc = { lat, lon, name };
+    try { localStorage.setItem(LOC_KEY, JSON.stringify(loc)); } catch (e) {}
+    useLoc(loc);
+    loadWeather();
+    loadAir();
+  }, err => console.warn('위치 확인 실패', err.message), { timeout: 20000, maximumAge: 6 * 3600e3 });
 }
 
 // ===== 렌더링 =====
@@ -1002,6 +1054,7 @@ function scheduleReload() {
 // ===== 시작 =====
 (function init() {
   document.body.classList.toggle('sb', isStandby());
+  if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
   const cw = load('weather', 3 * 3600e3);
   if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
   const ca = load('air', 3 * 3600e3);
@@ -1022,6 +1075,7 @@ function scheduleReload() {
 
   loadWeather();
   loadAir();
+  locate();
   setInterval(loadWeather, CONFIG.weatherEvery);
   setInterval(loadAir, CONFIG.airEvery);
   setInterval(nextPhrase, CONFIG.phraseEvery);
