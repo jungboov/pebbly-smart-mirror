@@ -529,6 +529,17 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   /* 위젯 위치 점: 아래 가운데 가로로 */
   body.sb .sb-dots{top:auto;bottom:3rem;right:auto;left:50%;transform:translateX(-50%);flex-direction:row}
   .sb-dots i.on{width:3.4rem;height:1.2rem}
+  /* 세로 배치 '반반'(설정): 위 절반 시계 / 아래 절반 위젯, 각자 칸 가운데. 시계는 위 절반 높이에 맞춤 (fitClock) */
+  body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
+  body.sb.half .clock{align-self:center}
+  body.sb.half .wmain, body.sb.half .hourly, body.sb.half .wave, body.sb.half .cards, body.sb.half .transit{align-self:center}
+  body.sb.half .transit{max-height:100%}
+  /* 반반 음악: 아래 칸 전체를 써서 위 앨범아트(남는 높이 가득, 가운데) / 아래 곡 정보·버튼 */
+  body.sb.half .music{align-self:stretch;flex-direction:column}
+  body.sb.half.has-music .music{display:flex}
+  body.sb.half .mu-main{flex:1;min-height:0;flex-direction:column;align-items:center;gap:2.4rem}
+  body.sb.half .mu-video{flex:1;width:100%;min-height:0;aspect-ratio:auto}
+  body.sb.half .mu-side{flex:none;width:min(100%, 64rem)}
 }
 
 /* 폰(OLED): 번인 방지로 JS가 1분마다 화면 전체를 몇 px씩 옮김 */
@@ -755,6 +766,9 @@ body.sb.phone.night::after{background:#ff3b30}
     <div class="set-row">시계 강조
       <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
     </div>
+    <div class="set-row">세로 배치
+      <div class="seg" data-key="half"><button data-v="0">시계 크게</button><button data-v="1">반반</button></div>
+    </div>
     <div class="set-row">날씨 자동 넘김
       <div class="step"><button data-d="-5" aria-label="5초 줄이기">−</button><span id="set-rotate"></span><button data-d="5" aria-label="5초 늘리기">+</button></div>
     </div>
@@ -817,11 +831,12 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
 // hour12: 12시간제 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
+// half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), rotate: 10, transit: [],
+  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -905,9 +920,10 @@ function fitClock() {
     const stage = $('stage'), st = getComputedStyle(stage);
     // 날짜는 시계 옆에 있어서 높이는 안 씀
     const portrait = innerHeight > innerWidth;
-    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
-      - parseFloat(getComputedStyle($('clock')).paddingBottom);
-    if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+    if (portrait && S.half) h /= 2;   // 반반: 위 절반
+    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
     // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭. 여기서 라벨과 오른쪽 날짜 칸을 뺌
     const w = portrait ? $('clock').clientWidth
       : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
@@ -1451,6 +1467,7 @@ function applyMode() {
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
 function applySettings() {
   document.body.classList.toggle('sb', S.focus);
+  document.body.classList.toggle('half', S.half);
   document.body.classList.toggle('has-tr', S.transit.length > 0);
   document.body.classList.toggle('has-music', !!gSaved());
   trRenderList();
