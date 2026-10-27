@@ -510,7 +510,17 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
     grid-template-areas:"clock" "." "panel";
     padding:6rem 6.5rem 8rem;
   }
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:end;margin:0}
+  /* 위젯은 모두 위젯 칸 높이를 채움: 제목은 칸 맨 위에 고정(넘겨도 안 움직임), 내용이 남은 높이를 채움
+     칸 높이는 시계 크게면 가장 높은 위젯, 반반이면 아래 절반 */
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch;margin:0}
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .music{flex-direction:column}
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb.has-music .music{display:flex}
+  body.sb .w-hero{flex-grow:1}   /* 기온·설명은 제목과 정보 카드 사이 가운데 */
+  body.sb .h-plot, body.sb .wave-plot{flex-grow:1}   /* 그래프가 남는 높이만큼 커짐 */
+  body.sb .cards{grid-template-rows:auto 1fr}
+  body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}   /* 카드가 길어져도 숫자는 가운데 */
+  body.sb .sun-card{justify-content:center}
+  body.sb .mu-main{flex:1;min-height:0}
   /* 교통 위젯이 길어지면 시계가 작아지므로 다른 위젯 높이만큼만 */
   body.sb .transit{max-height:46rem;overflow:hidden}
   body.sb .w-stats{grid-template-columns:repeat(4,1fr)}
@@ -529,17 +539,14 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   /* 위젯 위치 점: 아래 가운데 가로로 */
   body.sb .sb-dots{top:auto;bottom:3rem;right:auto;left:50%;transform:translateX(-50%);flex-direction:row}
   .sb-dots i.on{width:3.4rem;height:1.2rem}
-  /* 세로 배치 '반반'(설정): 위 절반 시계 / 아래 절반 위젯, 각자 칸 가운데. 시계는 위 절반 높이에 맞춤 (fitClock) */
+  /* 세로 배치 '반반'(설정): 위 절반 시계(가운데) / 아래 절반 위젯. 시계는 위 절반 높이에 맞춤 (fitClock) */
   body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
   body.sb.half .clock{align-self:center}
-  body.sb.half .wmain, body.sb.half .hourly, body.sb.half .wave, body.sb.half .cards, body.sb.half .transit{align-self:center}
   body.sb.half .transit{max-height:100%}
-  /* 반반 음악: 아래 칸 전체를 써서 위 앨범아트(남는 높이 가득, 가운데) / 아래 곡 정보·버튼 */
-  body.sb.half .music{align-self:stretch;flex-direction:column}
-  body.sb.half.has-music .music{display:flex}
-  body.sb.half .mu-main{flex:1;min-height:0;flex-direction:column;align-items:center;gap:2.4rem}
+  /* 반반 음악: 위 앨범아트(남는 높이 가득, 가운데) / 아래 곡 정보·버튼(좌우 가득) */
+  body.sb.half .mu-main{flex-direction:column;align-items:stretch;gap:2.4rem}
   body.sb.half .mu-video{flex:1;width:100%;min-height:0;aspect-ratio:auto}
-  body.sb.half .mu-side{flex:none;width:min(100%, 64rem)}
+  body.sb.half .mu-side{flex:none}
 }
 
 /* 폰(OLED): 번인 방지로 JS가 1분마다 화면 전체를 몇 px씩 옮김 */
