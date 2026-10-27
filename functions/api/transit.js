@@ -135,10 +135,12 @@ async function seoulAt(env, id) {
   const items = await seoul(env, 'stationinfo/getStationByUid', { arsId: ars }, 30);
   return st ? items.filter(i => i.stId == null || String(i.stId) === st) : items;
 }
+// 순환 노선은 한 정류장을 방향별로 두 번 지나서(예: 6613 대림역·양천공영차고지 방향) 노선 id에 방향을 붙임
+const seoulRouteId = r => `${r.busRouteId}~${r.adirection || ''}`;
 const seoulRoutes = async (env, id) =>
-  (await seoulAt(env, id)).map(r => ({ id: String(r.busRouteId), name: String(r.rtNm), dest: r.adirection ? `${r.adirection} 방향` : '' }));
+  (await seoulAt(env, id)).map(r => ({ id: seoulRouteId(r), name: String(r.rtNm), dest: r.adirection ? `${r.adirection} 방향` : '' }));
 const seoulArrivals = async (env, id) =>
-  (await seoulAt(env, id)).map(a => ({ routeId: String(a.busRouteId), ...arrMsg(a.arrmsg1, 1), ...arrMsg(a.arrmsg2, 2) }));
+  (await seoulAt(env, id)).map(a => ({ routeId: seoulRouteId(a), ...arrMsg(a.arrmsg1, 1), ...arrMsg(a.arrmsg2, 2) }));
 // '3분12초후[2번째 전]' → 3.2분, '곧 도착' → 0, '운행종료'·'출발대기' 등은 글자 그대로
 function arrMsg(m, n) {
   m = String(m || '').trim();
