@@ -259,32 +259,38 @@ body.alt .hourly{opacity:0}
   .sun-arc{margin-top:.6rem}
 }
 
-/* ── 스탠바이: 휴대폰을 가로로 눕혀 충전할 때 (높이 낮은 가로 화면이면 자동, ?mode=standby로 강제)
-   왼쪽 큰 시계 / 오른쪽 위젯 하나가 10초마다 바뀜 (지금 날씨 → 시간별 → 일별 → 공기·해) ── */
+/* ── 시계 강조 (기본. ?mode=detail이면 위의 상세 화면): 멀리서도 보이게 시·분·초를 세로로 쌓은 큰 시계
+   + 날씨 위젯 하나가 10초마다 바뀜 (지금 날씨 → 시간별 → 일별 → 공기·해)
+   가로는 왼쪽 시계 | 오른쪽 위젯, 세로는 위 시계 / 아래 위젯 ── */
 .sb-dots{display:none}
 body.sb .stage{
-  grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);
-  grid-template-rows:1fr auto auto auto 1fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:1fr auto auto 1fr;
   grid-template-areas:
-    ".      panel"
-    "clock  panel"
-    "date   panel"
-    "phrase panel"
-    ".      panel";
+    ".     panel"
+    "clock panel"
+    "date  panel"
+    ".     panel";
   column-gap:8rem;
   padding:5rem max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
-  /* OLED 번인 방지: JS가 1분마다 화면 전체를 몇 px씩 옮김 */
-  transform:translate(var(--sx, 0px), var(--sy, 0px));
   transition:opacity 3s, filter 3s, transform 2s;
 }
-body.sb .head, body.sb .zone{display:none}
-body.sb .clock{padding-bottom:3.5rem}
-body.sb .clock-in{width:max-content}
-body.sb .clock .lbl{font-size:2.6rem;margin-bottom:2rem}
+body.sb .head, body.sb .zone, body.sb .phrase{display:none}
+body.sb .clock{padding-bottom:6rem}
+/* 세로 라벨 | 숫자 — 시 / 분 / 초(절반 크기) 3줄. 크기는 JS(fitClock)가 칸 폭·남는 높이에 맞춤 */
+body.sb .clock-in{width:max-content;grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss";justify-content:start;column-gap:2rem;row-gap:.04em}
+body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
+body.sb #hh{grid-area:hh} body.sb #mm{grid-area:mm}
+body.sb #lbl-gap, body.sb #colon, body.sb .sgroup .colon{display:none}
+body.sb .clock .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1;margin:0;padding:0}
+/* 초 줄은 낮아서 세로 라벨이 안 들어감 → 작은 초 숫자(폭 .835 × 시계 크기) 바로 오른쪽에 가로로 */
+body.sb .clock #lbl-s{grid-area:ss;justify-self:start;margin-left:calc(var(--clock) * .86 + 1.6rem);writing-mode:horizontal-tb;transform:none}
+/* 초: 위아래로 비치는 이웃 숫자는 줄 높이에 넣지 않고 위 여백·시계 아래 여백으로 넘치게 둠 */
+body.sb .sgroup{grid-area:ss;font-size:.5em;margin:.24em 0 0}
+body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0}
 body.sb .date{align-self:start;display:flex;align-items:baseline;gap:2.4rem}
 body.sb .date-num{font-size:6.4rem}
 body.sb .date-day{margin-top:0;font-size:4rem}
-body.sb .phrase{align-self:start;margin-top:3rem;font-size:3.6rem;font-weight:400;line-height:1.4;color:var(--text-muted)}
 
 /* 위젯 4개가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임 */
 body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{
@@ -295,11 +301,11 @@ body.sb[data-panel="0"] .wmain, body.sb[data-panel="1"] .hourly,
 body.sb[data-panel="2"] .wave, body.sb[data-panel="3"] .cards{opacity:1 !important;transform:none}
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
-body.sb .wmain::before{content:'now'}
+body.sb .wmain::before{content:'now · ' attr(data-loc)}
 body.sb .cards::before{content:'air · sun';grid-column:1 / -1;margin-bottom:0}
 body.sb .f-lbl{font-size:2.6rem;line-height:1.2;margin-bottom:2.6rem}
 
-body.sb .w-hero{gap:3.2rem}
+body.sb .w-hero{justify-self:start;gap:3.2rem}
 body.sb .w-temp{font-size:19rem}
 body.sb .w-desc{padding-left:3.2rem}
 body.sb .w-title{font-size:5.4rem;gap:1.6rem}
@@ -351,10 +357,40 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
 body[data-panel="0"] .sb-dots i:nth-child(1), body[data-panel="1"] .sb-dots i:nth-child(2),
 body[data-panel="2"] .sb-dots i:nth-child(3), body[data-panel="3"] .sb-dots i:nth-child(4){height:3.4rem;background:#fff}
 
-/* 밤: 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 */
-body.sb.night .stage{opacity:.8;filter:grayscale(1)}
-body.sb::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
-body.sb.night::after{background:#ff3b30}
+/* 세로: 위젯을 넓고 낮게 (정보 카드 4장 한 줄, 공기·해 카드 3장 한 줄) 해서 남는 높이를 시계에 줌 */
+@media (orientation: portrait){
+  body.sb .stage{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto 1fr auto;
+    grid-template-areas:"clock" "date" "." "panel";
+    padding:6rem 6.5rem 8rem;
+  }
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{align-self:end}
+  body.sb .w-stats{grid-template-columns:repeat(4,1fr)}
+  body.sb .w-stats .card{display:flex;padding:1.8rem 2rem}
+  body.sb .w-stats .c-val{margin-top:.8rem;font-size:5.6rem}
+  body.sb .w-stats .c-sub{margin-top:auto;padding-top:.8rem}
+  body.sb .h-plot{height:8rem;margin-top:1.6rem}
+  body.sb .h-bars{margin-top:1.6rem}
+  body.sb .bar{height:3.4rem}
+  body.sb .cards{grid-template-columns:1fr 1fr 1.5fr}
+  body.sb .sun-card{grid-column:auto;display:flex;align-items:stretch}
+  body.sb .sun-times{display:flex;font-size:2.6rem}
+  body.sb .sun-times b{font-size:3.8rem}
+  body.sb .sun-times div:last-child{order:0}
+  body.sb .sun-arc{order:0;margin-top:-1rem}
+  /* 위젯 위치 점: 아래 가운데 가로로 */
+  body.sb .sb-dots{top:auto;bottom:3rem;right:auto;left:50%;transform:translateX(-50%);flex-direction:row}
+  body[data-panel="0"] .sb-dots i:nth-child(1), body[data-panel="1"] .sb-dots i:nth-child(2),
+  body[data-panel="2"] .sb-dots i:nth-child(3), body[data-panel="3"] .sb-dots i:nth-child(4){width:3.4rem;height:1.2rem}
+}
+
+/* 폰(OLED): 번인 방지로 JS가 1분마다 화면 전체를 몇 px씩 옮김 */
+body.sb.phone .stage{transform:translate(var(--sx, 0px), var(--sy, 0px))}
+/* 폰 밤: 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 (태블릿 미러는 기본 밤 어둡게) */
+body.sb.phone.night .stage{opacity:.8;filter:grayscale(1)}
+body.sb.phone::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
+body.sb.phone.night::after{background:#ff3b30}
 </style>
 </head>
 <body class="idle" data-panel="0">
@@ -372,15 +408,15 @@ body.sb.night::after{background:#ff3b30}
 
   <section id="clock" class="clock">
     <div id="clock-in" class="clock-in">
-      <span class="lbl">hours</span><span></span><span class="lbl">minutes</span><span class="lbl lbl-s">seconds</span>
-      <div><span class="roll" id="h1"></span><span class="roll" id="h2"></span></div>
+      <span class="lbl" id="lbl-h">hours</span><span id="lbl-gap"></span><span class="lbl" id="lbl-m">minutes</span><span class="lbl lbl-s" id="lbl-s">seconds</span>
+      <div id="hh"><span class="roll" id="h1"></span><span class="roll" id="h2"></span></div>
       <div id="colon" class="colon">:</div>
-      <div><span class="roll" id="m1"></span><span class="roll" id="m2"></span></div>
+      <div id="mm"><span class="roll" id="m1"></span><span class="roll" id="m2"></span></div>
       <div id="sgroup" class="sgroup"><span class="colon">:</span><span class="roll peek" id="s"></span></div>
     </div>
   </section>
 
-  <section class="date">
+  <section id="date" class="date">
     <div id="date-num" class="date-num"></div>
     <div id="date-day" class="date-day"></div>
   </section>
@@ -479,7 +515,7 @@ body.sb.night::after{background:#ff3b30}
 // ===== 설정 =====
 // 위치: 기본은 기기 위치(처음 한 번 위치 권한 허용). 주소에 좌표를 주면 그 위치로 고정
 //   index.html?lat=35.1796&lon=129.0756&name=부산
-// mode=standby: 스탠바이 화면 강제 / mode=mirror: 스탠바이 끔 (없으면 화면 크기로 자동)
+// mode=detail: 시계 강조 대신 상세 화면 (날씨 카드·12시간 그래프·문구 모두 표시)
 const params = new URLSearchParams(location.search);
 const MANUAL_LOC = params.has('lat') && params.has('lon');
 const CONFIG = {
@@ -555,15 +591,31 @@ const setM1 = roller($('m1'), range(6), true);
 const setM2 = roller($('m2'), range(10), true);
 const setS = roller($('s'), range(60, pad));
 
-// 시계가 가장 넓은 시각(예: 00:00)에도 자기 칸에 들어가도록 글자 크기 계산
-// (폰트 로드·화면 회전 때마다 다시 맞춤. 분마다 크기가 바뀌지 않도록 실제 시각 폭은 쓰지 않음)
+// 날씨 위젯 4개 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
+const PANELS = ['.wmain', '#hourly', '#wave', '.cards'].map(s => document.querySelector(s));
+
+// 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)
+// 가장 넓은 시각(예: 00:00) 기준이라 분마다 크기가 바뀌지 않음
 function fitClock() {
   const inner = $('clock-in');
   const fs = parseFloat(getComputedStyle(inner).fontSize);
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   const wmax = digitW ? Math.max(...Object.values(digitW)) : .834;
-  const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
-  inner.style.setProperty('--clock', ($('clock').clientWidth / widestEm / rem * .99) + 'rem');
+  let size;
+  if (document.body.classList.contains('sb')) {
+    // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
+    // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12
+    const stage = $('stage'), st = getComputedStyle(stage);
+    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
+      - $('date').offsetHeight - parseFloat(getComputedStyle($('clock')).paddingBottom);
+    if (innerHeight > innerWidth) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 세로: 아래 위젯 자리
+    const lbl = $('lbl-h').offsetWidth + parseFloat(getComputedStyle(inner).columnGap);
+    size = Math.min(($('clock').clientWidth - lbl) / (2 * wmax + .02), h / 2.25);
+  } else {
+    const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
+    size = $('clock').clientWidth / widestEm;
+  }
+  inner.style.setProperty('--clock', (size / rem * .99) + 'rem');
 }
 
 // ===== 시계 =====
@@ -826,6 +878,7 @@ function renderWeather() {
   renderHourly(w);
   renderWave(w);
   renderSun();
+  fitClock();   // 세로 시계 강조 화면은 위젯 높이에 따라 시계 크기가 정해짐
 }
 
 // 자외선 지수 단계 (기상청 기준) → [단계, 등급색]
@@ -956,6 +1009,7 @@ function renderFoot() {
   }
   if (state.weatherErr || state.airErr) s += ' · 연결 확인 중';
   $('foot').textContent = s;
+  PANELS[0].dataset.loc = CONFIG.name;   // 시계 강조 화면은 상단 바가 없어서 'now' 위젯 제목에 위치 표시
 }
 
 // ===== 문구 =====
@@ -1016,17 +1070,17 @@ function nextPhrase(first) {
   setTimeout(() => { el.textContent = text; el.classList.remove('fade'); }, 1200);
 }
 
-// ===== 스탠바이 (휴대폰 가로 충전 화면) =====
-// 높이가 낮은 가로 화면(휴대폰)이면 자동으로 켜짐
-const standbyMQ = matchMedia('(orientation: landscape) and (max-height: 540px)');
-const isStandby = () => params.get('mode') ? params.get('mode') === 'standby' : standbyMQ.matches;
+// ===== 화면 모드 =====
+// 기본은 시계 강조(sb), ?mode=detail이면 상세 화면. 폰 크기 화면은 밤 붉은 화면·번인 방지가 더해짐
+const FOCUS = !['detail', 'mirror'].includes(params.get('mode'));
+const phoneMQ = matchMedia('(max-width: 540px), (max-height: 540px)');
 function applyMode() {
-  document.body.classList.toggle('sb', isStandby());
-  renderWeather();   // 시간별 예보 칸 수가 달라짐
+  document.body.classList.toggle('sb', FOCUS);
+  document.body.classList.toggle('phone', phoneMQ.matches);
   fitClock();
 }
 
-// OLED 번인 방지: 1분마다 화면 전체를 몇 px씩 옮김 (스탠바이에서만 CSS가 적용)
+// OLED 번인 방지: 1분마다 화면 전체를 몇 px씩 옮김 (폰 시계 강조 화면에서만 CSS가 적용)
 const SHIFT = [[0, 0], [3, 0], [3, 3], [0, 3], [-3, 3], [-3, 0], [-3, -3], [0, -3], [3, -3]];
 function shiftPixels(m) {
   const [x, y] = SHIFT[m % SHIFT.length];
@@ -1059,7 +1113,7 @@ function scheduleReload() {
 
 // ===== 시작 =====
 (function init() {
-  document.body.classList.toggle('sb', isStandby());
+  applyMode();
   if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
   const cw = load('weather', 3 * 3600e3);
   if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
@@ -1077,7 +1131,7 @@ function scheduleReload() {
     fitClock();
   });
   window.addEventListener('resize', fitClock);
-  standbyMQ.addEventListener('change', applyMode);
+  phoneMQ.addEventListener('change', applyMode);
 
   loadWeather();
   loadAir();
