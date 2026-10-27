@@ -171,8 +171,9 @@ function subwayArrival(a) {
   if (code === '0' || code === '1') min = 0;
   else if (sec > 0) min = sec / 60;
   else if (t) min = Number(t[1]);
-  else if (['3', '4', '5'].includes(code) || /전역/.test(m)) text = '전역';
-  else if (n) text = `${n[1]}정거장 전`;
+  else if (['3', '4', '5'].includes(code)) text = '전역';
+  else if (n) text = `${n[1]}정거장 전`;   // '[5]번째 전역'에도 '전역'이 들어 있어서 정거장 수를 먼저 봄
+  else if (/전역/.test(m)) text = '전역';
   else text = m.replace(/\(.*\)/, '').trim() || null;
   const ord = min != null ? min : text === '전역' ? 1.5 : n ? Number(n[1]) * 2 : 99;
   return {
