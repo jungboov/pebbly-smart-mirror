@@ -371,6 +371,12 @@ body.sb.has-tr .transit{display:block}
 .tr-row em{font-style:normal;font-weight:600;color:var(--bad)}
 .tr-row .tr-x{margin-left:.6rem;font-size:2.4rem;font-weight:600;color:var(--rain)}
 .tr-row .tr-st{margin-left:.6rem;font-size:2.4rem;font-weight:400;color:var(--text-dim)}
+/* 제목 줄: transit · 16:42:10 기준 ……… [새로고침] */
+.tr-top{display:flex;align-items:center;gap:1.4rem}
+#tr-at{color:var(--text-dim)}
+#tr-reload{margin-left:auto;padding:.9rem 2rem;border:1px solid var(--card-bd);border-radius:999px;background:none;
+  font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-size:2.4rem;font-weight:600;color:var(--text-muted);cursor:pointer}
+#tr-reload:disabled{opacity:.5}
 .tr-none{font-size:3rem;color:var(--text-dim)}
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
@@ -654,7 +660,7 @@ body.sb.phone.night::after{background:#ff3b30}
   </section>
 
   <section id="transit" class="transit">
-    <div class="lbl f-lbl">transit</div>
+    <div class="lbl f-lbl tr-top">transit<span id="tr-at"></span><button id="tr-reload">새로고침</button></div>
     <div id="tr-board"></div>
   </section>
 
@@ -1358,7 +1364,7 @@ function applySettings() {
   showCm(S.focus ? cm : 0);   // 스톱워치·타이머·알람은 시계 강조 화면에서만
   document.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b =>
     b.classList.toggle('on', b.dataset.v === String(+S[seg.dataset.key]))));
-  $('set-rotate').textContent = S.rotate + '초';
+  $('set-rotate').textContent = S.rotate ? S.rotate + '초' : '끔';
 }
 
 // ===== 공휴일 =====
@@ -1395,16 +1401,16 @@ async function loadHolidays(y) {
 
 // ===== 날씨 위젯 넘기기 =====
 // 시계 강조: 위젯 4개(교통 등록 시 5개)를 차례로 / 상세 세로: 시간별 ↔ 일별
-// S.rotate초마다 자동, 화면을 밀면 바로 넘김
+// S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김
 let panel = 0, panelTimer;
 function showPanel(p) {
   const n = S.focus && S.transit.length ? 5 : 4;
   panel = (p + n) % n;
   document.body.dataset.panel = panel;
   document.body.classList.toggle('alt', panel % 2 === 1);
-  if (panel === 4) { renderBoard(); if (Date.now() - boardAt > 50e3) loadBoard(); }
+  if (panel === 4) { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
   clearTimeout(panelTimer);
-  panelTimer = setTimeout(() => showPanel(panel + 1), S.rotate * 1000);
+  if (S.rotate > 0) panelTimer = setTimeout(() => showPanel(panel + 1), S.rotate * 1000);
 }
 
 // ===== 터치 =====
@@ -1586,7 +1592,7 @@ $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
   if (b && b.parentNode.classList.contains('seg')) S[b.parentNode.dataset.key] = b.dataset.v === '1';
-  else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(5, S.rotate + Number(b.dataset.d)));
+  else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
     return;
@@ -1714,24 +1720,36 @@ $('tr-sec').addEventListener('click', e => {
 });
 $('tr-q').addEventListener('keydown', e => { if (e.key === 'Enter') trSearch(); });
 
-// 도착 정보: 교통 위젯이 보일 때 50초 이상 지났으면 새로 받음 (서버도 30초 캐시)
-// 받아 온 뒤 지난 시간만큼 남은 분을 줄여서 보여줌
-let board = null, boardAt = 0, boardBusy = false;
+// 도착 정보: 교통 위젯이 보일 때, 그리고 보이는 동안 30초마다 새로 받음 (서버도 30초 캐시)
+// 그 사이에는 받아 온 뒤 지난 시간만큼 남은 분을 줄여서 보여줌. 제목에 받아 온 시각, 새로고침 버튼
+let board = null, boardAt = 0, boardBusy = false, boardErr = false;
 async function loadBoard() {
   if (!S.transit.length || boardBusy) return;
   boardBusy = true;
+  $('tr-reload').disabled = true;
   const bus = [...new Set(S.transit.filter(t => t.t === 'bus').map(t => `${t.src}:${t.id}`))].join(',');
   const sub = [...new Set(S.transit.filter(t => t.t === 'sub').map(t => t.station))].join(',');
   try {
     board = await trCall({ op: 'board', bus, sub });
     boardAt = Date.now();
-  } catch (e) { console.warn('교통 정보 확인 실패', e); }
+    boardErr = false;
+  } catch (e) { boardErr = true; console.warn('교통 정보 확인 실패', e); }
   boardBusy = false;
+  $('tr-reload').disabled = false;
   renderBoard();
 }
+$('tr-reload').addEventListener('click', loadBoard);
+setInterval(() => {
+  if (!S.focus || !S.transit.length || panel !== 4 || document.hidden) return;
+  if (Date.now() - boardAt > 30e3) loadBoard();
+  else renderBoard();   // 남은 분 줄이기
+}, 10e3);
 
 function renderBoard() {
   if (!S.transit.length) { $('tr-board').innerHTML = ''; return; }
+  const at = boardAt ? new Date(boardAt) : null;
+  $('tr-at').textContent = (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())}:${pad(at.getSeconds())} 기준` : '')
+    + (boardErr ? ' · 연결 확인 중' : '');
   const past = (Date.now() - boardAt) / 6e4;
   // '3분' 옆에 작게 '2정거장' (몇 정거장 전인지 알 때만, 곧 도착이면 생략)
   const when = (min, text, st) => {
