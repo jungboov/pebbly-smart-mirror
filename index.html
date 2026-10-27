@@ -44,7 +44,9 @@ html{font-size:min(1vw, .625vh)}
   --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden;cursor:none}
+html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden}
+/* 마우스가 멈춰 있으면 커서를 숨김 (거울 너머로 화살표가 비치지 않게). 움직이면 다시 보임 */
+body.idle, body.idle *{cursor:none}
 body{
   font-family:Paperlogy,"Pretendard Variable",Pretendard,system-ui,"Noto Sans KR","Malgun Gothic",sans-serif;
   -webkit-font-smoothing:antialiased;
@@ -351,7 +353,7 @@ body.sb::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:
 body.sb.night::after{background:#ff3b30}
 </style>
 </head>
-<body data-panel="0">
+<body class="idle" data-panel="0">
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -485,6 +487,7 @@ const CONFIG = {
   panelEvery: 10 * 1000,          // 스탠바이에서 오른쪽 위젯 전환 주기
   hourlyCount: 12,                // 시간별 예보 칸 수 (지금부터 1시간 간격)
   standbyHours: 6,                // 스탠바이는 칸이 커서 6시간만
+  cursorIdle: 3 * 1000,           // 마우스가 이만큼 멈춰 있으면 커서 숨김
   nightStart: 23, nightEnd: 6,    // 이 시간대엔 화면을 어둡게
   reloadHour: 4                   // 매일 이 시각에 페이지 새로고침
 };
@@ -969,6 +972,14 @@ function shiftPixels(m) {
   $('stage').style.setProperty('--sx', x + 'px');
   $('stage').style.setProperty('--sy', y + 'px');
 }
+
+// ===== 커서 =====
+let idleTimer;
+document.addEventListener('mousemove', () => {
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => document.body.classList.add('idle'), CONFIG.cursorIdle);
+});
 
 // ===== 화면 유지 / 자동 새로고침 =====
 async function keepAwake() {
