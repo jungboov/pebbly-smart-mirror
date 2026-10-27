@@ -264,7 +264,7 @@ body.alt .hourly{opacity:0}
   .w-stats .c-sub{padding-top:.6rem}
   .f-lbl{margin-bottom:1.2rem}
   /* 가로는 시간별·일별을 둘 다 표시. 오른쪽 칸(약 64단위)에 6일이 들어가도록 예보를 조금 줄임 */
-  .wave,.hourly{opacity:1 !important}
+  body:not(.sb) .wave, body:not(.sb) .hourly{opacity:1 !important}
   .hourly{grid-area:hourly;align-self:end}
   .wave{margin-top:2rem}
   .wt b{font-size:3.6rem}
@@ -306,8 +306,9 @@ body.sb .clock{position:relative;padding-bottom:6rem}
 /* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
    줄마다 라벨 | 숫자 | +·− 버튼, 셋째 줄 왼쪽에 이름과 시작·초기화 버튼 */
 .cm{display:none}
-body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"] #cm-al{display:grid}
-body.sb:not([data-cm="clock"]) #clock-in{visibility:hidden}
+body.sb .cm{display:grid;opacity:0;visibility:hidden;pointer-events:none}
+body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"] #cm-al{opacity:1;visibility:visible;pointer-events:auto}
+body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
 .cm{position:absolute;inset:0 0 6rem;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto 1fr;
   grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft .";align-items:end;column-gap:2rem;row-gap:.04em;
   font-family:var(--num);font-weight:900;font-size:var(--clock);line-height:.82}
@@ -350,14 +351,14 @@ body.sb .ds{grid-area:ds;display:flex;align-items:center;gap:2rem;align-self:str
   writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
 
 /* 위젯 4개(교통을 등록하면 5개)가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임
-   숨은 위젯은 터치를 받지 않게 (안 그러면 투명한 위젯이 위에 겹쳐 교통 새로고침 버튼 등을 가로챔) */
+   넘어갈 때 미끄러지는 효과는 JS(slide)가 줌. 숨은 위젯은 터치를 받지 않게 */
 body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit{
-  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;pointer-events:none;
-  opacity:0 !important;transform:translateY(3rem);transition:opacity .9s, transform .9s;
+  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;
+  opacity:0;visibility:hidden;pointer-events:none;transition:none;
 }
 body.sb[data-panel="0"] .wmain, body.sb[data-panel="1"] .hourly,
 body.sb[data-panel="2"] .wave, body.sb[data-panel="3"] .cards,
-body.sb[data-panel="4"] .transit{opacity:1 !important;transform:none;pointer-events:auto}
+body.sb[data-panel="4"] .transit{opacity:1;visibility:visible;pointer-events:auto}
 
 /* 교통 위젯: 등록한 정류장·역마다 이름 / 노선별 도착까지 남은 시간 */
 .transit{display:none}
@@ -375,9 +376,12 @@ body.sb.has-tr .transit{display:block}
 /* 제목 줄: transit · 16:42:10 기준 ……… [새로고침] */
 .tr-top{display:flex;align-items:center;gap:1.4rem}
 #tr-at{color:var(--text-dim)}
-#tr-reload{margin-left:auto;padding:.9rem 2rem;border:1px solid var(--card-bd);border-radius:999px;background:none;
-  font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-size:2.4rem;font-weight:600;color:var(--text-muted);cursor:pointer}
-#tr-reload:disabled{opacity:.5}
+/* 새로고침: 동그란 아이콘 버튼, 받아 오는 동안 돎 */
+#tr-reload{margin-left:auto;width:5.6rem;height:5.6rem;padding:0;display:grid;place-items:center;flex:none;
+  border:1px solid var(--card-bd);border-radius:50%;background:none;color:var(--text-muted);cursor:pointer}
+#tr-reload svg{width:2.8rem;height:2.8rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#tr-reload:disabled svg{animation:tr-spin .8s linear infinite}
+@keyframes tr-spin{to{transform:rotate(360deg)}}
 .tr-none{font-size:3rem;color:var(--text-dim)}
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
@@ -661,7 +665,7 @@ body.sb.phone.night::after{background:#ff3b30}
   </section>
 
   <section id="transit" class="transit">
-    <div class="lbl f-lbl tr-top">transit<span id="tr-at"></span><button id="tr-reload">새로고침</button></div>
+    <div class="lbl f-lbl tr-top">transit<span id="tr-at"></span><button id="tr-reload" aria-label="교통 정보 새로고침"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button></div>
     <div id="tr-board"></div>
   </section>
 
@@ -1404,14 +1408,30 @@ async function loadHolidays(y) {
 // 시계 강조: 위젯 4개(교통 등록 시 5개)를 차례로 / 상세 세로: 시간별 ↔ 일별
 // S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김
 let panel = 0, panelTimer;
-function showPanel(p) {
-  const n = S.focus && S.transit.length ? 5 : 4;
+// dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 미끄러짐
+function showPanel(p, dir, axis) {
+  const n = S.focus && S.transit.length ? 5 : 4, old = panel;
   panel = (p + n) % n;
   document.body.dataset.panel = panel;
   document.body.classList.toggle('alt', panel % 2 === 1);
   if (panel === 4) { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
+  if (dir && S.focus && old !== panel) slide(PANELS[old], PANELS[panel], dir, axis);
   clearTimeout(panelTimer);
-  if (S.rotate > 0) panelTimer = setTimeout(() => showPanel(panel + 1), S.rotate * 1000);
+  // 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
+  if (S.rotate > 0) panelTimer = setTimeout(() => showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x'), S.rotate * 1000);
+}
+
+// 미끄러지기: 나가는 쪽은 민 방향으로 빠지며 사라지고, 들어오는 쪽은 반대편에서 들어옴
+// (CSS의 숨김 상태 위에 잠깐 덮어씌우는 애니메이션이라 끝나면 원래 상태로 돌아감)
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+function slide(outEl, inEl, dir, axis = 'x') {
+  if (calm.matches || !outEl || !inEl) return;
+  const t = v => `translate${axis === 'y' ? 'Y' : 'X'}(${v}rem)`;
+  const ease = 'cubic-bezier(.2,.75,.2,1)';
+  outEl.animate([{ opacity: 1, visibility: 'visible', transform: t(0) }, { opacity: 0, visibility: 'visible', transform: t(-dir * 10) }],
+    { duration: 380, easing: ease });
+  inEl.animate([{ opacity: 0, transform: t(dir * 12) }, { opacity: 1, transform: t(0) }],
+    { duration: 520, easing: ease });
 }
 
 // ===== 터치 =====
@@ -1432,8 +1452,9 @@ document.addEventListener('pointerup', e => {
   const dx = e.clientX - s.x, dy = e.clientY - s.y;
   if (Math.hypot(dx, dy) >= Math.min(innerWidth, innerHeight) * .08) {
     const dir = (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? 1 : -1;
-    if (s.clock) showCm(cm + dir);
-    else showPanel(panel + dir);
+    const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (s.clock) showCm(cm + dir, dir, axis);
+    else showPanel(panel + dir, dir, axis);
     lastTap = 0;
   } else if (e.timeStamp - lastTap < 400) {
     openSettings();
@@ -1447,10 +1468,13 @@ document.addEventListener('pointerup', e => {
 // 화면(앱)이 켜져 있어야 울림. 스톱워치·타이머는 새로고침하면 초기화, 알람 시각은 설정에 저장
 const CM = ['clock', 'sw', 'tm', 'al'];
 let cm = 0, cmAt = 0;
-function showCm(i) {
+const CM_VIEWS = ['clock-in', 'cm-sw', 'cm-tm', 'cm-al'];
+function showCm(i, dir, axis) {
+  const old = cm;
   cm = (i + CM.length) % CM.length;
   document.body.dataset.cm = CM[cm];
   cmAt = Date.now();
+  if (dir && old !== cm) slide($(CM_VIEWS[old]), $(CM_VIEWS[cm]), dir, axis);
   renderCm();
 }
 function renderCm() {
