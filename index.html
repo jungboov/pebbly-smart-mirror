@@ -261,17 +261,17 @@ body.alt .hourly{opacity:0}
 
 /* ── 시계 강조 (기본. ?mode=detail이면 위의 상세 화면): 멀리서도 보이게 시·분·초를 세로로 쌓은 큰 시계
    + 날씨 위젯 하나가 10초마다 바뀜 (지금 날씨 → 시간별 → 일별 → 공기·해)
-   가로는 왼쪽 시계 | 오른쪽 위젯, 세로는 위 시계 / 아래 위젯 ── */
+   가로는 왼쪽 시계 | 세로 날짜 | 오른쪽 위젯, 세로는 위 시계 + 오른쪽 날짜 / 아래 위젯 ── */
 .sb-dots{display:none}
+/* 시계 칸은 내용 폭(크기는 fitClock이 화면 절반 안으로 맞춤), 날짜는 그 바로 옆, 남는 폭은 위젯 */
 body.sb .stage{
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  grid-template-rows:1fr auto auto 1fr;
+  grid-template-columns:auto auto minmax(0,1fr);
+  grid-template-rows:1fr auto 1fr;
   grid-template-areas:
-    ".     panel"
-    "clock panel"
-    "date  panel"
-    ".     panel";
-  column-gap:8rem;
+    ".     .    panel"
+    "clock date panel"
+    ".     .    panel";
+  column-gap:2.4rem;
   padding:5rem max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
   transition:opacity 3s, filter 3s, transform 2s;
 }
@@ -288,13 +288,14 @@ body.sb .clock #lbl-s{grid-area:ss;justify-self:start;writing-mode:horizontal-tb
 /* 초: 위아래로 비치는 이웃 숫자는 줄 높이에 넣지 않고 위 여백·시계 아래 여백으로 넘치게 둠 */
 body.sb .sgroup{grid-area:ss;justify-self:end;font-size:.5em;margin:.24em 0 0}
 body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0;text-align:right}
-body.sb .date{align-self:start;display:flex;align-items:baseline;gap:2.4rem}
+/* 가로 날짜: 시계 오른쪽에 라벨처럼 아래에서 위로 읽는 세로 글씨. 아래 끝을 초 숫자 바닥(시계 아래 여백 위)에 맞춤 */
+body.sb .date{align-self:end;margin-bottom:6rem;display:flex;align-items:center;gap:2.4rem;writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
 body.sb .date-num{font-size:6.4rem}
 body.sb .date-day{margin-top:0;font-size:4rem}
 
 /* 위젯 4개가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임 */
 body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{
-  grid-area:panel;align-self:center;margin:0;padding:0;
+  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;
   opacity:0 !important;transform:translateY(3rem);transition:opacity .9s, transform .9s;
 }
 body.sb[data-panel="0"] .wmain, body.sb[data-panel="1"] .hourly,
@@ -360,12 +361,18 @@ body[data-panel="2"] .sb-dots i:nth-child(3), body[data-panel="3"] .sb-dots i:nt
 /* 세로: 위젯을 넓고 낮게 (정보 카드 4장 한 줄, 공기·해 카드 3장 한 줄) 해서 남는 높이를 시계에 줌 */
 @media (orientation: portrait){
   body.sb .stage{
-    grid-template-columns:minmax(0,1fr);
-    grid-template-rows:auto auto 1fr auto;
-    grid-template-areas:"clock" "date" "." "panel";
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:auto 1fr auto;
+    grid-template-areas:"clock date" ". ." "panel panel";
+    column-gap:3rem;
     padding:6rem 6.5rem 8rem;
   }
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{align-self:end}
+  /* 세로 날짜: 시계 오른쪽 빈 곳 위쪽에 날짜 / 연도 / 요일을 오른쪽 정렬로 쌓음 */
+  body.sb .date{align-self:start;margin:0;flex-direction:column;align-items:flex-end;gap:1.4rem;writing-mode:horizontal-tb;transform:none;text-align:right}
+  body.sb .date-num{font-size:5.2rem}
+  body.sb .date-day{display:flex;flex-direction:column;align-items:flex-end;gap:.8rem;font-size:3.4rem}
+  body.sb .date-sep{display:none}
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{align-self:end;margin:0}
   body.sb .w-stats{grid-template-columns:repeat(4,1fr)}
   body.sb .w-stats .card{display:flex;padding:1.8rem 2rem}
   body.sb .w-stats .c-val{margin-top:.8rem;font-size:5.6rem}
@@ -418,7 +425,7 @@ body.sb.phone.night::after{background:#ff3b30}
 
   <section id="date" class="date">
     <div id="date-num" class="date-num"></div>
-    <div id="date-day" class="date-day"></div>
+    <div class="date-day"><span id="date-year"></span><span class="date-sep"> · </span><span id="date-wd"></span></div>
   </section>
 
   <section class="wmain">
@@ -606,11 +613,17 @@ function fitClock() {
     // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
     // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12
     const stage = $('stage'), st = getComputedStyle(stage);
+    // 날짜는 시계 옆에 있어서 높이는 안 씀
+    const portrait = innerHeight > innerWidth;
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
-      - $('date').offsetHeight - parseFloat(getComputedStyle($('clock')).paddingBottom);
-    if (innerHeight > innerWidth) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 세로: 아래 위젯 자리
+      - parseFloat(getComputedStyle($('clock')).paddingBottom);
+    if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    // 폭: 세로는 clock 칸(날짜 칸 뺀 나머지), 가로는 날짜·간격을 뺀 화면의 절반 (나머지 절반은 위젯)
+    const w = portrait ? $('clock').clientWidth
+      : (stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
+         - $('date').offsetWidth - 2 * parseFloat(st.columnGap) - 4 * rem) / 2;
     const lbl = $('lbl-h').offsetWidth + parseFloat(getComputedStyle(inner).columnGap);
-    size = Math.min(($('clock').clientWidth - lbl) / (2 * wmax + .02), h / 2.25);
+    size = Math.min((w - lbl) / (2 * wmax + .02), h / 2.25);
   } else {
     const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
     size = $('clock').clientWidth / widestEm;
@@ -632,7 +645,8 @@ function tickClock() {
   const dateNum = `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
   if ($('date-num').textContent !== dateNum) {
     $('date-num').textContent = dateNum;
-    $('date-day').textContent = `${d.getFullYear()} · ${WEEK[d.getDay()]}요일`;
+    $('date-year').textContent = d.getFullYear();
+    $('date-wd').textContent = WEEK[d.getDay()] + '요일';
   }
   if (d.getSeconds() === 0) {
     if (d.getMinutes() === 0) renderWeather();   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
