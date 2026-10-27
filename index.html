@@ -349,14 +349,15 @@ body.sb #date{display:none}
 body.sb .ds{grid-area:ds;display:flex;align-items:center;gap:2rem;align-self:stretch;justify-self:end;margin-left:3rem;
   writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
 
-/* 위젯 4개(교통을 등록하면 5개)가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임 */
+/* 위젯 4개(교통을 등록하면 5개)가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임
+   숨은 위젯은 터치를 받지 않게 (안 그러면 투명한 위젯이 위에 겹쳐 교통 새로고침 버튼 등을 가로챔) */
 body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit{
-  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;
+  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;pointer-events:none;
   opacity:0 !important;transform:translateY(3rem);transition:opacity .9s, transform .9s;
 }
 body.sb[data-panel="0"] .wmain, body.sb[data-panel="1"] .hourly,
 body.sb[data-panel="2"] .wave, body.sb[data-panel="3"] .cards,
-body.sb[data-panel="4"] .transit{opacity:1 !important;transform:none}
+body.sb[data-panel="4"] .transit{opacity:1 !important;transform:none;pointer-events:auto}
 
 /* 교통 위젯: 등록한 정류장·역마다 이름 / 노선별 도착까지 남은 시간 */
 .transit{display:none}
