@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<!-- 아이폰 '홈 화면에 추가'로 열면 주소창 없이 전체 화면 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pebbly Mirror</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* 한글: Paperlogy (기하학적 산세리프, Orbitron 숫자와 결을 맞춤). 없는 글자는 Pretendard로 대체 */
+@font-face{font-family:Paperlogy;font-weight:200;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:300;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2) format('woff2')}
+
+/* 1rem = 디자인 단위. 세로 화면은 100×160, 가로 화면은 160×100 단위로 설계하고
+   어떤 화면 비율이든 이 캔버스가 들어가도록 맞춤 (남는 공간은 가운데 거울 영역으로) */
+html{font-size:min(1vw, .625vh)}
+@media (orientation: landscape){ html{font-size:min(.625vw, 1vh)} }
+
+:root{
+  --bg:#000;
+  --text:#fff;
+  --text-muted:#a3a3a3;
+  --text-dim:#5f5f5f;
+  --line:#1c1c1c;
+  --grid:#101010;
+  --card-bd:#262626;
+  --rain:#8ec5ff;
+  --sunrise:#ffb35c;
+  --sunset:#8ec5ff;
+  /* 대기질 등급색 (환경부 4단계) */
+  --good:#6cb8ff;
+  --normal:#6fdc9a;
+  --bad:#ffb057;
+  --worst:#ff6b6b;
+  --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden;cursor:none}
+body{
+  font-family:Paperlogy,"Pretendard Variable",Pretendard,system-ui,"Noto Sans KR","Malgun Gothic",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+  word-break:keep-all;
+}
+
+/* ── 무대: 세로 배치 ── */
+.stage{
+  position:fixed;inset:0;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:auto auto auto auto auto 1fr auto auto;
+  grid-template-areas:
+    "head   head"
+    "clock  clock"
+    "date   hero"
+    "wstats wstats"
+    "cards  cards"
+    "zone   zone"
+    "wave   wave"
+    "phrase phrase";
+  column-gap:4rem;
+  padding:5rem 6.5rem;
+  /* 레퍼런스의 타일 격자. 거울 너머로는 거의 안 보일 만큼 어둡게 */
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size:12.5rem 12.5rem;
+  transition:opacity 3s;
+}
+body.night .stage{opacity:.45}
+.zone{grid-area:zone}
+
+.lbl{font-family:var(--num);font-weight:500;font-size:2rem;color:var(--text-dim);letter-spacing:.06em;text-transform:lowercase}
+.card{display:flex;flex-direction:column;border:1px solid var(--card-bd);border-radius:2.6rem;background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));padding:2rem 2.2rem}
+
+/* 아이콘: 흰 선 아이콘. .occ는 뒤에 있는 해/달을 가리는 구름 */
+.ico{display:block;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ico .occ{fill:var(--bg)}
+.ico .dots{stroke-width:2.6}
+
+/* ── 헤더 ── */
+.head{grid-area:head;display:flex;align-items:center;justify-content:space-between;padding-bottom:3rem;margin-bottom:3rem;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:1.6rem;font-family:var(--num);font-weight:700;font-size:2.6rem;letter-spacing:.08em}
+.brand svg{width:3.4rem;height:3.4rem;fill:currentColor}
+.head-r{display:flex;align-items:center;gap:2.4rem;font-size:2.3rem;color:var(--text-dim)}
+.head-r .ico{width:2.6rem;height:2.6rem;color:var(--text-muted)}
+.loc{display:flex;align-items:center;gap:1rem}
+.menu{display:grid;grid-template-columns:repeat(2,.8rem);gap:.6rem}
+.menu i{width:.8rem;height:.8rem;border-radius:50%;background:var(--text-muted)}
+
+/* ── 숫자 롤러: 값이 바뀌면 세로로 굴러 올라감 ── */
+.roll{--lh:1em;display:inline-block;height:var(--lh);overflow:hidden;vertical-align:top;text-align:center}
+.strip{display:block;transform:translateY(calc(var(--p, 0) * -1 * var(--lh)));transition:transform .6s cubic-bezier(.2,.75,.2,1)}
+.strip span{display:block;height:var(--lh);line-height:var(--lh)}
+/* 초: 위아래로 이전·다음 숫자가 살짝 보이는 롤러 */
+.roll.peek{height:calc(var(--lh) * 1.7);-webkit-mask-image:linear-gradient(transparent, #000 32%, #000 68%, transparent);mask-image:linear-gradient(transparent, #000 32%, #000 68%, transparent)}
+.roll.peek .strip{transform:translateY(calc((var(--p, 0) * -1 + .35) * var(--lh)))}
+/* Orbitron 숫자는 높이 .72em·내림 0 → 줄 높이 .82em이면 잘리지 않으면서 위아래 여백이 거의 없음 */
+.clock .roll{--lh:.82em}
+
+/* ── 시계: 시·분·초 한 줄. 1행 라벨 / 2행 숫자, 칸 너비에 맞춰 JS가 --clock 크기를 계산 ── */
+.clock{grid-area:clock;min-width:0;padding-bottom:5.5rem}
+.clock-in{display:grid;grid-template-columns:repeat(4,auto);align-items:end;width:max-content;margin:0 auto;font-family:var(--num);font-weight:900;font-size:var(--clock, 20rem);line-height:.82}
+.clock .lbl{margin-bottom:2.4rem;line-height:1.2}
+/* 숫자마다 폭이 달라서('1'은 '0'의 절반) 칸 폭을 숫자에 맞추고 바뀔 때 부드럽게 늘고 줄게 함 */
+.clock .roll{width:.834em;transition:width .6s cubic-bezier(.2,.75,.2,1)}
+.colon{height:.82em;line-height:.82em;margin:0 .04em;color:var(--text-muted)}
+/* 초: 시·분의 40% 크기. 현재 숫자의 바닥을 시·분 바닥에 맞추고 다음 숫자는 그 아래로 살짝 비침 */
+.sgroup{display:flex;align-items:flex-end;font-size:.4em;margin-bottom:calc(-.35 * .82em)}
+.sgroup .colon{margin:0 .12em calc(.35 * .82em) .1em}
+.sgroup .roll{width:1.67em;text-align:left;transition:none}
+.lbl-s{padding-left:.6rem}
+
+.date{grid-area:date;align-self:center}
+.date-num{font-family:var(--num);font-weight:700;font-size:6.4rem;line-height:1;letter-spacing:.02em}
+.date-day{margin-top:1.4rem;font-size:3rem;font-weight:600;color:var(--text-muted)}
+
+/* ── 현재 날씨 ── */
+/* 세로: wmain을 풀어서 기온(날짜 옆)과 정보 줄(전체 너비)을 각각 배치. 가로에선 한 덩어리 */
+.wmain{grid-area:wmain;min-width:0;display:contents}
+/* 큰 기온 | 설명 — 가는 세로선으로 나눈 매거진식 구성 */
+.w-hero{grid-area:hero;justify-self:end;display:flex;align-items:center;gap:3.2rem}
+.w-temp{flex:none;font-size:15rem;font-weight:200;line-height:.85;letter-spacing:-.05em;background:linear-gradient(180deg,#fff 35%,#7d7d7d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.w-desc{min-width:0;padding-left:3.2rem;border-left:1px solid #2a2a2a}
+.w-title{display:flex;align-items:center;gap:1.4rem;font-size:4.8rem;font-weight:400;line-height:1.15;letter-spacing:-.02em}
+.w-title .ico{width:4.4rem;height:4.4rem;flex:none}
+.w-sub{margin-top:.6rem;font-size:2.6rem;font-weight:300;color:var(--text-muted)}
+.w-title + .w-sub{margin-top:1.4rem}
+/* 최고·최저·습도·자외선 카드 4장 */
+.w-stats{grid-area:wstats;margin-top:4.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}
+
+/* ── 카드: 미세먼지·초미세먼지·일출일몰 ── */
+.cards{grid-area:cards;display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:2rem;margin-top:2rem}
+/* 숫자 카드 공통: 이름 / 큰 값 / 맨 아래 보조 정보(등급·시각 등) */
+.c-name{font-size:2.4rem;color:var(--text-muted)}
+.c-val{margin-top:1rem;font-size:5.2rem;font-weight:200;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.c-sub{margin-top:auto;padding-top:1rem;font-size:2.4rem;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.good{color:var(--good)} .normal{color:var(--normal)} .bad{color:var(--bad)} .worst{color:var(--worst)}
+
+.sun-times{display:flex;justify-content:space-between;font-size:2.3rem;color:var(--text-muted)}
+.sun-times b{display:block;font-weight:500;font-size:2.8rem;color:var(--text);font-variant-numeric:tabular-nums}
+.sun-times div:last-child{text-align:right}
+.sun-arc{display:block;width:100%;margin-top:-2rem;overflow:visible}
+.sun-arc .arc{fill:none;stroke:#555;stroke-width:.6;stroke-dasharray:.4 2.2;stroke-linecap:round}
+.sun-arc .arc-done{fill:none;stroke:rgba(255,255,255,.55);stroke-width:.7}
+.sun-arc .horizon{stroke:#2e2e2e;stroke-width:.5}
+.sun-arc .half{fill:none;stroke:var(--text-muted);stroke-width:.8;stroke-linecap:round}
+.sun-arc .sun{fill:#fff;filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 3px rgba(255,224,138,.9))}
+
+/* ── 예보 곡선 ── */
+.wave{grid-area:wave;--n:6}
+.wave-row{display:grid;grid-template-columns:repeat(var(--n),1fr);text-align:center}
+.wd{display:block;font-size:2.4rem;color:var(--text-muted)}
+.wt b{display:block;margin-top:.6rem;font-size:4.4rem;font-weight:300;line-height:1.1;font-variant-numeric:tabular-nums}
+.wt small{font-size:.5em;color:var(--text-dim);margin-left:.35em}
+.wt.past .wd, .wt.past b{color:var(--text-dim)}
+.wt.today .wd{color:var(--text);font-weight:600}
+.wt.today b{text-shadow:0 0 2rem rgba(255,255,255,.45)}
+.wave-plot{position:relative;height:11rem;margin-top:1.4rem}
+.wave-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.node{position:absolute;width:5.4rem;height:5.4rem;transform:translate(-50%,-50%);border:1px solid #2c2c2c;border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.node .ico{width:3rem;height:3rem}
+.node.past{opacity:.45}
+.wave-dot{position:absolute;width:1.8rem;height:1.8rem;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 1.4rem .5rem rgba(255,255,255,.55),0 0 4.5rem 1.8rem rgba(255,255,255,.18)}
+.wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(255,255,255,.4)}
+.wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem}
+.f-lbl{margin-bottom:1.8rem}
+
+/* ── 시간별 예보: 기온 영역 그래프 + 강수확률 막대 ── */
+.hourly{grid-area:wave;--n:12}
+.h-row{display:grid;grid-template-columns:repeat(var(--n),1fr);text-align:center}
+.ht{display:flex;flex-direction:column;align-items:center;gap:.9rem}
+.hl{font-size:2.2rem;color:var(--text-muted);white-space:nowrap}
+.ht .ico{width:3rem;height:3rem}
+.ht b{font-size:3rem;font-weight:300;font-variant-numeric:tabular-nums}
+.ht.now .hl{color:var(--text);font-weight:600}
+.h-plot{position:relative;height:6.5rem;margin-top:1.4rem}
+.h-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.h-dot{position:absolute;width:.9rem;height:.9rem;transform:translate(-50%,-50%);border-radius:50%;background:#fff}
+.h-dot.now{width:1.6rem;height:1.6rem;box-shadow:0 0 1.2rem .4rem rgba(255,255,255,.5)}
+.h-bars{margin-top:1.2rem}
+.hb{display:flex;flex-direction:column;align-items:center}
+.bar{width:1.2rem;height:2.6rem;display:flex;align-items:flex-end;border-radius:.6rem;overflow:hidden}
+.bar i{display:block;width:100%;border-radius:.6rem;background:var(--rain)}
+.bar.dry i{background:#262626}
+.hb span{margin-top:.5rem;font-size:1.9rem;color:var(--rain);min-height:1.3em}
+
+/* 세로: 같은 자리에서 시간별 ↔ 일별을 번갈아 표시 (body.alt = 일별) */
+.wave,.hourly{transition:opacity 1.2s}
+body:not(.alt) .wave{opacity:0}
+body.alt .hourly{opacity:0}
+
+/* ── 문구 ── */
+.phrase{grid-area:phrase;margin-top:3.5rem;font-size:4.6rem;font-weight:700;line-height:1.3;letter-spacing:-.01em;transition:opacity 1.2s}
+.phrase.fade{opacity:0}
+
+/* ── 가로 배치: 왼쪽 시계 / 오른쪽 날씨, 아래 예보 곡선과 카드 ── */
+@media (orientation: landscape){
+  .stage{
+    grid-template-columns:minmax(0,1fr) minmax(0,.82fr);
+    grid-template-rows:auto auto auto auto 1fr auto;
+    grid-template-areas:
+      "head   head"
+      "clock  wmain"
+      "date   wave"
+      "phrase wave"
+      "zone   zone"
+      "hourly cards";
+    column-gap:6rem;
+    padding:4rem 6rem;
+  }
+  .head{padding-bottom:2rem;margin-bottom:2rem}
+  .clock-in{margin:0}
+  .clock{align-self:end;padding-bottom:3rem}
+  .date{align-self:start}
+  .date-num{font-size:5.4rem}
+  .phrase{align-self:start;margin-top:2.4rem;font-size:3rem;font-weight:400;line-height:1.5;color:var(--text-muted)}
+  .wmain{display:block;align-self:end;padding-bottom:2rem}
+  .w-temp{font-size:11rem}
+  .w-stats{margin-top:2.4rem;gap:1.6rem}
+  .w-stats .card{padding:1.4rem 1.8rem}
+  .w-stats .c-name, .w-stats .c-sub{font-size:2.1rem}
+  .w-stats .c-val{margin-top:.6rem;font-size:4rem}
+  .w-stats .c-sub{padding-top:.6rem}
+  .f-lbl{margin-bottom:1.2rem}
+  /* 가로는 시간별·일별을 둘 다 표시. 오른쪽 칸(약 64단위)에 6일이 들어가도록 예보를 조금 줄임 */
+  .wave,.hourly{opacity:1 !important}
+  .hourly{grid-area:hourly;align-self:end}
+  .wave{margin-top:2rem}
+  .wt b{font-size:3.6rem}
+  .wave-plot{height:7rem;margin-top:1.2rem}
+  .node{width:4.6rem;height:4.6rem}
+  .node .ico{width:2.6rem;height:2.6rem}
+  .hl{font-size:2rem}
+  .ht .ico{width:2.6rem;height:2.6rem}
+  .ht b{font-size:2.8rem}
+  .h-plot{height:4.4rem;margin-top:1rem}
+  .h-bars{margin-top:.8rem}
+  .bar{height:2rem}
+  .hb span{font-size:1.7rem}
+  .cards{margin-top:0;align-self:end}
+  .sun-times{font-size:2rem}
+  .sun-times b{font-size:2.4rem}
+  .sun-arc{margin-top:.6rem}
+}
+
+/* ── 스탠바이: 휴대폰을 가로로 눕혀 충전할 때 (높이 낮은 가로 화면이면 자동, ?mode=standby로 강제)
+   왼쪽 큰 시계 / 오른쪽 위젯 하나가 10초마다 바뀜 (지금 날씨 → 시간별 → 일별 → 공기·해) ── */
+.sb-dots{display:none}
+body.sb .stage{
+  grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);
+  grid-template-rows:1fr auto auto auto 1fr;
+  grid-template-areas:
+    ".      panel"
+    "clock  panel"
+    "date   panel"
+    "phrase panel"
+    ".      panel";
+  column-gap:8rem;
+  padding:5rem max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
+  /* OLED 번인 방지: JS가 1분마다 화면 전체를 몇 px씩 옮김 */
+  transform:translate(var(--sx, 0px), var(--sy, 0px));
+  transition:opacity 3s, filter 3s, transform 2s;
+}
+body.sb .head, body.sb .zone{display:none}
+body.sb .clock{padding-bottom:3.5rem}
+body.sb .clock-in{margin:0}
+body.sb .clock .lbl{font-size:2.6rem;margin-bottom:2rem}
+body.sb .date{align-self:start;display:flex;align-items:baseline;gap:2.4rem}
+body.sb .date-num{font-size:6.4rem}
+body.sb .date-day{margin-top:0;font-size:4rem}
+body.sb .phrase{align-self:start;margin-top:3rem;font-size:3.6rem;font-weight:400;line-height:1.4;color:var(--text-muted)}
+
+/* 위젯 4개가 같은 자리에 겹쳐 있고 data-panel 차례인 것만 보임 */
+body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards{
+  grid-area:panel;align-self:center;margin:0;padding:0;
+  opacity:0 !important;transform:translateY(3rem);transition:opacity .9s, transform .9s;
+}
+body.sb[data-panel="0"] .wmain, body.sb[data-panel="1"] .hourly,
+body.sb[data-panel="2"] .wave, body.sb[data-panel="3"] .cards{opacity:1 !important;transform:none}
+body.sb .wmain{display:block}
+body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
+body.sb .wmain::before{content:'now'}
+body.sb .cards::before{content:'air · sun';grid-column:1 / -1;margin-bottom:0}
+body.sb .f-lbl{font-size:2.6rem;line-height:1.2;margin-bottom:2.6rem}
+
+body.sb .w-hero{gap:3.2rem}
+body.sb .w-temp{font-size:19rem}
+body.sb .w-desc{padding-left:3.2rem}
+body.sb .w-title{font-size:5.4rem;gap:1.6rem}
+body.sb .w-title .ico{width:5rem;height:5rem}
+body.sb .w-sub{font-size:3.4rem}
+body.sb .w-title + .w-sub{margin-top:1.8rem}
+/* 정보 카드 2×2. 카드 안은 이름·보조 정보(왼쪽) | 값(오른쪽) */
+body.sb .w-stats{grid-template-columns:1fr 1fr;margin-top:4rem;gap:2rem}
+body.sb .w-stats .card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name val" "sub val";align-items:center;column-gap:2rem;padding:2rem 2.6rem}
+body.sb .w-stats .c-name{grid-area:name;font-size:3rem}
+body.sb .w-stats .c-val{grid-area:val;margin:0;font-size:7rem}
+body.sb .w-stats .c-sub{grid-area:sub;margin:0;padding-top:.6rem;font-size:3rem}
+
+body.sb .ht{gap:1.4rem}
+body.sb .hl{font-size:3.2rem}
+body.sb .ht .ico{width:5rem;height:5rem}
+body.sb .ht b{font-size:4.8rem}
+body.sb .h-plot{height:12rem;margin-top:2.4rem}
+body.sb .h-dot{width:1.3rem;height:1.3rem}
+body.sb .h-dot.now{width:2.4rem;height:2.4rem}
+body.sb .h-bars{margin-top:2.4rem}
+body.sb .bar{width:2rem;height:4.4rem;border-radius:1rem}
+body.sb .bar i{border-radius:1rem}
+body.sb .hb span{margin-top:.8rem;font-size:2.8rem}
+
+body.sb .wd{font-size:3.2rem}
+body.sb .wt b{margin-top:1rem;font-size:4.2rem}
+body.sb .wave-plot{height:14rem;margin-top:2.4rem}
+body.sb .node{width:6.6rem;height:6.6rem}
+body.sb .node .ico{width:3.8rem;height:3.8rem}
+body.sb .wave-dot{width:2.4rem;height:2.4rem}
+body.sb .wp{margin-top:1.4rem;font-size:3rem}
+
+body.sb .cards{grid-template-columns:1fr 1fr;gap:2.4rem}
+body.sb .cards .card{padding:2.6rem 3rem;border-radius:3.2rem}
+body.sb .cards .c-name{font-size:3.2rem}
+body.sb .cards .c-val{margin-top:1.4rem;font-size:9rem}
+body.sb .cards .c-sub{padding-top:1.4rem;font-size:3.6rem}
+/* 일출 시각 | 반원 | 일몰 시각 */
+body.sb .sun-card{grid-column:1 / -1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;column-gap:3rem}
+body.sb .sun-times{display:contents;font-size:3rem}
+body.sb .sun-times b{margin-top:.6rem;font-size:4.6rem}
+body.sb .sun-times div:last-child{order:2}
+body.sb .sun-arc{order:1;margin-top:0}
+
+/* 위젯 위치 표시 (아이폰 스마트 스택처럼 오른쪽 세로 점) */
+body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-right));transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
+.sb-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:#333;transition:height .6s, background .6s}
+body[data-panel="0"] .sb-dots i:nth-child(1), body[data-panel="1"] .sb-dots i:nth-child(2),
+body[data-panel="2"] .sb-dots i:nth-child(3), body[data-panel="3"] .sb-dots i:nth-child(4){height:3.4rem;background:#fff}
+
+/* 밤: 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 */
+body.sb.night .stage{opacity:.8;filter:grayscale(1)}
+body.sb::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
+body.sb.night::after{background:#ff3b30}
+</style>
+</head>
+<body data-panel="0">
+<main id="stage" class="stage">
+  <header class="head">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14.5C3.3 10.2 6.6 5.6 12 5.2s8.8 2.6 8.3 7.1-4.6 6.9-9.3 6.6S5.3 17.3 4.5 14.5z"/></svg>
+      PEBBLY
+    </div>
+    <div class="head-r">
+      <span class="loc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="foot"></span></span>
+      <div class="menu"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </header>
+
+  <section id="clock" class="clock">
+    <div id="clock-in" class="clock-in">
+      <span class="lbl">hours</span><span></span><span class="lbl">minutes</span><span class="lbl lbl-s">seconds</span>
+      <div><span class="roll" id="h1"></span><span class="roll" id="h2"></span></div>
+      <div id="colon" class="colon">:</div>
+      <div><span class="roll" id="m1"></span><span class="roll" id="m2"></span></div>
+      <div id="sgroup" class="sgroup"><span class="colon">:</span><span class="roll peek" id="s"></span></div>
+    </div>
+  </section>
+
+  <section class="date">
+    <div id="date-num" class="date-num"></div>
+    <div id="date-day" class="date-day"></div>
+  </section>
+
+  <section class="wmain">
+    <div class="w-hero">
+      <div id="w-temp" class="w-temp">--°</div>
+      <div class="w-desc">
+        <div class="w-title"><span id="w-ico"></span><span id="w-title">불러오는 중</span></div>
+        <div id="w-feel" class="w-sub"></div>
+        <div id="w-diff" class="w-sub"></div>
+      </div>
+    </div>
+    <div class="w-stats">
+      <div class="card"><div class="c-name">최고</div><div id="w-hi" class="c-val">--°</div><div id="w-hi-t" class="c-sub"></div></div>
+      <div class="card"><div class="c-name">최저</div><div id="w-lo" class="c-val">--°</div><div id="w-lo-t" class="c-sub"></div></div>
+      <div class="card"><div class="c-name">습도</div><div id="w-hum" class="c-val">--%</div><div id="w-hum-t" class="c-sub"></div></div>
+      <div class="card"><div class="c-name">자외선</div><div id="w-uv" class="c-val">-</div><div id="w-uv-t" class="c-sub"></div></div>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="card">
+      <div class="c-name">미세먼지</div>
+      <div id="pm10-v" class="c-val">-</div>
+      <div id="pm10" class="c-sub">-</div>
+    </div>
+    <div class="card">
+      <div class="c-name">초미세먼지</div>
+      <div id="pm25-v" class="c-val">-</div>
+      <div id="pm25" class="c-sub">-</div>
+    </div>
+    <div class="card sun-card">
+      <div class="sun-times">
+        <div>일출<b id="sunrise">--:--</b></div>
+        <div>일몰<b id="sunset">--:--</b></div>
+      </div>
+      <svg class="sun-arc" viewBox="0 0 100 52" aria-hidden="true">
+        <line class="horizon" x1="0" y1="48" x2="100" y2="48"/>
+        <path class="arc" d="M8 48A42 42 0 0 1 92 48"/>
+        <path id="sun-done" class="arc-done" d=""/>
+        <path class="half" d="M42 48a8 8 0 0 1 16 0M50 36.5v-3M41.5 40l-2-2M58.5 40l2-2"/>
+        <circle cx="8" cy="48" r="1.6" fill="var(--sunrise)"/>
+        <circle cx="92" cy="48" r="1.6" fill="var(--sunset)"/>
+        <circle id="sun-dot" class="sun" r="2.2" cx="-10" cy="-10"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="zone"></div>
+
+  <section id="hourly" class="hourly">
+    <div class="lbl f-lbl">hourly</div>
+    <div id="h-top" class="h-row"></div>
+    <div class="h-plot">
+      <svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="h-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path id="h-area" fill="url(#h-fill)"/>
+        <path id="h-line" fill="none" stroke="url(#wave-g)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div id="h-dots"></div>
+    </div>
+    <div id="h-bars" class="h-row h-bars"></div>
+  </section>
+
+  <section id="wave" class="wave">
+    <div class="lbl f-lbl">daily</div>
+    <div id="wave-top" class="wave-row"></div>
+    <div class="wave-plot">
+      <svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="wave-g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".1" stop-color="#fff" stop-opacity=".7"/>
+            <stop offset=".9" stop-color="#fff" stop-opacity=".7"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path id="wave-path" fill="none" stroke="url(#wave-g)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div id="wave-nodes"></div>
+    </div>
+    <div id="wave-pop" class="wave-row"></div>
+  </section>
+
+  <p id="phrase" class="phrase"></p>
+  <div class="sb-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+</main>
+
+<script>
+// ===== 설정 =====
+// URL 파라미터로 바꿀 수 있음: index.html?lat=35.1796&lon=129.0756&name=부산
+// mode=standby: 스탠바이 화면 강제 / mode=mirror: 스탠바이 끔 (없으면 화면 크기로 자동)
+const params = new URLSearchParams(location.search);
+const CONFIG = {
+  lat: parseFloat(params.get('lat')) || 37.5665,
+  lon: parseFloat(params.get('lon')) || 126.9780,
+  name: params.get('name') || '서울',
+  weatherEvery: 15 * 60 * 1000,   // 날씨 갱신 주기
+  airEvery: 30 * 60 * 1000,       // 미세먼지 갱신 주기
+  phraseEvery: 30 * 1000,         // 문구 교체 주기
+  forecastEvery: 15 * 1000,       // 세로 모드에서 시간별 ↔ 일별 예보 전환 주기
+  panelEvery: 10 * 1000,          // 스탠바이에서 오른쪽 위젯 전환 주기
+  hourlyCount: 12,                // 시간별 예보 칸 수 (지금부터 1시간 간격)
+  standbyHours: 6,                // 스탠바이는 칸이 커서 6시간만
+  nightStart: 23, nightEnd: 6,    // 이 시간대엔 화면을 어둡게
+  reloadHour: 4                   // 매일 이 시각에 페이지 새로고침
+};
+
+const $ = id => document.getElementById(id);
+const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
+
+const state = { weather: null, air: null, weatherAt: 0, weatherErr: false, airErr: false };
+
+// ===== 숫자 롤러 =====
+// 띠 구성: [마지막값, ...values, 첫값, 둘째값] — 위아래로 이웃 숫자가 보이고,
+// 마지막값→첫값(59→00 등)도 거꾸로 감기지 않고 한 칸 위로 굴러가도록 앞뒤에 여분을 둠
+// fitWidth: 칸 폭을 현재 숫자 폭에 맞춤 (시/분 숫자용)
+function roller(el, values, fitWidth) {
+  const n = values.length;
+  const strip = document.createElement('span');
+  strip.className = 'strip';
+  strip.innerHTML = [values[n - 1], ...values, values[0], values[1 % n]].map(v => `<span>${v}</span>`).join('');
+  el.appendChild(strip);
+  let idx = -1;
+  const setWidth = () => {
+    if (fitWidth && digitW && idx >= 0) el.style.width = digitW[values[idx]] + 'em';
+  };
+  const set = v => {
+    const next = values.indexOf(v);
+    if (next === idx) return;
+    const wrap = idx === n - 1 && next === 0;
+    const step = idx >= 0 && (next === idx + 1 || wrap);
+    strip.style.transition = step ? '' : 'none';
+    strip.style.setProperty('--p', wrap ? n + 1 : next + 1);
+    if (wrap) {
+      strip.addEventListener('transitionend', () => {
+        strip.style.transition = 'none';
+        strip.style.setProperty('--p', 1);
+      }, { once: true });
+    }
+    idx = next;
+    setWidth();
+  };
+  set.refresh = setWidth;
+  return set;
+}
+
+// 숫자별 글자 폭(em). 너무 좁으면 굴러갈 때 이웃 숫자가 많이 잘려서 최소 .62em
+let digitW = null;
+function measureDigits() {
+  const c = document.createElement('canvas').getContext('2d');
+  c.font = '900 100px Orbitron';
+  digitW = {};
+  for (let i = 0; i < 10; i++) digitW[i] = Math.max(c.measureText(String(i)).width / 100, .62);
+}
+
+const setH1 = roller($('h1'), range(3), true);
+const setH2 = roller($('h2'), range(10), true);
+const setM1 = roller($('m1'), range(6), true);
+const setM2 = roller($('m2'), range(10), true);
+const setS = roller($('s'), range(60, pad));
+
+// 시계가 가장 넓은 시각(예: 00:00)에도 자기 칸에 들어가도록 글자 크기 계산
+// (폰트 로드·화면 회전 때마다 다시 맞춤. 분마다 크기가 바뀌지 않도록 실제 시각 폭은 쓰지 않음)
+function fitClock() {
+  const inner = $('clock-in');
+  const fs = parseFloat(getComputedStyle(inner).fontSize);
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const wmax = digitW ? Math.max(...Object.values(digitW)) : .834;
+  const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
+  inner.style.setProperty('--clock', ($('clock').clientWidth / widestEm / rem * .99) + 'rem');
+}
+
+// ===== 시계 =====
+function isNight(h) {
+  const s = CONFIG.nightStart, e = CONFIG.nightEnd;
+  return s > e ? (h >= s || h < e) : (h >= s && h < e);
+}
+
+function tickClock() {
+  const d = new Date();
+  const hh = pad(d.getHours()), mm = pad(d.getMinutes());
+  setH1(hh[0]); setH2(hh[1]); setM1(mm[0]); setM2(mm[1]);
+  setS(pad(d.getSeconds()));
+  const dateNum = `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+  if ($('date-num').textContent !== dateNum) {
+    $('date-num').textContent = dateNum;
+    $('date-day').textContent = `${d.getFullYear()} · ${WEEK[d.getDay()]}요일`;
+  }
+  if (d.getSeconds() === 0) {
+    if (d.getMinutes() === 0) renderWeather();   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
+    else renderSun();
+    shiftPixels(d.getMinutes());
+  }
+  document.body.classList.toggle('night', isNight(d.getHours()));
+  setTimeout(tickClock, 1000 - d.getMilliseconds() + 5);
+}
+
+// ===== 아이콘 =====
+const CLOUD_BASE = '<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>';
+const ICONS = {
+  sun: '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  smallSun: '<circle cx="8" cy="8" r="3.2"/><path d="M8 2.2v1.3M2.2 8h1.3M3.9 3.9l.9.9M12.1 3.9l-.9.9M3.9 12.1l.9-.9"/>',
+  smallMoon: '<path d="M11.5 8.4A4.5 4.5 0 1 1 6.6 3.5a3.5 3.5 0 0 0 4.9 4.9z"/>',
+  frontCloud: '<path class="occ" d="M18.5 12.5h-.95A6.2 6.2 0 1 0 11.6 20.5h6.9a4 4 0 0 0 0-8z"/>',
+  cloud: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+  fog: '<path d="M7 6h10M3 10h18M5 14h14M3 18h18"/>',
+  drizzle: CLOUD_BASE + '<path d="M8 13v2M8 19v2M12 15v2M12 21v2M16 13v2M16 19v2"/>',
+  rain: CLOUD_BASE + '<path d="M8 13v8M12 15v8M16 13v8"/>',
+  snow: CLOUD_BASE + '<path class="dots" d="M8 16h.01M8 20h.01M12 18h.01M12 22h.01M16 16h.01M16 20h.01"/>',
+  thunder: '<path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><path d="M13 11l-4 6h6l-4 6"/>'
+};
+
+function icon(kind, day = true) {
+  let body;
+  if (kind === 'clear') body = day ? ICONS.sun : ICONS.moon;
+  else if (kind === 'partly') body = (day ? ICONS.smallSun : ICONS.smallMoon) + ICONS.frontCloud;
+  else body = ICONS[kind] || ICONS.cloud;
+  return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
+}
+
+// WMO 날씨 코드 → [설명, 아이콘 종류]
+const WMO = {
+  0: ['맑음', 'clear'], 1: ['대체로 맑음', 'partly'], 2: ['구름 조금', 'partly'], 3: ['흐림', 'cloud'],
+  45: ['안개', 'fog'], 48: ['안개', 'fog'],
+  51: ['약한 이슬비', 'drizzle'], 53: ['이슬비', 'drizzle'], 55: ['강한 이슬비', 'drizzle'],
+  56: ['어는 이슬비', 'drizzle'], 57: ['어는 이슬비', 'drizzle'],
+  61: ['약한 비', 'rain'], 63: ['비', 'rain'], 65: ['강한 비', 'rain'], 66: ['어는 비', 'rain'], 67: ['어는 비', 'rain'],
+  71: ['약한 눈', 'snow'], 73: ['눈', 'snow'], 75: ['많은 눈', 'snow'], 77: ['싸락눈', 'snow'],
+  80: ['소나기', 'rain'], 81: ['소나기', 'rain'], 82: ['강한 소나기', 'rain'],
+  85: ['소낙눈', 'snow'], 86: ['강한 소낙눈', 'snow'],
+  95: ['뇌우', 'thunder'], 96: ['우박 뇌우', 'thunder'], 99: ['우박 뇌우', 'thunder']
+};
+const wmo = code => WMO[code] || ['-', 'cloud'];
+
+// ===== 데이터 =====
+async function getJSON(url) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// 새로고침 직후에도 바로 보이도록 마지막 응답을 저장 (실패해도 동작엔 지장 없음)
+const cacheKey = key => `mirror3_${key}_${CONFIG.lat}_${CONFIG.lon}`;   // 응답 형식이 바뀌면 접두어 버전을 올릴 것
+function save(key, data) {
+  try { localStorage.setItem(cacheKey(key), JSON.stringify({ at: Date.now(), data })); } catch (e) {}
+}
+function load(key, maxAge) {
+  try {
+    const v = JSON.parse(localStorage.getItem(cacheKey(key)));
+    if (v && Date.now() - v.at < maxAge) return v;
+  } catch (e) {}
+  return null;
+}
+
+async function loadWeather() {
+  const url = 'https://api.open-meteo.com/v1/forecast?' + new URLSearchParams({
+    latitude: CONFIG.lat, longitude: CONFIG.lon, timezone: 'auto', past_days: 1, forecast_days: 6,
+    current: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,uv_index',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
+    hourly: 'temperature_2m,weather_code,precipitation_probability,is_day'
+  });
+  try {
+    state.weather = await getJSON(url);
+    state.weatherAt = Date.now();
+    state.weatherErr = false;
+    save('weather', state.weather);
+  } catch (e) {
+    state.weatherErr = true;
+    console.warn('날씨 갱신 실패', e);
+  }
+  renderWeather();
+  renderFoot();
+}
+
+async function loadAir() {
+  const url = 'https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
+    latitude: CONFIG.lat, longitude: CONFIG.lon, timezone: 'auto', current: 'pm10,pm2_5'
+  });
+  try {
+    state.air = await getJSON(url);
+    state.airErr = false;
+    save('air', state.air);
+  } catch (e) {
+    state.airErr = true;
+    console.warn('미세먼지 갱신 실패', e);
+  }
+  renderAir();
+  renderFoot();
+}
+
+// ===== 렌더링 =====
+// 오늘 이후 4일치 예보 인덱스
+function upcomingDays(w) {
+  const today = ymd(new Date());
+  return w.daily.time.map((t, i) => [t, i]).filter(([t]) => t >= today).slice(0, 4);
+}
+
+// 예보 곡선용: 어제부터 6일
+function waveDays(w) {
+  const t = w.daily.time, start = Math.max(0, t.indexOf(ymd(new Date())) - 1);
+  return t.slice(start, start + 6).map((iso, k) => [iso, start + k]);
+}
+
+function dayLabel(iso) {
+  const now = new Date();
+  const rel = k => ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() + k));
+  if (iso === rel(0)) return '오늘';
+  if (iso === rel(1)) return '내일';
+  if (iso === rel(-1)) return '어제';
+  const [y, m, d] = iso.split('-').map(Number);
+  return WEEK[new Date(y, m - 1, d).getDay()];
+}
+
+// 기온 → 색 (추우면 파랑, 더우면 주황)
+const TEMP_STOPS = [[-10, [111, 168, 255]], [0, [142, 197, 255]], [10, [185, 224, 201]], [18, [255, 224, 138]], [25, [255, 179, 92]], [32, [255, 122, 69]]];
+function tempColor(t) {
+  const s = TEMP_STOPS;
+  if (t <= s[0][0]) return `rgb(${s[0][1]})`;
+  for (let k = 1; k < s.length; k++) {
+    if (t <= s[k][0]) {
+      const f = (t - s[k - 1][0]) / (s[k][0] - s[k - 1][0]);
+      return `rgb(${s[k - 1][1].map((v, j) => Math.round(v + (s[k][1][j] - v) * f))})`;
+    }
+  }
+  return `rgb(${s[s.length - 1][1]})`;
+}
+
+// 점들을 지나는 부드러운 곡선 (Catmull-Rom → 베지어)
+function smoothPath(p) {
+  const f = v => v.toFixed(1);
+  let s = `M${f(p[0][0])},${f(p[0][1])}`;
+  for (let k = 0; k < p.length - 1; k++) {
+    const p0 = p[k - 1] || p[k], p1 = p[k], p2 = p[k + 1], p3 = p[k + 2] || p2;
+    s += ` C${f(p1[0] + (p2[0] - p0[0]) / 6)},${f(p1[1] + (p2[1] - p0[1]) / 6)}`
+       + ` ${f(p2[0] - (p3[0] - p1[0]) / 6)},${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])},${f(p2[1])}`;
+  }
+  return s;
+}
+
+function renderWeather() {
+  const w = state.weather;
+  if (!w) return;
+  const c = w.current, d = w.daily;
+  const [desc, kind] = wmo(c.weather_code);
+  const today = upcomingDays(w)[0];
+  $('w-ico').innerHTML = icon(kind, c.is_day === 1);
+  $('w-title').textContent = desc;
+  $('w-feel').textContent = `체감 ${Math.round(c.apparent_temperature)}°`;
+  $('w-temp').textContent = Math.round(c.temperature_2m) + '°';
+  if (today) {
+    const i = today[1];
+    $('w-hi').textContent = Math.round(d.temperature_2m_max[i]) + '°';
+    $('w-lo').textContent = Math.round(d.temperature_2m_min[i]) + '°';
+    const [hiAt, loAt] = extremeHours(w, today[0]);
+    $('w-hi-t').textContent = hiAt;
+    $('w-lo-t').textContent = loAt;
+    // 어제 최고기온과 비교 (past_days=1로 어제 값이 함께 옴)
+    const diff = i > 0 ? Math.round(d.temperature_2m_max[i] - d.temperature_2m_max[i - 1]) : null;
+    $('w-diff').textContent = diff == null ? '' : diff === 0 ? '어제와 비슷한 기온이에요'
+      : `어제보다 ${Math.abs(diff)}° ${diff > 0 ? '높아요' : '낮아요'}`;
+  }
+  $('w-hum').textContent = c.relative_humidity_2m + '%';
+  $('w-hum-t').textContent = humLevel(c.relative_humidity_2m);
+  const [uvText, uvCls] = c.uv_index == null ? ['', ''] : uvLevel(c.uv_index);
+  $('w-uv').textContent = c.uv_index == null ? '-' : Math.round(c.uv_index);
+  $('w-uv-t').textContent = uvText;
+  $('w-uv-t').className = 'c-sub ' + uvCls;
+  renderHourly(w);
+  renderWave(w);
+  renderSun();
+}
+
+// 자외선 지수 단계 (기상청 기준) → [단계, 등급색]
+const uvLevel = v => v < 3 ? ['낮음', 'good'] : v < 6 ? ['보통', 'normal'] : v < 8 ? ['높음', 'bad'] : v < 11 ? ['매우높음', 'worst'] : ['위험', 'worst'];
+const humLevel = v => v < 30 ? '건조' : v <= 60 ? '쾌적' : v <= 80 ? '습함' : '매우 습함';
+
+// 오늘 최고·최저 기온이 나타나는 시각 (시간별 예보 기준)
+function extremeHours(w, iso) {
+  const h = w.hourly;
+  if (!h) return ['', ''];
+  const idx = h.time.map((t, i) => [t, i]).filter(([t]) => t.startsWith(iso)).map(([, i]) => i);
+  if (!idx.length) return ['', ''];
+  const pick = better => idx.reduce((a, b) => better(h.temperature_2m[b], h.temperature_2m[a]) ? b : a);
+  const label = i => {
+    const hr = Number(h.time[i].slice(11, 13));
+    return `${hr < 12 ? '오전' : '오후'} ${hr % 12 || 12}시`;
+  };
+  return [label(pick((x, y) => x > y)), label(pick((x, y) => x < y))];
+}
+
+function renderWave(w) {
+  const d = w.daily, today = ymd(new Date());
+  const days = waveDays(w), n = days.length;
+  if (!n) return;
+  const temps = days.map(([, i]) => d.temperature_2m_max[i]);
+  const lo = Math.min(...temps), hi = Math.max(...temps);
+  const PAD = 25;   // 동그란 점이 위아래로 잘리지 않도록 남기는 여백 (viewBox 100 기준)
+  const pts = temps.map((t, k) => [(k + .5) / n * 600, hi === lo ? 50 : PAD + (hi - t) / (hi - lo) * (100 - 2 * PAD)]);
+  $('wave-path').setAttribute('d', smoothPath([[0, pts[0][1]], ...pts, [600, pts[n - 1][1]]]));
+  $('wave').style.setProperty('--n', n);
+
+  let top = '', nodes = '', pop = '';
+  days.forEach(([iso, i], k) => {
+    const cls = iso < today ? 'past' : iso === today ? 'today' : '';
+    const max = Math.round(d.temperature_2m_max[i]);
+    const color = cls ? '' : ` style="color:${tempColor(max)}"`;
+    top += `<div class="wt ${cls}"><span class="wd">${dayLabel(iso)}</span>`
+         + `<b${color}>${max}°<small>${Math.round(d.temperature_2m_min[i])}°</small></b></div>`;
+    const x = (pts[k][0] / 6).toFixed(2), y = pts[k][1].toFixed(2);
+    nodes += cls === 'today'
+      ? `<i class="wave-line" style="left:${x}%;height:calc(${y}% + 1.2rem)"></i><i class="wave-dot" style="left:${x}%;top:${y}%"></i>`
+      : `<span class="node ${cls}" style="left:${x}%;top:${y}%">${icon(wmo(d.weather_code[i])[1])}</span>`;
+    const p = d.precipitation_probability_max[i];
+    pop += `<span class="wp">${p >= 30 ? '☂ ' + p + '%' : ''}</span>`;
+  });
+  $('wave-top').innerHTML = top;
+  $('wave-nodes').innerHTML = nodes;
+  $('wave-pop').innerHTML = pop;
+}
+
+// 지금 시각부터 1시간 간격 예보. 첫 칸('지금')은 현재 관측값을 씀
+function renderHourly(w) {
+  const h = w.hourly;
+  if (!h) return;
+  const now = new Date();
+  const i0 = h.time.indexOf(`${ymd(now)}T${pad(now.getHours())}:00`);
+  if (i0 < 0) return;
+  const count = document.body.classList.contains('sb') ? CONFIG.standbyHours : CONFIG.hourlyCount;
+  const idx = range(Math.min(count, h.time.length - i0), k => i0 + k);
+  const n = idx.length;
+  const temps = idx.map((i, k) => k === 0 ? w.current.temperature_2m : h.temperature_2m[i]);
+  const lo = Math.min(...temps), hi = Math.max(...temps);
+  const PAD = 15;
+  const pts = temps.map((t, k) => [(k + .5) / n * 600, hi === lo ? 50 : PAD + (hi - t) / (hi - lo) * (100 - 2 * PAD)]);
+  const line = smoothPath([[0, pts[0][1]], ...pts, [600, pts[n - 1][1]]]);
+  $('h-line').setAttribute('d', line);
+  $('h-area').setAttribute('d', line + ' L600,100 L0,100 Z');
+  $('hourly').style.setProperty('--n', n);
+
+  let top = '', dots = '', bars = '';
+  idx.forEach((i, k) => {
+    const first = k === 0;
+    const code = first ? w.current.weather_code : h.weather_code[i];
+    const day = (first ? w.current.is_day : h.is_day[i]) === 1;
+    top += `<div class="ht${first ? ' now' : ''}"><span class="hl">${first ? '지금' : Number(h.time[i].slice(11, 13)) + '시'}</span>`
+         + `${icon(wmo(code)[1], day)}<b>${Math.round(temps[k])}°</b></div>`;
+    dots += `<i class="h-dot${first ? ' now' : ''}" style="left:${(pts[k][0] / 6).toFixed(2)}%;top:${pts[k][1].toFixed(2)}%"></i>`;
+    const p = h.precipitation_probability[i] || 0;
+    bars += `<div class="hb"><span class="bar${p < 30 ? ' dry' : ''}"><i style="height:${Math.max(p, 8)}%"></i></span>`
+          + `<span>${p >= 30 ? p + '%' : ''}</span></div>`;
+  });
+  $('h-top').innerHTML = top;
+  $('h-dots').innerHTML = dots;
+  $('h-bars').innerHTML = bars;
+}
+
+// 일출~일몰 반원 위에 현재 해 위치 표시
+function renderSun() {
+  const w = state.weather;
+  const today = w && w.daily.sunrise && upcomingDays(w)[0];
+  if (!today) return;
+  const rise = w.daily.sunrise[today[1]], set = w.daily.sunset[today[1]];
+  $('sunrise').textContent = rise.slice(11, 16);
+  $('sunset').textContent = set.slice(11, 16);
+  const f = (Date.now() - new Date(rise)) / (new Date(set) - new Date(rise));
+  const th = Math.PI * (1 - Math.min(Math.max(f, 0), 1));
+  const x = (50 + 42 * Math.cos(th)).toFixed(2), y = (48 - 42 * Math.sin(th)).toFixed(2);
+  const up = f >= 0 && f <= 1;
+  $('sun-dot').setAttribute('cx', up ? x : -10);
+  $('sun-dot').setAttribute('cy', up ? y : -10);
+  $('sun-done').setAttribute('d', f > 0 ? `M8 48A42 42 0 0 1 ${x} ${y}` : '');
+}
+
+// 환경부 기준 4단계 (좋음/보통/나쁨/매우나쁨)
+const GRADES = [['좋음', 'good'], ['보통', 'normal'], ['나쁨', 'bad'], ['매우나쁨', 'worst']];
+const gradePm10 = v => v <= 30 ? 0 : v <= 80 ? 1 : v <= 150 ? 2 : 3;
+const gradePm25 = v => v <= 15 ? 0 : v <= 35 ? 1 : v <= 75 ? 2 : 3;
+
+function setAq(id, v, gradeOf) {
+  const [text, cls] = v == null ? ['-', ''] : GRADES[gradeOf(v)];
+  $(id).textContent = text;
+  $(id).className = 'c-sub ' + cls;
+  $(id + '-v').textContent = v == null ? '-' : Math.round(v);
+}
+
+function renderAir() {
+  const a = state.air && state.air.current;
+  if (!a) return;
+  setAq('pm10', a.pm10, gradePm10);
+  setAq('pm25', a.pm2_5, gradePm25);
+}
+
+function renderFoot() {
+  let s = CONFIG.name;
+  if (state.weatherAt) {
+    const d = new Date(state.weatherAt);
+    s += ` · ${pad(d.getHours())}:${pad(d.getMinutes())} 갱신`;
+  }
+  if (state.weatherErr || state.airErr) s += ' · 연결 확인 중';
+  $('foot').textContent = s;
+}
+
+// ===== 문구 =====
+const PHRASES = {
+  dawn: ['고요한 새벽이에요. 푹 자는 것도 실력이에요.', '아직 깜깜해요. 조금 더 쉬어도 괜찮아요.'],
+  morning: ['좋은 아침이에요!', '물 한 잔으로 하루를 시작해 볼까요?', '오늘도 멋진 하루 보내세요.',
+            '오늘 거울 속 모습, 꽤 괜찮은데요?', '천천히, 그래도 꾸준히.'],
+  afternoon: ['점심은 맛있게 드셨나요?', '잠깐 일어나서 기지개 한 번 켜요.',
+              '오후도 힘내요. 거의 다 왔어요.', '물 마실 시간이에요.'],
+  evening: ['오늘 하루도 수고 많았어요.', '저녁 맛있게 드세요.',
+            '오늘 잘한 일 하나만 떠올려 봐요.', '이제 좀 쉬어도 돼요.'],
+  night: ['오늘도 잘 해냈어요. 푹 쉬어요.', '내일은 더 좋은 날이 될 거예요.', '휴대폰 내려놓고 일찍 자기, 도전!']
+};
+const timeSlot = h => h < 5 ? 'dawn' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : h < 22 ? 'evening' : 'night';
+
+// 날씨·미세먼지·요일에 맞춘 문구
+function contextual(now) {
+  const out = [];
+  const h = now.getHours(), wd = now.getDay();
+  const w = state.weather;
+  if (w) {
+    const today = upcomingDays(w)[0];
+    const nowKind = wmo(w.current.weather_code)[1];
+    if (nowKind === 'rain' || nowKind === 'drizzle' || nowKind === 'thunder') out.push('지금 비가 오고 있어요. 우산 꼭 챙기세요.');
+    else if (nowKind === 'snow') out.push('눈이 오고 있어요. 길 미끄러우니 조심하세요.');
+    if (today && h < 20) {
+      const i = today[1], d = w.daily;
+      const kind = wmo(d.weather_code[i])[1];
+      if (d.precipitation_probability_max[i] >= 60 && nowKind !== 'rain') {
+        out.push(kind === 'snow' ? '오늘 눈 소식이 있어요. 따뜻하게 챙겨 입어요.' : '오늘 비 소식이 있어요. 우산 챙기세요.');
+      }
+      if (d.temperature_2m_min[i] <= 0) out.push('많이 추워요. 따뜻하게 입고 나가세요.');
+      if (d.temperature_2m_max[i] >= 30) out.push('더운 날이에요. 물 자주 마셔요.');
+      if (d.temperature_2m_max[i] - d.temperature_2m_min[i] >= 10) out.push('일교차가 커요. 겉옷 하나 챙기세요.');
+    }
+  }
+  const a = state.air && state.air.current;
+  if (a && a.pm10 != null && a.pm2_5 != null) {
+    const g = Math.max(gradePm10(a.pm10), gradePm25(a.pm2_5));
+    if (g >= 2) out.push('미세먼지가 나빠요. 마스크 챙기세요.');
+    else if (g === 0 && h >= 8 && h < 18) out.push('공기가 맑아요. 환기하기 좋은 날이에요.');
+  }
+  if (wd === 1 && h < 12) out.push('한 주의 시작, 이번 주도 화이팅!');
+  if (wd === 5 && h >= 17) out.push('불금이에요! 이번 주도 고생했어요.');
+  if ((wd === 0 || wd === 6) && h >= 8 && h < 20) out.push('즐거운 주말 보내세요.');
+  return out;
+}
+
+let phraseIdx = Math.floor(Math.random() * 100);
+function nextPhrase(first) {
+  const now = new Date();
+  const list = [...contextual(now), ...PHRASES[timeSlot(now.getHours())]];
+  const text = list[phraseIdx++ % list.length];
+  const el = $('phrase');
+  if (first) { el.textContent = text; return; }
+  if (el.textContent === text) return;
+  el.classList.add('fade');
+  setTimeout(() => { el.textContent = text; el.classList.remove('fade'); }, 1200);
+}
+
+// ===== 스탠바이 (휴대폰 가로 충전 화면) =====
+// 높이가 낮은 가로 화면(휴대폰)이면 자동으로 켜짐
+const standbyMQ = matchMedia('(orientation: landscape) and (max-height: 540px)');
+const isStandby = () => params.get('mode') ? params.get('mode') === 'standby' : standbyMQ.matches;
+function applyMode() {
+  document.body.classList.toggle('sb', isStandby());
+  renderWeather();   // 시간별 예보 칸 수가 달라짐
+  fitClock();
+}
+
+// OLED 번인 방지: 1분마다 화면 전체를 몇 px씩 옮김 (스탠바이에서만 CSS가 적용)
+const SHIFT = [[0, 0], [3, 0], [3, 3], [0, 3], [-3, 3], [-3, 0], [-3, -3], [0, -3], [3, -3]];
+function shiftPixels(m) {
+  const [x, y] = SHIFT[m % SHIFT.length];
+  $('stage').style.setProperty('--sx', x + 'px');
+  $('stage').style.setProperty('--sy', y + 'px');
+}
+
+// ===== 화면 유지 / 자동 새로고침 =====
+async function keepAwake() {
+  try { if (navigator.wakeLock) await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') keepAwake();
+});
+
+function scheduleReload() {
+  const now = new Date(), next = new Date(now);
+  next.setHours(CONFIG.reloadHour, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  setTimeout(() => location.reload(), next - now);
+}
+
+// ===== 시작 =====
+(function init() {
+  document.body.classList.toggle('sb', isStandby());
+  const cw = load('weather', 3 * 3600e3);
+  if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
+  const ca = load('air', 3 * 3600e3);
+  if (ca) state.air = ca.data;
+  renderWeather();
+  renderAir();
+  renderFoot();
+  tickClock();
+  nextPhrase(true);
+  fitClock();
+  document.fonts.ready.then(() => {
+    measureDigits();
+    [setH1, setH2, setM1, setM2].forEach(set => set.refresh());
+    fitClock();
+  });
+  window.addEventListener('resize', fitClock);
+  standbyMQ.addEventListener('change', applyMode);
+
+  loadWeather();
+  loadAir();
+  setInterval(loadWeather, CONFIG.weatherEvery);
+  setInterval(loadAir, CONFIG.airEvery);
+  setInterval(nextPhrase, CONFIG.phraseEvery);
+  setInterval(() => document.body.classList.toggle('alt'), CONFIG.forecastEvery);
+  let panel = 0;
+  setInterval(() => { document.body.dataset.panel = panel = (panel + 1) % 4; }, CONFIG.panelEvery);
+  keepAwake();
+  scheduleReload();
+})();
+</script>
+</body>
+</html>
