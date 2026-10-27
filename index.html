@@ -283,11 +283,11 @@ body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
 body.sb #hh{grid-area:hh} body.sb #mm{grid-area:mm}
 body.sb #lbl-gap, body.sb #colon, body.sb .sgroup .colon{display:none}
 body.sb .clock .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1;margin:0;padding:0}
-/* 초 줄은 낮아서 세로 라벨이 안 들어감 → 작은 초 숫자(폭 .835 × 시계 크기) 바로 오른쪽에 가로로 */
-body.sb .clock #lbl-s{grid-area:ss;justify-self:start;margin-left:calc(var(--clock) * .86 + 1.6rem);writing-mode:horizontal-tb;transform:none}
+/* 초 줄: 숫자는 오른쪽 끝(시·분 끝선), 라벨은 왼쪽 끝(시·분 시작선)에 가로로 — 양 끝을 위 숫자에 맞춤 */
+body.sb .clock #lbl-s{grid-area:ss;justify-self:start;writing-mode:horizontal-tb;transform:none}
 /* 초: 위아래로 비치는 이웃 숫자는 줄 높이에 넣지 않고 위 여백·시계 아래 여백으로 넘치게 둠 */
-body.sb .sgroup{grid-area:ss;font-size:.5em;margin:.24em 0 0}
-body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0}
+body.sb .sgroup{grid-area:ss;justify-self:end;font-size:.5em;margin:.24em 0 0}
+body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0;text-align:right}
 body.sb .date{align-self:start;display:flex;align-items:baseline;gap:2.4rem}
 body.sb .date-num{font-size:6.4rem}
 body.sb .date-day{margin-top:0;font-size:4rem}
