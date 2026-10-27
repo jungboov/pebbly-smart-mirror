@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>개인정보처리방침 · Pebbly Mirror</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#000;
+  --text:#f2f2f2;
+  --text-muted:#a3a3a3;
+  --text-dim:#6f6f6f;
+  --line:#262626;
+  --link:#8ec5ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Pretendard Variable",Pretendard,system-ui,"Noto Sans KR","Malgun Gothic",sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+main{max-width:46rem;margin:0 auto;padding:56px 16px 80px}
+h1{font-size:1.75rem;font-weight:700;letter-spacing:-.01em}
+.meta{margin-top:6px;color:var(--text-dim);font-size:.9rem}
+.lead{margin-top:28px;color:var(--text-muted)}
+h2{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:1.15rem;font-weight:600}
+h3{margin-top:20px;font-size:1rem;font-weight:600;color:var(--text-muted)}
+p,ul{margin-top:10px}
+ul{padding-left:1.2em}
+li+li{margin-top:6px}
+a{color:var(--link);text-underline-offset:3px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;color:var(--text-muted)}
+.en{color:var(--text-muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>개인정보처리방침</h1>
+  <p class="meta">Pebbly Mirror · <a href="/">mirror.pebblylabs.com</a> · 시행일 2026년 10월 27일</p>
+
+  <p class="lead">Pebbly Mirror(이하 '미러')는 거울 뒤 태블릿이나 폰 대기 화면에 시계·날씨·교통·음악을 보여 주는 웹앱입니다.
+  회원 가입이 없고, 미러가 다루는 정보는 거의 모두 <b>사용하는 기기의 브라우저 안에만</b> 저장됩니다.</p>
+
+  <h2>1. Google 계정 정보 (YouTube 음악)</h2>
+  <p>설정에서 'Google 로그인'을 한 경우에만 해당합니다.</p>
+  <ul>
+    <li><b>요청 권한:</b> <code>youtube.readonly</code>(YouTube 계정 보기) 하나뿐입니다. 이름·이메일·연락처 등 다른 Google 정보는 요청하지 않습니다.</li>
+    <li><b>사용하는 정보:</b> 내 재생목록(비공개 포함) 목록, '좋아요 표시한 동영상' 목록, 고른 재생목록에 담긴 동영상 정보(제목·채널·영상 ID). 이 정보는 미러 화면에서 그 재생목록을 재생하고 곡 정보를 보여 주는 데에만 씁니다.</li>
+    <li><b>하지 않는 것:</b> 재생목록·동영상·댓글·구독을 만들거나 바꾸거나 지우지 않습니다. 시청 기록을 남기거나 읽지 않습니다.</li>
+    <li><b>저장 위치:</b> 로그인 상태를 유지하는 갱신 토큰은 그 기기 브라우저 저장소(localStorage)에만 저장합니다. 미러 서버(Cloudflare Pages Functions)는 Google과 토큰을 주고받는 일만 중계하고, 토큰이나 YouTube 데이터를 저장하지 않습니다. 재생목록 조회는 기기에서 Google로 직접 요청합니다.</li>
+    <li><b>공유:</b> Google 사용자 데이터를 다른 사람이나 회사에 팔거나 넘기지 않고, 광고에 쓰지 않으며, 사람이 열람하지 않습니다.</li>
+  </ul>
+  <p>Pebbly Mirror가 Google API에서 받은 정보를 사용하고 다른 앱으로 전송하는 방식은
+  <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API 서비스 사용자 데이터 정책</a>의
+  제한적 사용(Limited Use) 요구사항을 포함해 그 정책을 따릅니다.</p>
+
+  <h3>YouTube API 서비스</h3>
+  <p>미러는 YouTube API 서비스를 사용합니다. 음악 위젯을 쓰면
+  <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube 서비스 약관</a>과
+  <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google 개인정보처리방침</a>이 함께 적용됩니다.
+  재생은 YouTube 플레이어(iframe)로 하므로, YouTube가 자체 정책에 따라 쿠키를 쓰거나 재생 정보를 처리할 수 있습니다.</p>
+
+  <h3>권한 해제와 삭제</h3>
+  <ul>
+    <li>미러 설정 → YouTube 음악 → <b>로그아웃</b>을 누르면 Google에 토큰 취소를 요청하고 기기에서 토큰을 지웁니다.</li>
+    <li>언제든 <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google 계정 → 서드 파티 연결</a>에서 Pebbly Mirror의 접근 권한을 직접 해제할 수 있습니다.</li>
+    <li>브라우저의 사이트 데이터를 지우면 미러가 기기에 저장한 모든 정보가 지워집니다.</li>
+  </ul>
+
+  <h2>2. 위치</h2>
+  <ul>
+    <li>날씨·미세먼지·주변 정류장을 위해 기기 위치를 씁니다. 처음 한 번 브라우저가 묻고, 거부하면 기본 위치(부천)로 보여 줍니다.</li>
+    <li>위치는 약 100m 단위로 줄여서 그 기기에 저장합니다. 날씨·미세먼지 조회에는 약 1km 단위, 동네 이름(예: 원미구 중동) 조회에는 약 100m 단위 좌표를 보냅니다.</li>
+    <li>설정에서 '내 주변' 정류장 찾기를 누를 때만 약 10m 단위 좌표를 씁니다.</li>
+    <li>위치 좌표는 아래 '외부 서비스'의 날씨·대기질·지명·교통 조회에 쓰이며, 미러 서버에 저장하지 않습니다.</li>
+  </ul>
+
+  <h2>3. 기기에 저장하는 설정</h2>
+  <p>시계 형식, 위젯 넘김 주기, 등록한 정류장·역, 알람 시각, 고른 재생목록, 날씨 캐시를 그 기기 브라우저에만 저장합니다. 다른 기기와 동기화하지 않습니다.</p>
+
+  <h2>4. 외부 서비스</h2>
+  <p>화면에 정보를 보여 주려고 아래 서비스에 요청을 보냅니다. 요청에는 기기의 IP 주소와 아래 적은 값이 담기며, 각 서비스는 자체 방침에 따라 처리합니다.</p>
+  <ul>
+    <li><b>Open-Meteo</b> — 날씨·대기질 예보 (좌표)</li>
+    <li><b>OpenStreetMap Nominatim</b> — 동네 이름 (약 100m 단위 좌표)</li>
+    <li><b>한국환경공단 에어코리아, 경기도·서울시 버스 정보, 서울시 지하철 정보</b> (공공데이터포털·서울 열린데이터광장) — 미러 서버를 거쳐 조회 (좌표, 정류장·역 이름)</li>
+    <li><b>Google · YouTube</b> — 로그인, 재생목록, 재생</li>
+    <li><b>LRCLIB</b> — 가사 (재생 중인 곡 제목·가수·길이)</li>
+    <li><b>jsDelivr, Google Fonts</b> — 글꼴, 공휴일 데이터</li>
+  </ul>
+
+  <h2>5. 쿠키와 분석</h2>
+  <p>미러는 자체 쿠키, 광고, 방문 분석 도구를 쓰지 않습니다. 호스팅(Cloudflare)은 서비스 운영을 위해 일반적인 접속 기록을 처리할 수 있습니다.</p>
+
+  <h2>6. 바뀌는 경우와 문의</h2>
+  <p>이 방침이 바뀌면 이 페이지에 시행일과 함께 올립니다. 문의는
+  <a href="https://github.com/jungboov/pebbly-smart-mirror/issues" target="_blank" rel="noopener">GitHub 이슈</a>로 남겨 주세요.</p>
+
+  <h2 lang="en">Summary in English</h2>
+  <div class="en" lang="en">
+    <p>Pebbly Mirror is a smart-mirror / standby web app. If you sign in with Google, it requests only the
+    <code>youtube.readonly</code> scope to list your playlists and liked videos and play them on screen. It never modifies
+    your YouTube account. The refresh token is stored only in your device's browser (localStorage); our server relays the
+    OAuth token exchange but does not store tokens or YouTube data. Google user data is not sold, shared, used for
+    advertising, or read by humans.</p>
+    <p>Pebbly Mirror's use and transfer of information received from Google APIs to any other app will adhere to the
+    <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>,
+    including the Limited Use requirements. This app uses YouTube API Services; see the
+    <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube Terms of Service</a> and the
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.
+    You can revoke access anytime via Sign out in the app settings or at
+    <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account permissions</a>.</p>
+  </div>
+</main>
+</body>
+</html>
