@@ -86,7 +86,8 @@ body{
   background-size:12.5rem 12.5rem;
   transition:opacity 3s;
 }
-body.night .stage{opacity:.45}
+/* 밤(설정 '어둡게'): 화면 내용을 어둡게 */
+body.night.night-dim .stage{opacity:.45}
 .zone{grid-area:zone}
 
 .lbl{font-family:var(--num);font-weight:500;font-size:2rem;color:var(--text-dim);letter-spacing:.06em;text-transform:lowercase}
@@ -555,10 +556,10 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
 
 /* 폰(OLED): 번인 방지로 JS가 1분마다 화면 전체를 몇 px씩 옮김 */
 body.sb.phone .stage{transform:translate(var(--sx, 0px), var(--sy, 0px))}
-/* 폰 밤: 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 (태블릿 미러는 기본 밤 어둡게) */
-body.sb.phone.night .stage{opacity:.8;filter:grayscale(1)}
-body.sb.phone::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
-body.sb.phone.night::after{background:#ff3b30}
+/* 밤(설정 '붉게'): 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 */
+body.night.night-red .stage{opacity:.8;filter:grayscale(1)}
+body.night-red::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
+body.night.night-red::after{background:#ff3b30}
 
 /* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
 .settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(0,0,0,.72)}
@@ -785,6 +786,15 @@ body.sb.phone.night::after{background:#ff3b30}
     <div class="set-row">날씨 자동 넘김
       <div class="step"><button data-d="-5" aria-label="5초 줄이기">−</button><span id="set-rotate"></span><button data-d="5" aria-label="5초 늘리기">+</button></div>
     </div>
+    <div class="set-row">야간 모드
+      <div class="seg" data-key="night"><button data-v="off">끄기</button><button data-v="dim">어둡게</button><button data-v="red">붉게</button></div>
+    </div>
+    <div class="set-row nt-row">야간 시작
+      <div class="step"><button data-nt="nightStart" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ns"></span><button data-nt="nightStart" data-d="1" aria-label="1시간 늦추기">+</button></div>
+    </div>
+    <div class="set-row nt-row">야간 끝
+      <div class="step"><button data-nt="nightEnd" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ne"></span><button data-nt="nightEnd" data-d="1" aria-label="1시간 늦추기">+</button></div>
+    </div>
     <div id="tr-sec" class="tr-sec">
       <div class="set-row">교통
         <div class="tr-add"><button data-add="bus">+ 버스</button><button data-add="sub">+ 지하철</button></div>
@@ -832,7 +842,6 @@ const CONFIG = {
   hourlyCount: 12,                // 시간별 예보 칸 수 (지금부터 1시간 간격)
   standbyHours: 6,                // 시계 강조 화면은 칸이 커서 6시간만
   cursorIdle: 3 * 1000,           // 마우스가 이만큼 멈춰 있으면 커서 숨김
-  nightStart: 23, nightEnd: 6,    // 이 시간대엔 화면을 어둡게
   reloadHour: 4                   // 매일 이 시각에 페이지 새로고침
 };
 
@@ -845,11 +854,12 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
 // hour12: 12시간제 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
+// night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, transit: [],
+  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -965,8 +975,10 @@ function fitClock() {
 }
 
 // ===== 시계 =====
+const nightStyle = () => S.night || (phoneMQ.matches ? 'red' : 'dim');
 function isNight(h) {
-  const s = CONFIG.nightStart, e = CONFIG.nightEnd;
+  if (nightStyle() === 'off') return false;
+  const s = S.nightStart, e = S.nightEnd;
   return s > e ? (h >= s || h < e) : (h >= s && h < e);
 }
 
@@ -1007,6 +1019,8 @@ function tickClock() {
   checkAlarm(d);
   cmIdleCheck();
   document.body.classList.toggle('night', isNight(d.getHours()));
+  document.body.classList.toggle('night-dim', nightStyle() === 'dim');
+  document.body.classList.toggle('night-red', nightStyle() === 'red');
   setTimeout(tickClock, 1000 - d.getMilliseconds() + 5);
 }
 
@@ -1492,9 +1506,15 @@ function applySettings() {
   fitClock();
   showPanel(panel);   // 바뀐 주기로 다시 시작
   showCm(S.focus ? cm : 0);   // 스톱워치·타이머·알람은 시계 강조 화면에서만
-  document.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b =>
-    b.classList.toggle('on', b.dataset.v === String(+S[seg.dataset.key]))));
+  document.querySelectorAll('.seg').forEach(seg => {
+    const k = seg.dataset.key, v = k === 'night' ? nightStyle() : String(+S[k]);
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  });
   $('set-rotate').textContent = S.rotate ? S.rotate + '초' : '끔';
+  const hourName = h => S.hour12 ? `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}시` : h + '시';
+  $('set-ns').textContent = hourName(S.nightStart);
+  $('set-ne').textContent = hourName(S.nightEnd);
+  document.querySelectorAll('.nt-row').forEach(r => { r.style.display = nightStyle() === 'off' ? 'none' : ''; });
 }
 
 // ===== 공휴일 =====
@@ -1757,7 +1777,8 @@ function openSettings() {
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
-  if (b && b.parentNode.classList.contains('seg')) S[b.parentNode.dataset.key] = b.dataset.v === '1';
+  if (b && b.parentNode.classList.contains('seg')) S[b.parentNode.dataset.key] = { 1: true, 0: false }[b.dataset.v] ?? b.dataset.v;
+  else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
