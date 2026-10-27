@@ -328,6 +328,10 @@ body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
   color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
 .cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
 .cm button.on{background:#fff;color:#000;border-color:#fff}
+/* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때 날짜 자리(오른쪽 끝)에 세로로. 메인 시계 화면은 그 자리에 날짜가 있어서 숨김 */
+.cm-dots{display:none}
+body.sb:not([data-cm="clock"]) .cm-dots{position:absolute;right:0;top:calc(50% - 3rem);transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
+body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:#fff}
 /* 울림 */
 .ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:rgba(0,0,0,.85);animation:ring 1s steps(2) infinite}
 .ring[hidden]{display:none}
@@ -499,7 +503,7 @@ body.sb .moon-ico{width:4rem;height:4rem}
 
 /* 위젯 위치 표시 (아이폰 스마트 스택처럼 오른쪽 세로 점) */
 body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-right));transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
-.sb-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:#333;transition:height .6s, width .6s, background .6s}
+.sb-dots i, .cm-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:#333;transition:height .6s, width .6s, background .6s}
 .sb-dots i.on{height:3.4rem;background:#fff}
 
 /* 세로: 위젯을 넓고 낮게 (정보 카드 4장 한 줄, 공기·해 카드 3장 한 줄) 해서 남는 높이를 시계에 줌 */
@@ -637,6 +641,8 @@ body.sb.phone.night::after{background:#ff3b30}
       <span class="lbl cm-l2">min</span><b id="al-m" class="cm-d2"></b><div class="cm-pm cm-c2"><button data-al="1">+</button><button data-al="-1">−</button></div>
       <div class="cm-foot"><span class="cm-name">alarm</span><div class="cm-ctl"><button id="al-go" data-al="toggle"></button></div></div>
     </div>
+    <!-- 시계 쪽 화면 위치 점 (시계 / 스톱워치 / 타이머 / 알람) -->
+    <div class="cm-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   </section>
 
   <section id="date" class="date">
