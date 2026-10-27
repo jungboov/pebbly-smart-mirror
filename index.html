@@ -392,7 +392,8 @@ body.sb.has-music .music{display:block}
 .mu-lyrics p{margin:0 0 2rem;font-size:4rem;font-weight:700;line-height:1.35;color:#4a4a4a;transition:color .3s}
 .mu-lyrics p.on{color:var(--text)}
 .mu-lyrics p.past{color:#6a6a6a}
-.mu-lyrics .plain{font-size:3.2rem;font-weight:500;color:var(--text-muted);white-space:pre-line}
+/* 시간 정보 없는 가사: 강조 없이 재생 위치 비율만큼 따라 내려감 */
+.mu-lyrics p.pl{margin-bottom:1.4rem;font-size:3.4rem;font-weight:600;color:var(--text-muted)}
 .mu-lyrics .none{font-size:3rem;font-weight:500;color:var(--text-dim)}
 /* 가로: 위젯 영역 높이 전체 */
 @media (orientation: landscape){
@@ -400,6 +401,11 @@ body.sb.has-music .music{display:block}
   body.sb.has-music .music{display:flex}
   body.sb .mu-body{flex:1}
   body.sb .music{container-type:inline-size}
+}
+/* 가사가 없으면 위아래로 놓을 때 플레이어를 세로 가운데로 (아래가 휑하지 않게) */
+@container (max-width: 95rem){
+  .music.nolyr .mu-body{justify-content:center}
+  .music.nolyr .mu-lyrics{flex:none}
 }
 @container (min-width: 95rem){
   .mu-body{flex-direction:row;gap:5rem}
@@ -531,17 +537,14 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   /* 위젯 위치 점: 아래 가운데 가로로 */
   body.sb .sb-dots{top:auto;bottom:3rem;right:auto;left:50%;transform:translateX(-50%);flex-direction:row}
   .sb-dots i.on{width:3.4rem;height:1.2rem}
-  /* 세로 음악 위젯: 시계 자리를 덜 뺏도록 낮게 — 영상(유튜브 최소 200px 이상) 옆에 곡 정보·버튼,
-     좁으면(폰) 영상 아래로. 가사는 지금 줄만 */
-  body.sb .mu-main{flex-direction:row;flex-wrap:wrap;align-items:center;gap:2rem 3rem}
-  body.sb .mu-video{flex:none;width:max(40rem, 356px);max-width:100%}
-  body.sb .mu-side{flex:1 1 32rem;min-width:0}
-  body.sb .mu-info{margin-top:0}
-  body.sb .mu-info b{font-size:3.6rem}
-  body.sb .mu-info span{font-size:2.6rem}
-  body.sb .mu-ctl button{width:6.4rem;height:6.4rem}
-  body.sb .mu-ctl button#mu-play{width:8.4rem;height:8.4rem}
-  body.sb .mu-ctl svg{width:3.4rem;height:3.4rem}
+  /* 세로 음악 위젯: 화면 폭 가득 영상 / 곡 정보 / 진행 바 / 버튼 / 가사 지금 줄.
+     다른 위젯보다 훨씬 높아서 위젯 칸 높이에 넣지 않고 아래에 띄움 → 음악을 볼 때만 시계가 작아짐 (fitClock) */
+  body.sb .music{position:absolute;left:0;right:0;bottom:0;margin:0}   /* 위치 기준은 위젯 칸(grid-area) */
+  body.sb .mu-info b{font-size:3.8rem}
+  body.sb .mu-info span{font-size:2.8rem}
+  body.sb .mu-ctl button{width:7.2rem;height:7.2rem}
+  body.sb .mu-ctl button#mu-play{width:9.6rem;height:9.6rem}
+  body.sb .mu-ctl svg{width:3.8rem;height:3.8rem}
   body.sb .mu-lyrics{flex:none;height:5.4rem;-webkit-mask-image:none;mask-image:none}
   body.sb .mu-lyrics p{font-size:3.2rem}
 }
@@ -911,7 +914,8 @@ const panelEl = name => PANELS[PANEL_NAMES.indexOf(name)];
 
 // 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)
 // 가장 넓은 시각(예: 00:00) 기준이라 분마다 크기가 바뀌지 않음
-function fitClock() {
+// animate: 음악 위젯을 오갈 때 시계 크기를 부드럽게 바꿈
+function fitClock(animate) {
   const inner = $('clock-in');
   const fs = parseFloat(getComputedStyle(inner).fontSize);
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -925,7 +929,8 @@ function fitClock() {
     const portrait = innerHeight > innerWidth;
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom)
       - parseFloat(getComputedStyle($('clock')).paddingBottom);
-    if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    // 아래 위젯 자리. 음악 위젯은 훨씬 높아서 음악을 볼 때만 셈
+    if (portrait) h -= Math.max(...PANELS.filter(el => el.id !== 'music' || panelName === 'music').map(el => el.offsetHeight)) + 4 * rem;
     // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭. 여기서 라벨과 오른쪽 날짜 칸을 뺌
     const w = portrait ? $('clock').clientWidth
       : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
@@ -934,6 +939,13 @@ function fitClock() {
     const lbl = $('lbl-h').offsetWidth + gap;
     const side = document.querySelector('.ds').offsetWidth + gap + 3 * rem;
     size = Math.min((w - lbl - side) / (2 * wmax + .02), h / 2.25);
+    // 눕힌 날짜가 시계 높이보다 길면 날짜를 줄임 (세로 음악 화면처럼 시계가 작아질 때 날짜가 칸을 늘려 위젯과 겹치지 않게)
+    const ds = document.querySelector('.ds');
+    ds.style.zoom = '';
+    const items = [...ds.children].filter(c => c.offsetHeight);
+    const dateLen = items.reduce((s, c) => s + c.offsetHeight, 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
+    const z = Math.min(1, size * 2.25 / dateLen);
+    ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + (2 * wmax + .02) * size * .99 + side) + 'px';
   } else {
@@ -942,8 +954,24 @@ function fitClock() {
     size = $('clock').clientWidth / widestEm;
   }
   // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
-  $('clock').style.setProperty('--clock', (size / rem * .99) + 'rem');
+  setClockSize(size / rem * .99, animate === true);
   $('clock').style.setProperty('--dw', wmax + 'em');
+}
+let clockTween = 0;
+function setClockSize(to, animate) {
+  const el = $('clock'), from = parseFloat(el.style.getPropertyValue('--clock'));
+  cancelAnimationFrame(clockTween);
+  if (!animate || !from || Math.abs(from - to) < .5 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.style.setProperty('--clock', to + 'rem');
+    return;
+  }
+  const t0 = performance.now();
+  const step = now => {
+    const p = Math.min(1, (now - t0) / 600), e = 1 - Math.pow(1 - p, 3);
+    el.style.setProperty('--clock', (from + (to - from) * e) + 'rem');
+    if (p < 1) clockTween = requestAnimationFrame(step);
+  };
+  clockTween = requestAnimationFrame(step);
 }
 
 // ===== 시계 =====
@@ -1532,13 +1560,20 @@ function showPanel(p, dir, axis) {
   if (panelName === 'music') muShow();
   else if (old === 'music') muHidden();
   if (dir && S.focus && old !== panelName) slide(panelEl(old), panelEl(panelName), dir, axis);
+  if ((old === 'music') !== (panelName === 'music')) fitClock(true);   // 세로: 음악을 볼 때만 시계가 작아짐
   schedulePanel();
 }
 // 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
+// 음악 위젯은 밀어서만 들어감 (재생 중이면 계속 머묾)
 function schedulePanel() {
   clearTimeout(panelTimer);
   if (S.rotate > 0 && !(panelName === 'music' && muPlaying)) {
-    panelTimer = setTimeout(() => showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x'), S.rotate * 1000);
+    panelTimer = setTimeout(() => {
+      const list = panelList();
+      let n = panel + 1;
+      if (list[n % list.length] === 'music') n++;
+      showPanel(n, 1, innerWidth > innerHeight ? 'y' : 'x');
+    }, S.rotate * 1000);
   }
 }
 
@@ -2138,26 +2173,38 @@ function songOf(title, ch) {
 
 // 가사: LRCLIB에서 '가수+곡명' → '가수 곡명' 통째 검색 → '곡명'만(길이가 비슷할 때만) 순서로 찾음
 // 재생 시간이 붙은 가사가 있으면 지금 줄을 강조하며 따라가고, 없으면 그냥 가사, 그것도 없으면 안내
-let muLyr = null, muLyrK = -2;
-async function loadLyrics(artist, track, vid) {
-  muLyr = null; muLyrK = -2;
+// LRCLIB가 바쁠 때(503)가 잦아서 한 번 더 묻고, 그래도 안 되면 20초 뒤 다시 찾음
+let muLyr = null, muPlain = 0, muLyrK = -2, muLyrRetry = 0;
+async function lrcSearch(q) {
+  for (let i = 0; i < 2; i++) {
+    try {
+      const r = await fetch('https://lrclib.net/api/search?' + new URLSearchParams(q));
+      if (r.ok) return await r.json();
+    } catch (e) {}
+    await new Promise(res => setTimeout(res, 1500));
+  }
+  return null;   // 서버가 바쁘거나 연결 안 됨
+}
+async function loadLyrics(artist, track, vid, round = 0) {
+  muLyr = null; muPlain = 0; muLyrK = -2;
+  clearTimeout(muLyrRetry);
+  $('music').classList.remove('nolyr');
   $('mu-lyrics').innerHTML = '<p class="none">가사 찾는 중…</p>';
   const dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
   // 'aespa 에스파'처럼 영문·한글 이름이 같이 붙은 가수는 첫 단어로도 찾아봄
   const first = artist.split(/\s+/)[0];
   const tries = [{ track_name: track, artist_name: artist }, ...(first !== artist ? [{ track_name: track, artist_name: first }] : []),
     { q: `${artist} ${track}` }, ...(dur ? [{ track_name: track }] : [])];
-  let hit = null;
+  let hit = null, busy = false;
   for (const q of tries) {
-    try {
-      const list = await (await fetch('https://lrclib.net/api/search?' + new URLSearchParams(q))).json();
-      if (!Array.isArray(list) || !list.length) continue;
-      const near = x => dur ? Math.abs(x.duration - dur) : 0;
-      const best = list.slice().sort((a, b) => (!a.syncedLyrics - !b.syncedLyrics) * 1000 + near(a) - near(b))[0];
-      if (q.artist_name == null && q.q == null && near(best) > 8) continue;   // 곡명만으로 찾았으면 길이도 맞아야
-      hit = best;
-      break;
-    } catch (e) {}
+    const list = await lrcSearch(q);
+    if (!list) { busy = true; break; }
+    if (!Array.isArray(list) || !list.length) continue;
+    const near = x => dur ? Math.abs(x.duration - dur) : 0;
+    const best = list.slice().sort((a, b) => (!a.syncedLyrics - !b.syncedLyrics) * 1000 + near(a) - near(b))[0];
+    if (q.artist_name == null && q.q == null && near(best) > 8) continue;   // 곡명만으로 찾았으면 길이도 맞아야
+    hit = best;
+    break;
   }
   if (muNow !== vid) return;   // 그사이 곡이 바뀜
   const el = $('mu-lyrics');
@@ -2168,21 +2215,31 @@ async function loadLyrics(artist, track, vid) {
     }).filter(Boolean);
     el.innerHTML = muLyr.map(l => `<p>${esc(l.text) || '♪'}</p>`).join('');
   } else if (hit && hit.plainLyrics) {
-    el.innerHTML = `<div class="plain">${esc(hit.plainLyrics)}</div>`;
+    const lines = hit.plainLyrics.split('\n').filter(l => l.trim());
+    muPlain = lines.length;
+    el.innerHTML = lines.map(l => `<p class="pl">${esc(l)}</p>`).join('');
+  } else if (busy && round < 3) {
+    el.innerHTML = '<p class="none">가사 서버가 바빠요. 잠시 뒤 다시 찾아볼게요</p>';
+    muLyrRetry = setTimeout(() => { if (muNow === vid) loadLyrics(artist, track, vid, round + 1); }, 20e3);
   } else {
-    el.innerHTML = '<p class="none">가사를 찾지 못했어요</p>';
+    el.innerHTML = `<p class="none">${busy ? '가사 서버에 연결하지 못했어요' : '가사를 찾지 못했어요'}</p>`;
   }
+  $('music').classList.toggle('nolyr', !muLyr && !muPlain);
   el.scrollTop = 0;
 }
-// 지금 줄 강조 + 가운데로 스크롤
+// 지금 줄 강조 + 가운데로 스크롤. 시간 정보 없는 가사는 재생 위치 비율로 어림잡아 스크롤만
+// (앞뒤 반주 몫으로 처음·끝 8%는 뺌)
 function muLyricsAt(t) {
-  if (!muLyr) return;
   let k = -1;
-  while (k + 1 < muLyr.length && muLyr[k + 1].t <= t + .3) k++;
+  if (muLyr) while (k + 1 < muLyr.length && muLyr[k + 1].t <= t + .3) k++;
+  else if (muPlain) {
+    const d = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+    k = d ? Math.min(muPlain - 1, Math.max(0, Math.floor((t / d - .08) / .84 * muPlain))) : 0;
+  } else return;
   if (k === muLyrK) return;
   muLyrK = k;
   const el = $('mu-lyrics'), ps = el.children;
-  [...ps].forEach((p, i) => { p.classList.toggle('on', i === k); p.classList.toggle('past', i < k); });
+  if (muLyr) [...ps].forEach((p, i) => { p.classList.toggle('on', i === k); p.classList.toggle('past', i < k); });
   const p = ps[Math.max(k, 0)];
   if (p) el.scrollTo({ top: p.offsetTop - el.clientHeight / 2 + p.offsetHeight / 2, behavior: calm.matches ? 'auto' : 'smooth' });
 }
@@ -2256,6 +2313,7 @@ function scheduleReload() {
     fitClock();
   });
   window.addEventListener('resize', fitClock);
+  new ResizeObserver(() => fitClock()).observe($('music'));   // 세로: 음악 위젯 높이가 바뀌면 시계도
   phoneMQ.addEventListener('change', applyMode);
 
   loadWeather();
