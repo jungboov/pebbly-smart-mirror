@@ -101,10 +101,11 @@ const ggSearch = async (env, word) =>
 const ggRoutes = async (env, id) =>
   list((await gg(env, 'busstationservice/v2/getBusStationViaRouteListv2', { stationId: id }, 86400)).busRouteList)
     .map(r => ({ id: String(r.routeId), name: String(r.routeName), dest: r.routeDestName || '' }));
-// 도착 예정 시간(분). 값이 없으면 null
+// 도착 예정 시간(분)과 몇 정류장 전인지. 값이 없으면 null
 const ggArrivals = async (env, id) =>
   list((await gg(env, 'busarrivalservice/v2/getBusArrivalListv2', { stationId: id }, 30)).busArrivalList)
-    .map(a => ({ routeId: String(a.routeId), min1: minutes(a.predictTime1), min2: minutes(a.predictTime2) }));
+    .map(a => ({ routeId: String(a.routeId), min1: minutes(a.predictTime1), min2: minutes(a.predictTime2),
+      st1: minutes(a.locationNo1), st2: minutes(a.locationNo2) }));
 
 // ── 서울 버스 (서울시 버스정보시스템, resultType=json) ──
 // 정류장 id = '정류소번호(arsId)_정류소ID(stId)'. 5자리 정류소 번호는 지역끼리 겹치는 경우가 있어서
@@ -141,11 +142,11 @@ const seoulRoutes = async (env, id) =>
   (await seoulAt(env, id)).map(r => ({ id: seoulRouteId(r), name: String(r.rtNm), dest: r.adirection ? `${r.adirection} 방향` : '' }));
 const seoulArrivals = async (env, id) =>
   (await seoulAt(env, id)).map(a => ({ routeId: seoulRouteId(a), ...arrMsg(a.arrmsg1, 1), ...arrMsg(a.arrmsg2, 2) }));
-// '3분12초후[2번째 전]' → 3.2분, '곧 도착' → 0, '운행종료'·'출발대기' 등은 글자 그대로
+// '3분12초후[2번째 전]' → 3.2분·2정류장 전, '곧 도착' → 0, '운행종료'·'출발대기' 등은 글자 그대로
 function arrMsg(m, n) {
   m = String(m || '').trim();
-  const t = m.match(/(\d+)분(?:(\d+)초)?/);
-  if (t) return { [`min${n}`]: Number(t[1]) + (Number(t[2]) || 0) / 60 };
+  const t = m.match(/(\d+)분(?:(\d+)초)?/), s = m.match(/\[(\d+)번째 전\]/);
+  if (t) return { [`min${n}`]: Number(t[1]) + (Number(t[2]) || 0) / 60, [`st${n}`]: s ? Number(s[1]) : null };
   if (m.includes('곧 도착')) return { [`min${n}`]: 0 };
   return { [`min${n}`]: null, [`msg${n}`]: m.replace(/\[.*\]/, '').trim() || null };
 }
@@ -176,8 +177,10 @@ function subwayArrival(a) {
   else if (/전역/.test(m)) text = '전역';
   else text = m.replace(/\(.*\)/, '').trim() || null;
   const ord = min != null ? min : text === '전역' ? 1.5 : n ? Number(n[1]) * 2 : 99;
+  // 남은 분이 있을 때도 몇 정거장 전인지 함께 (문구에 있거나 전역이면 1)
+  const st = min != null && min > 0 ? (n ? Number(n[1]) : ['3', '4', '5'].includes(code) ? 1 : null) : null;
   return {
-    sid: String(a.subwayId), updn: a.updnLine, min, text, ord,
+    sid: String(a.subwayId), updn: a.updnLine, min, text, ord, st,
     express: /급행|특급/.test(`${a.btrainSttus || ''} ${a.trainLineNm || ''}`), dest: a.bstatnNm || ''
   };
 }

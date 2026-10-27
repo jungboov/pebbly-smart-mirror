@@ -370,6 +370,7 @@ body.sb.has-tr .transit{display:block}
 .tr-row span{font-size:4.6rem;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tr-row em{font-style:normal;font-weight:600;color:var(--bad)}
 .tr-row .tr-x{margin-left:.6rem;font-size:2.4rem;font-weight:600;color:var(--rain)}
+.tr-row .tr-st{margin-left:.6rem;font-size:2.4rem;font-weight:400;color:var(--text-dim)}
 .tr-none{font-size:3rem;color:var(--text-dim)}
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
@@ -1732,22 +1733,26 @@ async function loadBoard() {
 function renderBoard() {
   if (!S.transit.length) { $('tr-board').innerHTML = ''; return; }
   const past = (Date.now() - boardAt) / 6e4;
-  const when = (min, text) => min == null ? esc(text || '-')
-    : (m => m <= 0 ? '<em>곧 도착</em>' : `${m}분`)(Math.round(min - past));
+  // '3분' 옆에 작게 '2정거장' (몇 정거장 전인지 알 때만, 곧 도착이면 생략)
+  const when = (min, text, st) => {
+    if (min == null) return esc(text || '-');
+    const m = Math.round(min - past);
+    return m <= 0 ? '<em>곧 도착</em>' : `${m}분${st ? `<small class="tr-st">${st}정거장</small>` : ''}`;
+  };
   const times = list => list.length ? list.join(' · ') : '정보 없음';
   $('tr-board').innerHTML = S.transit.map(it => {
     if (it.t === 'bus') {
       const arr = (board && board.bus[`${it.src}:${it.id}`]) || [];
       const rows = it.routes.slice(0, 4).map(r => {
         const a = arr.find(x => x.routeId === r.id);
-        const t = a ? [when(a.min1, a.msg1), ...(a.min2 != null || a.msg2 ? [when(a.min2, a.msg2)] : [])] : [];
+        const t = a ? [when(a.min1, a.msg1, a.st1), ...(a.min2 != null || a.msg2 ? [when(a.min2, a.msg2, a.st2)] : [])] : [];
         return `<div class="tr-row"><b>${esc(r.name)}</b><span>${times(t)}</span></div>`;
       }).join('');
       return `<div class="tr-item"><div class="tr-head">${esc(it.name)}<small>${esc(it.no)}</small></div>${rows}</div>`;
     }
     const arr = ((board && board.sub[it.station]) || []).filter(a => a.sid === it.sid && a.updn === it.updn).slice(0, 2);
     return `<div class="tr-item"><div class="tr-head">${esc(it.station)}역<small>${esc(it.label)}</small></div>`
-      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text) + (a.express ? '<small class="tr-x">급행</small>' : '')))}</span></div></div>`;
+      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')))}</span></div></div>`;
   }).join('') + (board ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
 }
 
