@@ -76,7 +76,7 @@ export async function onRequestGet({ request, env }) {
     }
     return json({ error: 'op 없음' }, 400);
   } catch (e) {
-    return json({ error: msg(e) }, 502);
+    return json({ error: msg(e) }, 503);
   }
 }
 

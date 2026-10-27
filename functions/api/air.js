@@ -26,9 +26,9 @@ export async function onRequestGet({ request, env }) {
         return json({ station: s.stationName, time: m.dataTime, pm10, pm25 }, 200, 300);
       }
     }
-    return json({ error: '가까운 측정소에 측정값 없음' }, 502);
+    return json({ error: '가까운 측정소에 측정값 없음' }, 503);
   } catch (e) {
-    return json({ error: String((e && e.message) || e) }, 502);
+    return json({ error: String((e && e.message) || e) }, 503);
   }
 }
 
