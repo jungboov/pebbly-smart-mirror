@@ -131,6 +131,9 @@ body.night.night-dim .stage{opacity:.45}
 .sgroup .colon{margin:0 .12em calc(.35 * .82em) .1em}
 .sgroup .roll{width:1.67em;text-align:left;transition:none}
 .lbl-s{padding-left:.6rem}
+/* 초 표시 끄기(설정): 시·분만 보이고 그만큼 시계가 커짐 (fitClock) */
+body.no-sec #sgroup, body.no-sec #lbl-s{display:none}
+body.no-sec:not(.sb) .clock-in{grid-template-columns:repeat(3,auto)}
 
 .date{grid-area:date;align-self:center}
 .date-num{font-family:var(--num);font-weight:700;font-size:6.4rem;line-height:1;letter-spacing:.02em}
@@ -312,7 +315,7 @@ body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"
 body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
 .cm{position:absolute;inset:0 0 6rem;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto 1fr;
   grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft .";align-items:end;column-gap:2rem;row-gap:.04em;
-  font-family:var(--num);font-weight:900;font-size:var(--clock);line-height:.82}
+  font-family:var(--num);font-weight:900;font-size:var(--cm, var(--clock));line-height:.82}
 .cm b{display:flex;height:.82em}
 /* 숫자 칸 폭을 고정해서 빨리 바뀌어도 흔들리지 않게 */
 .cm b i{display:inline-block;width:var(--dw, .834em);text-align:center;font-style:normal}
@@ -344,6 +347,7 @@ body.sb .clock-in{width:100%;grid-template-columns:auto auto 1fr;grid-template-a
 body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
 body.sb #hh{grid-area:hh} body.sb #mm{grid-area:mm}
 body.sb #lbl-gap, body.sb #colon, body.sb .sgroup .colon{display:none}
+body.sb.no-sec .clock-in{grid-template-areas:"lh hh ds" "lm mm ds"}
 body.sb .clock .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1;margin:0;padding:0}
 /* 초 줄: 숫자는 오른쪽 끝(시·분 끝선), 라벨은 왼쪽 끝(시·분 시작선)에 가로로 — 양 끝을 위 숫자에 맞춤 */
 body.sb .clock #lbl-s{grid-area:ss;justify-self:start;writing-mode:horizontal-tb;transform:none}
@@ -790,6 +794,9 @@ body.night.night-red::after{background:#ff3b30}
       <div class="set-row">시계 형식
         <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
       </div>
+      <div class="set-row">초 표시
+        <div class="seg" data-key="secs"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
+      </div>
       <div class="set-row">시계 강조
         <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
       </div>
@@ -872,14 +879,14 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
-// hour12: 12시간제 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
+// hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -956,10 +963,10 @@ function fitClock() {
   const fs = parseFloat(getComputedStyle(inner).fontSize);
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   const wmax = digitW ? Math.max(...Object.values(digitW)) : .834;
-  let size;
+  let size, cmSize = 0;
   if (document.body.classList.contains('sb')) {
     // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
-    // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12
+    // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12, 초를 끄면 시 .82 + 분 .82 + 줄 간격 .04
     const stage = $('stage'), st = getComputedStyle(stage);
     // 날짜는 시계 옆에 있어서 높이는 안 씀
     const portrait = innerHeight > innerWidth;
@@ -974,13 +981,16 @@ function fitClock() {
     const gap = parseFloat(getComputedStyle(inner).columnGap);
     const lbl = $('lbl-h').offsetWidth + gap;
     const side = document.querySelector('.ds').offsetWidth + gap + 3 * rem;
-    size = Math.min((w - lbl - side) / (2 * wmax + .02), h / 2.25);
+    const rows = S.secs ? 2.25 : 1.68;
+    size = Math.min((w - lbl - side) / (2 * wmax + .02), h / rows);
+    // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기
+    cmSize = Math.min((w - lbl - side) / (2 * wmax + .02), h / 2.25);
     // 눕힌 날짜가 시계 높이보다 길면 날짜를 줄임 (시계가 작아질 때 날짜가 칸을 늘려 아래 위젯과 겹치지 않게)
     const ds = document.querySelector('.ds');
     ds.style.zoom = '';
     const items = [...ds.children].filter(c => c.offsetHeight);
     const dateLen = items.reduce((s, c) => s + c.offsetHeight, 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-    const z = Math.min(1, size * 2.25 / dateLen);
+    const z = Math.min(1, size * rows / dateLen);
     ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + (2 * wmax + .02) * size * .99 + side) + 'px';
@@ -991,6 +1001,8 @@ function fitClock() {
   }
   // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
   $('clock').style.setProperty('--clock', (size / rem * .99) + 'rem');
+  if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
+  else $('clock').style.removeProperty('--cm');
   $('clock').style.setProperty('--dw', wmax + 'em');
 }
 
@@ -1515,6 +1527,7 @@ function applyMode() {
 function applySettings() {
   document.body.classList.toggle('sb', S.focus);
   document.body.classList.toggle('half', S.half);
+  document.body.classList.toggle('no-sec', !S.secs);
   document.body.classList.toggle('has-tr', S.transit.length > 0);
   document.body.classList.toggle('has-music', !!gSaved());
   trRenderList();
