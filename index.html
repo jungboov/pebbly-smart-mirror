@@ -564,8 +564,17 @@ body.night.night-red::after{background:#ff3b30}
 /* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
 .settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(0,0,0,.72)}
 .settings[hidden]{display:none}
-.set-card{width:min(80rem, 92vw);max-height:94vh;overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:#111}
+.set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:#111}
 .set-title{font-size:4.6rem;font-weight:700}
+/* 설정 탭: 화면 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
+.set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
+.set-tabs{display:flex;gap:1rem}
+.set-card .set-tabs button{padding:1.2rem 2.6rem;border:1px solid var(--card-bd);border-radius:999px}
+.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="night"] [data-tab="night"],
+.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.set-page{display:none;flex-direction:column;gap:3rem}
+.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="night"] [data-page="night"],
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
@@ -574,7 +583,7 @@ body.night.night-red::after{background:#ff3b30}
 .step{display:flex;align-items:center;gap:2rem;color:var(--text);font-variant-numeric:tabular-nums}
 .step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .step span{min-width:9rem;text-align:center}
-.set-hint{font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
+.set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
 .set-card .set-close{align-self:stretch;padding:1.8rem;border-radius:2.2rem;background:#222;color:var(--text);font-weight:600}
 /* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
 .tr-sec{display:flex;flex-direction:column;gap:1.8rem}
@@ -772,52 +781,63 @@ body.night.night-red::after{background:#ff3b30}
 <div id="ring" class="ring" hidden><b id="ring-title"></b><button>끄기</button></div>
 
 <div id="settings" class="settings" hidden>
-  <div class="set-card">
-    <div class="set-title">설정</div>
-    <div class="set-row">시계 형식
-      <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
+  <div class="set-card" data-tab="screen">
+    <!-- 탭: 화면 / 야간 / 교통 / 음악. 고른 탭의 내용만 보임 -->
+    <div class="set-head"><div class="set-title">설정</div>
+      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="music">음악</button></div>
     </div>
-    <div class="set-row">시계 강조
-      <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
-    </div>
-    <div class="set-row">세로 배치
-      <div class="seg" data-key="half"><button data-v="0">시계 크게</button><button data-v="1">반반</button></div>
-    </div>
-    <div class="set-row">날씨 자동 넘김
-      <div class="step"><button data-d="-5" aria-label="5초 줄이기">−</button><span id="set-rotate"></span><button data-d="5" aria-label="5초 늘리기">+</button></div>
-    </div>
-    <div class="set-row">야간 모드
-      <div class="seg" data-key="night"><button data-v="off">끄기</button><button data-v="dim">어둡게</button><button data-v="red">붉게</button></div>
-    </div>
-    <div class="set-row nt-row">야간 시작
-      <div class="step"><button data-nt="nightStart" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ns"></span><button data-nt="nightStart" data-d="1" aria-label="1시간 늦추기">+</button></div>
-    </div>
-    <div class="set-row nt-row">야간 끝
-      <div class="step"><button data-nt="nightEnd" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ne"></span><button data-nt="nightEnd" data-d="1" aria-label="1시간 늦추기">+</button></div>
-    </div>
-    <div id="tr-sec" class="tr-sec">
-      <div class="set-row">교통
-        <div class="tr-add"><button data-add="bus">+ 버스</button><button data-add="sub">+ 지하철</button></div>
+    <div class="set-page" data-page="screen">
+      <div class="set-row">시계 형식
+        <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
       </div>
-      <ul id="tr-list" class="tr-list"></ul>
-      <div id="tr-find" hidden>
-        <div class="tr-bar"><input id="tr-q" enterkeyhint="search" autocomplete="off"><button id="tr-go">검색</button><button id="tr-near">내 주변</button></div>
-        <p id="tr-msg" class="tr-msg"></p>
-        <ul id="tr-res" class="tr-res"></ul>
+      <div class="set-row">시계 강조
+        <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
+      </div>
+      <div class="set-row">세로 배치
+        <div class="seg" data-key="half"><button data-v="0">시계 크게</button><button data-v="1">반반</button></div>
+      </div>
+      <div class="set-row">날씨 자동 넘김
+        <div class="step"><button data-d="-5" aria-label="5초 줄이기">−</button><span id="set-rotate"></span><button data-d="5" aria-label="5초 늘리기">+</button></div>
       </div>
     </div>
-    <div id="mu-sec" class="tr-sec">
-      <div class="set-row">YouTube 음악
-        <div class="tr-add"><button id="g-login">Google 로그인</button><button id="g-logout" hidden>로그아웃</button></div>
+    <div class="set-page" data-page="night">
+      <div class="set-row">야간 모드
+        <div class="seg" data-key="night"><button data-v="off">끄기</button><button data-v="dim">어둡게</button><button data-v="red">붉게</button></div>
       </div>
-      <p id="g-msg" class="tr-msg"></p>
-      <div id="g-code" class="g-code" hidden>
-        <span>폰이나 PC에서 아래 주소를 열고 코드를 입력하세요</span>
-        <a id="g-url" target="_blank" rel="noopener"></a>
-        <b id="g-user"></b>
+      <div class="set-row nt-row">야간 시작
+        <div class="step"><button data-nt="nightStart" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ns"></span><button data-nt="nightStart" data-d="1" aria-label="1시간 늦추기">+</button></div>
       </div>
-      <ul id="mu-lists" class="tr-res"></ul>
-      <a class="g-policy" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+      <div class="set-row nt-row">야간 끝
+        <div class="step"><button data-nt="nightEnd" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ne"></span><button data-nt="nightEnd" data-d="1" aria-label="1시간 늦추기">+</button></div>
+      </div>
+    </div>
+    <div class="set-page" data-page="transit">
+      <div id="tr-sec" class="tr-sec">
+        <div class="set-row">정류장·역
+          <div class="tr-add"><button data-add="bus">+ 버스</button><button data-add="sub">+ 지하철</button></div>
+        </div>
+        <ul id="tr-list" class="tr-list"></ul>
+        <div id="tr-find" hidden>
+          <div class="tr-bar"><input id="tr-q" enterkeyhint="search" autocomplete="off"><button id="tr-go">검색</button><button id="tr-near">내 주변</button></div>
+          <p id="tr-msg" class="tr-msg"></p>
+          <ul id="tr-res" class="tr-res"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="set-page" data-page="music">
+      <div id="mu-sec" class="tr-sec">
+        <div class="set-row">YouTube 음악
+          <div class="tr-add"><button id="g-login">Google 로그인</button><button id="g-logout" hidden>로그아웃</button></div>
+        </div>
+        <p id="g-msg" class="tr-msg"></p>
+        <div id="g-code" class="g-code" hidden>
+          <span>폰이나 PC에서 아래 주소를 열고 코드를 입력하세요</span>
+          <a id="g-url" target="_blank" rel="noopener"></a>
+          <b id="g-user"></b>
+        </div>
+        <ul id="mu-lists" class="tr-res"></ul>
+        <a class="g-policy" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+      </div>
     </div>
     <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
     <button class="set-close">닫기</button>
@@ -1777,6 +1797,7 @@ function openSettings() {
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
+  if (b && b.dataset.tab) { b.closest('.set-card').dataset.tab = b.dataset.tab; return; }
   if (b && b.parentNode.classList.contains('seg')) S[b.parentNode.dataset.key] = { 1: true, 0: false }[b.dataset.v] ?? b.dataset.v;
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
@@ -2095,7 +2116,7 @@ function loadYT() {
 // 음악 위젯이 보일 때: 고른 재생목록을 불러와 플레이어에 올림 (같은 재생목록이면 그대로)
 async function muShow() {
   muToggles();
-  if (!S.music) { muMsg('설정(화면 두 번 탭) → YouTube 음악에서 재생목록을 고르세요.'); return; }
+  if (!S.music) { muMsg('설정(화면 두 번 탭) → 음악 탭에서 재생목록을 고르세요.'); return; }
   if (muFor === S.music.id) return;
   muFor = S.music.id;
   $('mu-list').textContent = ' · ' + S.music.title;
