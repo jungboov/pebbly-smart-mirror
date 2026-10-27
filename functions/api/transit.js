@@ -106,7 +106,9 @@ const ggArrivals = async (env, id) =>
   list((await gg(env, 'busarrivalservice/v2/getBusArrivalListv2', { stationId: id }, 30)).busArrivalList)
     .map(a => ({ routeId: String(a.routeId), min1: minutes(a.predictTime1), min2: minutes(a.predictTime2) }));
 
-// ── 서울 버스 (서울시 버스정보시스템, resultType=json) — 정류장 id는 정류소 번호(arsId) ──
+// ── 서울 버스 (서울시 버스정보시스템, resultType=json) ──
+// 정류장 id = '정류소번호(arsId)_정류소ID(stId)'. 5자리 정류소 번호는 지역끼리 겹치는 경우가 있어서
+// (예: 부천시청 앞 11154 ↔ 노원 불암동 11154) 번호로 조회한 뒤 stId가 같은 것만 씀
 async function seoul(env, path, params, ttl) {
   const qs = new URLSearchParams({ resultType: 'json', ...params });
   const data = await cached(`${SEOUL}/${path}?${qs}&serviceKey=${encodeURIComponent(dataKey(env))}`, `seoul/${path}?${qs}`, ttl);
@@ -115,21 +117,28 @@ async function seoul(env, path, params, ttl) {
   if (String(h.headerCd) !== '0') throw new Error(`${h.headerCd} ${h.headerMsg}`);
   return list(data.msgBody && data.msgBody.itemList);
 }
-const seoulStop = s => ({
-  src: 'seoul', id: String(s.arsId), name: s.stNm || s.stationNm, no: String(s.arsId), region: '서울',
-  lat: Number(s.tmY || s.gpsY) || null, lon: Number(s.tmX || s.gpsX) || null, dist: s.dist ? Number(s.dist) : undefined
-});
+const seoulStop = s => {
+  const st = s.stId || s.stationId;
+  return {
+    src: 'seoul', id: st ? `${s.arsId}_${st}` : String(s.arsId), name: s.stNm || s.stationNm, no: String(s.arsId), region: '서울',
+    lat: Number(s.tmY || s.gpsY) || null, lon: Number(s.tmX || s.gpsX) || null, dist: s.dist ? Number(s.dist) : undefined
+  };
+};
 const validArs = s => s.arsId && String(s.arsId) !== '0';
 const seoulNear = async (env, lat, lon) =>
   (await seoul(env, 'stationinfo/getStationByPos', { tmX: lon, tmY: lat, radius: 500 }, 86400)).filter(validArs).map(seoulStop);
 const seoulSearch = async (env, word) =>
   (await seoul(env, 'stationinfo/getStationByName', { stSrch: word }, 86400)).filter(validArs).map(seoulStop);
-const seoulRoutes = async (env, ars) =>
-  (await seoul(env, 'stationinfo/getStationByUid', { arsId: ars }, 30))
-    .map(r => ({ id: String(r.busRouteId), name: String(r.rtNm), dest: r.adirection ? `${r.adirection} 방향` : '' }));
-const seoulArrivals = async (env, ars) =>
-  (await seoul(env, 'stationinfo/getStationByUid', { arsId: ars }, 30))
-    .map(a => ({ routeId: String(a.busRouteId), ...arrMsg(a.arrmsg1, 1), ...arrMsg(a.arrmsg2, 2) }));
+// 정류소 번호로 받은 노선·도착 중 이 정류장(stId) 것만
+async function seoulAt(env, id) {
+  const [ars, st] = String(id).split('_');
+  const items = await seoul(env, 'stationinfo/getStationByUid', { arsId: ars }, 30);
+  return st ? items.filter(i => i.stId == null || String(i.stId) === st) : items;
+}
+const seoulRoutes = async (env, id) =>
+  (await seoulAt(env, id)).map(r => ({ id: String(r.busRouteId), name: String(r.rtNm), dest: r.adirection ? `${r.adirection} 방향` : '' }));
+const seoulArrivals = async (env, id) =>
+  (await seoulAt(env, id)).map(a => ({ routeId: String(a.busRouteId), ...arrMsg(a.arrmsg1, 1), ...arrMsg(a.arrmsg2, 2) }));
 // '3분12초후[2번째 전]' → 3.2분, '곧 도착' → 0, '운행종료'·'출발대기' 등은 글자 그대로
 function arrMsg(m, n) {
   m = String(m || '').trim();
