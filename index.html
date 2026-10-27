@@ -700,10 +700,11 @@ async function loadAir() {
 }
 
 // ===== 위치 =====
-// 기기 위치 → 동네 이름(OpenStreetMap)으로 바꿔 저장. 실패하면 마지막 위치, 그것도 없으면 서울
-// 좌표는 소수 둘째 자리(약 1km)까지만 써서 바깥 API로 보냄
+// 기기 위치 → '구 + 동' 이름(OpenStreetMap)으로 바꿔 저장. 실패하면 마지막 위치, 그것도 없으면 서울
+// 날씨 API엔 소수 둘째 자리(약 1km), 동 이름 조회엔 셋째 자리(약 100m)까지만 보냄
+// (1km로 반올림하면 이웃 동이 나오는 경우가 있음)
 const LOC_KEY = 'mirror_loc';
-const round2 = v => Math.round(v * 100) / 100;
+const round = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
 const FALLBACK_NAME = '내 위치';
 
 function savedLoc() {
@@ -713,30 +714,34 @@ function useLoc(loc) {
   CONFIG.lat = loc.lat; CONFIG.lon = loc.lon; CONFIG.name = loc.name;
 }
 
-// 예: 서울 강남구, 성남시 분당구, 양평군, 제주시
+// 예: 강남구 역삼1동, 분당구 정자동, 양평군 양평읍, 제주시 이도2동
+// 동 이름이 담기는 항목이 지역마다 달라서('분당'처럼 동이 아닌 값도 있음) 동·읍·면·가·리로 끝나는 첫 값을 씀
+// (시골은 읍·면 없이 '양근리' 같은 리만 오기도 함)
 async function placeName(lat, lon) {
   const r = await getJSON('https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({
-    format: 'jsonv2', lat, lon, zoom: 14, 'accept-language': 'ko'
+    format: 'jsonv2', lat, lon, zoom: 16, 'accept-language': 'ko'
   }));
   const a = r.address || {};
-  const city = (a.city || a.province || '').replace(/(특별시|광역시|특별자치시)$/, '');
-  const district = a.borough || a.county;
-  return district ? (a.city ? city + ' ' : '') + district : city || FALLBACK_NAME;
+  const district = a.borough || a.county || (a.city || '').replace(/(특별시|광역시|특별자치시)$/, '');
+  const dong = [a.suburb, a.city_district, a.quarter, a.town, a.village].find(v => /(동|읍|면|가|리)$/.test(v || ''));
+  return [district, dong].filter(Boolean).join(' ') || FALLBACK_NAME;
 }
 
 function locate() {
   if (MANUAL_LOC || !navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(async pos => {
-    const lat = round2(pos.coords.latitude), lon = round2(pos.coords.longitude);
+    const { latitude, longitude } = pos.coords;
+    const fine = [round(latitude, 3), round(longitude, 3)];
     const prev = savedLoc();
-    if (prev && prev.lat === lat && prev.lon === lon && prev.name !== FALLBACK_NAME) return;
+    if (prev && String(prev.fine) === String(fine) && prev.name !== FALLBACK_NAME) return;
     let name = FALLBACK_NAME;
-    try { name = await placeName(lat, lon); } catch (e) { console.warn('지역 이름 확인 실패', e); }
-    const loc = { lat, lon, name };
+    try { name = await placeName(...fine); } catch (e) { console.warn('지역 이름 확인 실패', e); }
+    const loc = { lat: round(latitude, 2), lon: round(longitude, 2), fine, name };
     try { localStorage.setItem(LOC_KEY, JSON.stringify(loc)); } catch (e) {}
+    const moved = !sameLoc(loc);
     useLoc(loc);
-    loadWeather();
-    loadAir();
+    if (moved) { loadWeather(); loadAir(); }
+    else renderFoot();
   }, err => console.warn('위치 확인 실패', err.message), { timeout: 20000, maximumAge: 6 * 3600e3 });
 }
 
