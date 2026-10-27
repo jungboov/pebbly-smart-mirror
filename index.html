@@ -114,7 +114,8 @@ body.night .stage{opacity:.45}
 
 /* ── 시계: 시·분·초 한 줄. 1행 라벨 / 2행 숫자, 칸 너비에 맞춰 JS가 --clock 크기를 계산 ── */
 .clock{grid-area:clock;min-width:0;padding-bottom:5.5rem}
-.clock-in{display:grid;grid-template-columns:repeat(4,auto);align-items:end;width:max-content;margin:0 auto;font-family:var(--num);font-weight:900;font-size:var(--clock, 20rem);line-height:.82}
+/* 세로: 양 끝을 아래 내용 폭에 맞춤. 크기는 가장 넓은 시각 기준이라 좁은 숫자('1' 등)일 때 남는 폭은 시·분·초 사이 간격으로 */
+.clock-in{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-items:end;width:100%;font-family:var(--num);font-weight:900;font-size:var(--clock, 20rem);line-height:.82}
 .clock .lbl{margin-bottom:2.4rem;line-height:1.2}
 /* 숫자마다 폭이 달라서('1'은 '0'의 절반) 칸 폭을 숫자에 맞추고 바뀔 때 부드럽게 늘고 줄게 함 */
 .clock .roll{width:.834em;transition:width .6s cubic-bezier(.2,.75,.2,1)}
@@ -224,7 +225,7 @@ body.alt .hourly{opacity:0}
     padding:4rem 6rem;
   }
   .head{padding-bottom:2rem;margin-bottom:2rem}
-  .clock-in{margin:0}
+  .clock-in{width:max-content}
   .clock{align-self:end;padding-bottom:3rem}
   .date{align-self:start}
   .date-num{font-size:5.4rem}
@@ -278,7 +279,7 @@ body.sb .stage{
 }
 body.sb .head, body.sb .zone{display:none}
 body.sb .clock{padding-bottom:3.5rem}
-body.sb .clock-in{margin:0}
+body.sb .clock-in{width:max-content}
 body.sb .clock .lbl{font-size:2.6rem;margin-bottom:2rem}
 body.sb .date{align-self:start;display:flex;align-items:baseline;gap:2.4rem}
 body.sb .date-num{font-size:6.4rem}
