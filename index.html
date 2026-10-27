@@ -180,6 +180,12 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .sun-arc .horizon{stroke:#2e2e2e;stroke-width:.5}
 .sun-arc .half{fill:none;stroke:var(--text-muted);stroke-width:.8;stroke-linecap:round}
 .sun-arc .sun{fill:#fff;filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 3px rgba(255,224,138,.9))}
+/* 달 모양: 오늘 위상(초승·상현·보름 …)과 밝은 비율 */
+.moon{display:flex;align-items:center;gap:1rem;margin-top:1.2rem;font-size:2.3rem;color:var(--text-muted)}
+.moon-ico{width:3rem;height:3rem;flex:none}
+.moon-bg{fill:#262626}
+.moon-lit{fill:#f4efd9}
+.moon-pct{margin-left:auto;color:var(--text-dim);font-variant-numeric:tabular-nums}
 
 /* ── 예보 곡선 ── */
 .wave{grid-area:wave;--n:6}
@@ -322,7 +328,7 @@ body.sb[data-panel="2"] .wave, body.sb[data-panel="3"] .cards{opacity:1 !importa
 body.sb .wmain{display:block}
 body.sb .wmain::before, body.sb .cards::before{display:block;font-family:var(--num);font-weight:500;font-size:2.6rem;line-height:1.2;color:var(--text-dim);letter-spacing:.06em;margin-bottom:2.6rem}
 body.sb .wmain::before{content:'now · ' attr(data-loc)}
-body.sb .cards::before{content:'air · sun';grid-column:1 / -1;margin-bottom:0}
+body.sb .cards::before{content:'air · ' attr(data-src);grid-column:1 / -1;margin-bottom:0}
 body.sb .f-lbl{font-size:2.6rem;line-height:1.2;margin-bottom:2.6rem}
 
 body.sb .w-hero{justify-self:start;gap:3.2rem}
@@ -385,6 +391,8 @@ body.sb .sun-times{display:contents;font-size:3rem}
 body.sb .sun-times b{margin-top:.6rem;font-size:4.6rem}
 body.sb .sun-times div:last-child{order:2}
 body.sb .sun-arc{order:1;margin-top:0}
+body.sb .moon{grid-column:1 / -1;order:3;margin-top:1.6rem;font-size:3rem}
+body.sb .moon-ico{width:4rem;height:4rem}
 
 /* 위젯 위치 표시 (아이폰 스마트 스택처럼 오른쪽 세로 점) */
 body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-right));transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
@@ -516,6 +524,7 @@ body.sb.phone.night::after{background:#ff3b30}
         <circle cx="92" cy="48" r="1.6" fill="var(--sunset)"/>
         <circle id="sun-dot" class="sun" r="2.2" cx="-10" cy="-10"/>
       </svg>
+      <div class="moon"><svg class="moon-ico" viewBox="-11 -11 22 22" aria-hidden="true"><circle class="moon-bg" r="10"/><path id="moon-lit" class="moon-lit"/></svg><span id="moon-name"></span><span id="moon-pct" class="moon-pct"></span></div>
     </div>
   </section>
 
@@ -849,17 +858,27 @@ async function loadWeather() {
   renderFoot();
 }
 
+// 미세먼지: 에어코리아 실측(같은 사이트의 /api/air 중계)을 먼저, 안 되면 Open-Meteo 예측값
+// (키 설정 전·파일로 열었을 때·측정소 점검 중에도 화면엔 항상 값이 나옴)
+// state.air = { pm10, pm25, station(실측일 때 측정소 이름) }
 async function loadAir() {
   const at = { lat: CONFIG.lat, lon: CONFIG.lon };
-  const url = 'https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
-    latitude: at.lat, longitude: at.lon, timezone: 'auto', current: 'pm10,pm2_5'
-  });
+  let air = null;
   try {
-    const data = await getJSON(url);
+    const r = await getJSON('/api/air?' + new URLSearchParams({ lat: at.lat, lon: at.lon }));
+    if (r.pm10 != null || r.pm25 != null) air = { pm10: r.pm10, pm25: r.pm25, station: r.station };
+  } catch (e) {}
+  try {
+    if (!air) {
+      const r = await getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
+        latitude: at.lat, longitude: at.lon, timezone: 'auto', current: 'pm10,pm2_5'
+      }));
+      air = { pm10: r.current.pm10, pm25: r.current.pm2_5 };
+    }
     if (!sameLoc(at)) return;
-    state.air = data;
+    state.air = air;
     state.airErr = false;
-    save('air', state.air);
+    save('air2', state.air);
   } catch (e) {
     state.airErr = true;
     console.warn('미세먼지 갱신 실패', e);
@@ -1081,8 +1100,29 @@ function renderHourly(w) {
   $('h-bars').innerHTML = bars;
 }
 
-// 일출~일몰 반원 위에 현재 해 위치 표시
+// ===== 달 =====
+// 기준 삭(2000-01-06 18:14 UTC)부터 지난 시간 ÷ 평균 삭망월(29.53일) → 위상 0(삭) ~ .5(보름) ~ 1 (오차 반나절 안팎)
+const moonPhase = t => (((t - Date.UTC(2000, 0, 6, 18, 14)) / 864e5 / 29.530588853) % 1 + 1) % 1;
+// 위상 구간 → 이름 (보름달은 밝기 약 98% 이상)
+const MOON_NAMES = [[.03, '삭'], [.22, '초승달'], [.28, '상현달'], [.45, '차오르는 달'], [.55, '보름달'],
+  [.72, '기우는 달'], [.78, '하현달'], [.97, '그믐달'], [1, '삭']];
+// 밝은 부분 = 밝은 쪽 반원(차는 달은 오른쪽, 기우는 달은 왼쪽) + 명암 경계 반타원
+// (초승·그믐은 경계가 밝은 쪽으로 오목, 차오르는·기우는 달은 반대쪽으로 볼록)
+function moonPath(p, r = 10) {
+  const c = Math.cos(2 * Math.PI * p), waxing = p < .5;
+  return `M0 ${-r}A${r} ${r} 0 0 ${waxing ? 1 : 0} 0 ${r}`
+       + `A${(Math.abs(c) * r).toFixed(2)} ${r} 0 0 ${(c > 0) === waxing ? 0 : 1} 0 ${-r}Z`;
+}
+function renderMoon() {
+  const p = moonPhase(Date.now());
+  $('moon-lit').setAttribute('d', moonPath(p));
+  $('moon-name').textContent = MOON_NAMES.find(([lim]) => p < lim)[1];
+  $('moon-pct').textContent = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100) + '%';
+}
+
+// 일출~일몰 반원 위에 현재 해 위치 표시 (달 모양도 함께)
 function renderSun() {
+  renderMoon();
   const w = state.weather;
   const today = w && w.daily.sunrise && upcomingDays(w)[0];
   if (!today) return;
@@ -1111,10 +1151,11 @@ function setAq(id, v, gradeOf) {
 }
 
 function renderAir() {
-  const a = state.air && state.air.current;
+  const a = state.air;
   if (!a) return;
   setAq('pm10', a.pm10, gradePm10);
-  setAq('pm25', a.pm2_5, gradePm25);
+  setAq('pm25', a.pm25, gradePm25);
+  PANELS[3].dataset.src = a.station ? `${a.station} 측정소` : '예측값';   // 시계 강조 'air' 위젯 제목
 }
 
 function renderFoot() {
@@ -1162,9 +1203,9 @@ function contextual(now) {
       if (d.temperature_2m_max[i] - d.temperature_2m_min[i] >= 10) out.push('일교차가 커요. 겉옷 하나 챙기세요.');
     }
   }
-  const a = state.air && state.air.current;
-  if (a && a.pm10 != null && a.pm2_5 != null) {
-    const g = Math.max(gradePm10(a.pm10), gradePm25(a.pm2_5));
+  const a = state.air;
+  if (a && a.pm10 != null && a.pm25 != null) {
+    const g = Math.max(gradePm10(a.pm10), gradePm25(a.pm25));
     if (g >= 2) out.push('미세먼지가 나빠요. 마스크 챙기세요.');
     else if (g === 0 && h >= 8 && h < 18) out.push('공기가 맑아요. 환기하기 좋은 날이에요.');
   }
@@ -1327,10 +1368,11 @@ function scheduleReload() {
   if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
   const cw = load('weather', 3 * 3600e3);
   if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
-  const ca = load('air', 3 * 3600e3);
+  const ca = load('air2', 3 * 3600e3);
   if (ca) state.air = ca.data;
   renderWeather();
   renderAir();
+  renderMoon();
   renderFoot();
   tickClock();
   nextPhrase(true);
