@@ -69,8 +69,8 @@ const sameLoc = ({ lat, lon }) => lat === CONFIG.lat && lon === CONFIG.lon;
 async function loadWeather() {
   const at = { lat: CONFIG.lat, lon: CONFIG.lon };
   const url = 'https://api.open-meteo.com/v1/forecast?' + new URLSearchParams({
-    latitude: at.lat, longitude: at.lon, timezone: 'auto', past_days: 1, forecast_days: 6,
-    current: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,uv_index',
+    latitude: at.lat, longitude: at.lon, timezone: 'auto', past_days: 1, forecast_days: 6, wind_speed_unit: 'ms',
+    current: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,uv_index,wind_speed_10m,wind_direction_10m,precipitation_probability',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
     hourly: 'temperature_2m,weather_code,precipitation_probability,is_day'
   });
@@ -251,6 +251,7 @@ function renderWeather() {
   const [desc, kind] = wmo(c.weather_code);
   const today = upcomingDays(w)[0];
   $('w-ico').innerHTML = icon(kind, c.is_day === 1);
+  $('w-big').innerHTML = icon(kind, c.is_day === 1).replace('<svg', '<svg preserveAspectRatio="xMinYMin meet"');   // 시계 강조: 왼쪽 위에 크게
   $('w-title').textContent = desc;
   $('w-feel').textContent = `체감 ${Math.round(c.apparent_temperature)}°`;
   $('w-temp').textContent = Math.round(c.temperature_2m) + '°';
@@ -272,6 +273,11 @@ function renderWeather() {
   $('w-uv').textContent = c.uv_index == null ? '-' : Math.round(c.uv_index);
   $('w-uv-t').textContent = uvText;
   $('w-uv-t').className = 'c-sub ' + uvCls;
+  // 바람(m/s, 10 미만은 소수 한 자리)·풍향(불어오는 쪽), 지금 강수확률 — 시계 강조 화면 now 위젯에만 표시
+  const ws = c.wind_speed_10m;
+  $('w-wind').innerHTML = ws == null ? '-' : `${ws < 10 ? ws.toFixed(1) : Math.round(ws)}<small>m/s</small>`;
+  $('w-wind-t').textContent = c.wind_direction_10m == null ? '' : WIND_DIR[Math.round(c.wind_direction_10m / 45) % 8];
+  $('w-rain').textContent = c.precipitation_probability == null ? '-' : c.precipitation_probability + '%';
   renderHourly(w);
   renderWave(w);
   renderSun();
@@ -281,6 +287,7 @@ function renderWeather() {
 
 // 자외선 지수 단계 (기상청 기준) → [단계, 등급색]
 const uvLevel = v => v < 3 ? ['낮음', 'good'] : v < 6 ? ['보통', 'normal'] : v < 8 ? ['높음', 'bad'] : v < 11 ? ['매우높음', 'worst'] : ['위험', 'worst'];
+const WIND_DIR = ['북', '북동', '동', '남동', '남', '남서', '서', '북서'];
 const humLevel = v => v < 30 ? '건조' : v <= 60 ? '쾌적' : v <= 80 ? '습함' : '매우 습함';
 
 // 오늘 최고·최저 기온이 나타나는 시각 (시간별 예보 기준)

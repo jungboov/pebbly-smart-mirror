@@ -5,30 +5,48 @@ body.sb .wmain::before{content:'now · ' attr(data-loc)}
 body.sb .cards::before{content:'air · ' attr(data-src);grid-column:1 / -1;margin-bottom:0}
 body.sb .f-lbl{font-size:2.6rem;line-height:1.2;margin-bottom:2.6rem}
 
-body.sb .w-hero{justify-self:start;gap:3.2rem}
-body.sb .w-temp{font-size:19rem}
-body.sb .w-desc{padding-left:3.2rem}
-body.sb .w-title{font-size:5.4rem;gap:1.6rem}
-body.sb .w-title .ico{width:5rem;height:5rem}
+/* now 위젯: 큰 날씨 그림(왼쪽 위, 남는 자리 가득) | 기온·체감(오른쪽) / 날씨·어제와 비교 / 정보 6칸 3×2 (아이콘·값·이름)
+   색 없이 흰 선 아이콘. 칸이 넓으면(세로 화면·긴 폰 가로) 정보 6칸을 한 줄로, 세로 '시계 크게'는 아래 세로 배치에서 낮고 넓게 */
+body.sb .w-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto auto;
+  grid-template-areas:"big temp" "big feel" "title title" "diff diff";gap:0 3rem;align-items:start}
+body.sb .w-desc{display:contents}
+body.sb .w-big{grid-area:big;display:block;position:relative;align-self:stretch;min-height:16rem;max-height:34rem}
+body.sb .w-big .ico{position:absolute;inset:0;width:100%;height:100%;stroke-width:1}
+body.sb .w-temp{grid-area:temp;justify-self:end;font-size:19rem}
+body.sb #w-feel{grid-area:feel;justify-self:end;margin-top:1.4rem}
+body.sb .w-title{grid-area:title;margin-top:3.6rem;font-size:5.4rem}
+body.sb #w-ico{display:none}
+body.sb #w-diff{grid-area:diff;margin-top:1.2rem}
 body.sb .w-sub{font-size:3.4rem}
-body.sb .w-title + .w-sub{margin-top:1.8rem}
-/* 정보 카드 2×2. 카드 안은 이름·보조 정보(왼쪽) | 값(오른쪽) */
-body.sb .w-stats{grid-template-columns:1fr 1fr;margin-top:4rem;gap:2rem}
-body.sb .w-stats .card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name val" "sub val";align-items:center;column-gap:2rem;padding:2rem 2.6rem}
-body.sb .w-stats .c-name{grid-area:name;font-size:3rem}
-body.sb .w-stats .c-val{grid-area:val;margin:0;font-size:7rem}
-body.sb .w-stats .c-sub{grid-area:sub;margin:0;padding-top:.6rem;font-size:3rem}
-/* 위젯 칸이 좁을 때(태블릿 가로 등): 기온·설명을 줄이고 정보 카드는 이름 / 값 / 보조 세로형으로 */
+/* 정보 칸: 바람·습도·강수확률 / 최고·최저·자외선. 칸 안은 아이콘 / 값 / 이름 + 단계(쾌적·보통·북서)를 가운데로 */
+body.sb .w-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:5rem;gap:4.4rem 2rem}
+body.sb .w-stats .card{display:flex;flex-flow:row wrap;justify-content:center;align-items:baseline;text-align:center;padding:0;border:0;border-radius:0;background:none}
+body.sb .s-wind{order:1} body.sb .s-hum{order:2} body.sb .s-rain{order:3} body.sb .s-hi{order:4} body.sb .s-lo{order:5} body.sb .s-uv{order:6}
+body.sb .w-stats .s-ico{display:block;flex:0 0 100%;height:5.4rem;margin-bottom:1.8rem}   /* 칸 너비 줄 한가운데에 그림 */
+body.sb .w-stats .c-val{order:1;flex:0 0 100%;margin:0;font-size:6.4rem}
+body.sb .w-stats .c-val small{margin-left:.3em;font-size:.42em;color:var(--text-muted)}
+body.sb .w-stats .c-name{order:2;margin-top:1.2rem;font-size:2.8rem}
+body.sb .w-stats .c-sub{order:3;margin:0;padding:0;font-size:2.8rem;font-weight:400;color:var(--text-muted)}
+body.sb .w-stats .c-sub:not(:empty){margin-left:.8rem}
+body.sb .w-stats .c-time{display:none}
+/* 위젯 칸이 좁을 때(태블릿 가로 등): 기온·글자를 조금 줄임 */
 body.sb .wmain, body.sb .wave{container-type:inline-size}
 @container (max-width: 64rem){
-  body.sb .w-hero{gap:2.4rem}
+  body.sb .w-hero{column-gap:2.4rem}
   body.sb .w-temp{font-size:15rem}
-  body.sb .w-desc{padding-left:2.4rem}
   body.sb .w-title{font-size:4.6rem}
   body.sb .w-sub{font-size:2.9rem}
-  body.sb .w-stats .card{display:flex;padding:1.8rem 2.2rem}
-  body.sb .w-stats .c-val{margin-top:.8rem;font-size:6rem}
-  body.sb .w-stats .c-sub{margin-top:auto;padding-top:.8rem}
+  body.sb .w-stats{gap:4rem 1.6rem}
+  body.sb .w-stats .s-ico{height:4.8rem;margin-bottom:1.4rem}
+  body.sb .w-stats .c-val{font-size:5.6rem}
+  body.sb .w-stats .c-name, body.sb .w-stats .c-sub{font-size:2.5rem}
+}
+@container (min-width: 80rem){
+  body.sb .w-stats{grid-template-columns:repeat(6,minmax(0,1fr));margin-top:3rem;gap:2rem}
+  body.sb .w-stats .s-ico{height:4rem;margin-bottom:1rem}
+  body.sb .w-stats .c-val{font-size:5rem}
+  body.sb .w-stats .c-name, body.sb .w-stats .c-sub{font-size:2.4rem}
+  body.sb .w-stats .c-sub:not(:empty){flex-basis:100%;margin:.2rem 0 0}   /* 칸이 좁아 단계는 이름 아래 줄 */
 }
 
 body.sb .ht{gap:1.4rem}
@@ -100,10 +118,12 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .mu-main{flex:1;min-height:0}
   /* 교통 위젯이 길어지면 시계가 작아지므로 다른 위젯 높이만큼만 */
   body.sb .transit{max-height:46rem;overflow:hidden}
-  body.sb .w-stats{grid-template-columns:repeat(4,1fr)}
-  body.sb .w-stats .card{display:flex;padding:1.8rem 2rem}
-  body.sb .w-stats .c-val{margin-top:.8rem;font-size:5.6rem}
-  body.sb .w-stats .c-sub{margin-top:auto;padding-top:.8rem}
+  /* now '시계 크게': 시계에 높이를 주려고 낮게 — 그림 | 기온 | 날씨·체감·비교 한 줄 (정보 6칸 한 줄은 위 넓은 칸 규칙) */
+  body.sb:not(.half) .w-hero{grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:auto auto auto;grid-template-areas:"big temp title" "big temp feel" "big temp diff";align-content:center;align-items:center;column-gap:3.2rem}
+  body.sb:not(.half) .w-big{width:15rem;height:15rem;min-height:0}
+  body.sb:not(.half) .w-temp{justify-self:start}
+  body.sb:not(.half) #w-feel{justify-self:start;margin-top:1.4rem}
+  body.sb:not(.half) .w-title{margin-top:0}
   body.sb .h-plot{height:8rem;margin-top:1.6rem}
   body.sb .h-bars{margin-top:1.6rem}
   body.sb .bar{height:3.4rem}
@@ -127,16 +147,16 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
-   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 가운데 큰 달, 해·달 카드는 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
+   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 그 아래 해 카드, 큰 달은 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
 @media (orientation: landscape){
   body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch}
   body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
   body.sb .w-hero{flex-grow:1}
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}
-  body.sb .cards{grid-template-rows:auto auto 1fr auto}
+  body.sb .cards{grid-template-rows:auto auto auto 1fr}
   body.sb .cards .card:not(.sun-card):not(.moon-card){align-self:start;aspect-ratio:5 / 6;max-height:36rem}
-  /* 가운데 큰 달: 남는 높이만큼 (최대 30rem), 이름 / 밝기·다음 위상까지 며칠. 해·달 카드 안 작은 달은 숨김 */
-  body.sb .moon-card{grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4rem;min-height:0}
+  /* 맨 아래 큰 달: 해 카드 아래 남는 높이만큼 (최대 30rem), 이름 / 밝기·다음 위상까지 며칠. 해·달 카드 안 작은 달은 숨김 */
+  body.sb .moon-card{order:1;grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4rem;min-height:0}
   body.sb .moon-big{flex:1 1 0;min-height:0;width:100%;max-height:30rem}
   body.sb .moon-txt{text-align:center}
   body.sb .moon-txt b{display:block;font-size:4.4rem;font-weight:700;line-height:1.2}

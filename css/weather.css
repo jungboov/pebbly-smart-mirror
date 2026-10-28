@@ -12,6 +12,7 @@
 .w-title + .w-sub{margin-top:1.4rem}
 /* 최고·최저·습도·자외선 카드 4장 */
 .w-stats{grid-area:wstats;margin-top:4.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}
+.w-big, .w-stats .s-ico, .w-stats .sb-only{display:none}   /* 큰 날씨 그림·정보 아이콘·바람·강수확률은 시계 강조 화면에서만 */
 
 /* ── 카드: 미세먼지·초미세먼지·일출일몰 ── */
 .cards{grid-area:cards;display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:2rem;margin-top:2rem}
