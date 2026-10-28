@@ -76,6 +76,10 @@ body.remote .set-card .set-sync{display:none}
 .set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
 .tr-msg:empty{display:none}
 .g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
+/* 개인정보처리방침을 앱 안에 겹쳐 보여 줌: 설정 위, 알람 울림 아래 */
+.policy{position:fixed;inset:0;z-index:15;background:var(--bg)}
+.policy[hidden]{display:none}
+.policy iframe{display:block;width:100%;height:100%;border:0}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
 /* Google 로그인 코드: 주소 + 큰 코드 */
 .g-code{display:flex;flex-direction:column;align-items:center;gap:1.4rem;padding:3rem;border:1px solid var(--card-bd);border-radius:2.4rem;text-align:center}

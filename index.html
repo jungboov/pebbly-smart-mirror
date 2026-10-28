@@ -199,6 +199,9 @@
 <!-- 타이머 끝·알람 시각: 화면 전체가 깜빡이며 소리. 아무 데나 누르면 끔 -->
 <div id="ring" class="ring" hidden><b id="ring-title"></b><button>끄기</button></div>
 
+<!-- 개인정보처리방침: 앱 안에 겹쳐 열기 (설치한 앱·키오스크에서 앱을 떠나거나 닫히지 않게). 그 페이지의 닫기(✕)가 닫음 -->
+<div id="policy" class="policy" hidden><iframe title="개인정보처리방침"></iframe></div>
+
 <div id="settings" class="settings" hidden>
   <div class="set-card" data-tab="screen">
     <!-- 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 고른 탭의 내용만 보임 -->
@@ -269,7 +272,7 @@
           <b id="g-user"></b>
         </div>
         <ul id="mu-lists" class="tr-res"></ul>
-        <a class="g-policy" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+        <a class="g-policy" href="privacy.html">개인정보처리방침</a>
       </div>
     </div>
     <div class="set-page" data-page="sync">

@@ -82,3 +82,15 @@ document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
   saveSettings();
   applySettings();
 });
+
+// 개인정보처리방침: 앱 안에 겹쳐 열기 (설치한 앱·키오스크에서 새 창으로 열면 앱을 떠나거나 닫을 곳이 없음)
+// 그 페이지의 닫기(✕)가 알려 오면 닫음
+document.querySelector('.g-policy').addEventListener('click', e => {
+  e.preventDefault();
+  const f = $('policy').querySelector('iframe');
+  if (!f.getAttribute('src')) f.src = 'privacy.html';
+  $('policy').hidden = false;
+});
+window.addEventListener('message', e => {
+  if (e.origin === location.origin && e.data === 'privacy-close') $('policy').hidden = true;
+});
