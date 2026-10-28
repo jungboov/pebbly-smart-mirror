@@ -6,9 +6,9 @@ function openSettings() {
   settingsAt = performance.now();
   wgEdit = wgNow();
   wgRender();
-  // QR로 다른 미러를 연 적이 있으면 그 미러 설정 바로 열기 (이 기기 자신의 연결 번호면 숨김)
-  const rid = savedRemote();
-  $('remote-open').hidden = !!REMOTE || !rid || !!(sync && sync.id === rid);
+  // QR로 다른 미러를 연 적이 있으면 '미러 설정하기' (이름 목록, 이 기기 자신의 연결 번호는 빼고)
+  $('remote-open').hidden = !!REMOTE || !savedRemotes().some(r => !(sync && sync.id === r.id));
+  renderRemotes();
 }
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
@@ -17,7 +17,19 @@ $('settings').addEventListener('click', e => {
   if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
   if (b && b.id === 'sync-off') { syncOff(); return; }
   if (b && b.id === 'remote-apply') { remoteApply(); return; }
-  if (b && b.id === 'remote-open') { location.href = '/?remote=' + savedRemote(); return; }
+  if (b && b.id === 'remote-open') { b.closest('.set-card').dataset.tab = 'remotes'; renderRemotes(); return; }
+  // 미러 이름 목록: 이름을 누르면 그 미러 설정 / 이름 정하기·바꾸기 / 이 폰 목록에서 지우기
+  if (b && b.dataset.go) { remoteGo(b.dataset.go); return; }
+  if (b && b.dataset.nameSave != null) { remoteRename(REMOTE, $('rm-name').value); return; }
+  if (b && b.dataset.rename) {
+    const r = savedRemotes().find(x => x.id === b.dataset.rename), name = prompt('미러 이름', r ? r.name : '');
+    if (name != null) remoteRename(b.dataset.rename, name);
+    return;
+  }
+  if (b && b.dataset.forget) {
+    if (confirm('이 폰의 목록에서 지울까요? (미러 쪽 연결은 그대로예요)')) { saveRemotes(savedRemotes().filter(r => r.id !== b.dataset.forget)); openSettings(); }
+    return;
+  }
   if (REMOTE && (e.target === $('settings') || (b && b.classList.contains('set-close')))) {
     // 다 바꿨으면 이 폰의 원래 화면으로 (바깥을 눌러서는 안 닫힘). 미러에 적용 안 한 게 있으면 한 번 물어봄
     if (b && (!remoteDirty || confirm('미러에 적용하지 않은 설정이 있어요. 그냥 나갈까요?'))) location.href = '/';

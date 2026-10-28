@@ -119,6 +119,32 @@ async function remoteStart() {
     wgEdit = remoteOrient; wgRender();
     syncMsg('');
   } catch (e) { syncMsg('미러 설정을 받지 못했어요: ' + e.message); }
+  renderRemotes();
 }
+
+// 폰: QR로 연 미러 목록 (이름은 처음 열 때 정하고, 이름을 누르면 그 미러 설정으로)
+//   설정 중(?remote=)에는 위쪽에 이름 정하기·다른 미러로 바꾸기, 폰 자기 화면에서는 설정 › 미러 설정하기 목록(이름·삭제)
+const remoteLabel = r => r.name || '이름 없는 미러';
+function renderRemotes() {
+  const list = savedRemotes().filter(r => !(sync && sync.id === r.id) || r.id === REMOTE);   // 이 기기 자신은 빼고
+  $('remote-list').innerHTML = list.map(r => `<li><button class="rm-go" data-go="${r.id}">${esc(remoteLabel(r))}</button>`
+    + `<span><button data-rename="${r.id}">이름</button><button data-forget="${r.id}">삭제</button></span></li>`).join('');
+  if (!REMOTE) return;
+  const cur = list.find(r => r.id === REMOTE);
+  $('remote-bar').innerHTML = (cur && cur.name ? ''
+    : `<div class="rm-name"><input id="rm-name" maxlength="20" enterkeyhint="done" placeholder="이 미러 이름 (예: 거실 태블릿)"><button data-name-save>이름 저장</button></div>`)
+    + (list.length > 1 ? '<div class="rm-chips">' + list.map(r => `<button data-go="${r.id}"${r.id === REMOTE ? ' class="on"' : ''}>${esc(remoteLabel(r))}</button>`).join('') + '</div>' : '');
+}
+function remoteRename(id, name) {
+  name = String(name || '').trim().slice(0, 20) || (remoteOrient === 'P' ? '세로 미러' : '가로 미러');
+  saveRemotes(savedRemotes().map(r => r.id === id ? { ...r, name } : r));
+  renderRemotes();
+}
+// 다른 미러로: 이 미러에 적용 안 한 게 있으면 한 번 물어봄
+function remoteGo(id) {
+  if (id === REMOTE) return;
+  if (!remoteDirty || confirm('미러에 적용하지 않은 설정이 있어요. 그냥 다른 미러로 갈까요?')) location.href = '/?remote=' + id;
+}
+$('remote-bar').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'rm-name') remoteRename(REMOTE, e.target.value); });
 
 const state = { weather: null, air: null, weatherAt: 0, weatherErr: false, airErr: false };

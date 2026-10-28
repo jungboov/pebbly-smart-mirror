@@ -12,7 +12,8 @@
 .set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="photo"] [data-tab="photo"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
-.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="photo"] [data-page="photo"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="photo"] [data-page="photo"], .set-card[data-tab="sync"] [data-page="sync"],
+.set-card[data-tab="remotes"] [data-page="remotes"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
@@ -41,6 +42,19 @@
 .set-card[data-tab="sync"] .set-hint{display:none}
 body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:var(--note-bg);font-size:2.6rem;line-height:1.5;color:var(--text)}
 body.remote .set-card .set-sync{display:none}
+/* 폰에서 미러 설정 중: 설정 창을 화면 높이 가득 (rem 기준 높이는 폰에서 너무 낮아 '미러에 적용'이 아래로 숨음) */
+body.remote .set-card{height:94vh;height:94dvh}
+/* 폰: 설정 중 위쪽 — 이 미러 이름 정하기(처음), 기억한 미러 이름(누르면 그 미러로, 지금 미러는 밝게) */
+.remote-bar{display:none}
+body.remote .remote-bar:not(:empty){display:flex;flex-direction:column;gap:1.2rem}
+.rm-name{display:flex;gap:1rem}
+.rm-name input{flex:1;min-width:0;padding:1.2rem 2rem;border:1px solid var(--card-bd);border-radius:1.6rem;background:var(--bg);color:var(--text);font:inherit;font-size:2.8rem;user-select:text}
+.rm-chips{display:flex;flex-wrap:wrap;gap:1rem}
+.set-card .rm-name button, .set-card .rm-chips button{padding:1rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px;font-size:2.6rem;color:var(--text)}
+.set-card .rm-chips button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+/* 폰 자기 화면 설정 › 미러 설정하기: 이름(누르면 그 미러) | 이름·삭제 */
+.set-card #remote-list .rm-go{flex:1;min-width:0;padding:.6rem 0;border:0;text-align:left;font-size:3.2rem;color:var(--text)}
+#remote-list li span{display:flex;gap:1rem;flex:none}
 /* 폰: '미러에 적용' — 바꾼 게 있으면 밝게(눌림), 없으면 흐리게 */
 .set-card .remote-apply{display:none}
 body.remote .set-card .remote-apply{display:block;flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--accent);color:var(--on-accent);font-weight:700}

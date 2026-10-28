@@ -16,16 +16,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=15">
-<link rel="stylesheet" href="css/base.css?v=15">
-<link rel="stylesheet" href="css/clock.css?v=15">
-<link rel="stylesheet" href="css/weather.css?v=15">
-<link rel="stylesheet" href="css/detail.css?v=15">
-<link rel="stylesheet" href="css/standby.css?v=15">
-<link rel="stylesheet" href="css/transit.css?v=15">
-<link rel="stylesheet" href="css/photo.css?v=15">
-<link rel="stylesheet" href="css/standby-widgets.css?v=15">
-<link rel="stylesheet" href="css/settings.css?v=15">
+<link rel="stylesheet" href="css/theme.css?v=16">
+<link rel="stylesheet" href="css/base.css?v=16">
+<link rel="stylesheet" href="css/clock.css?v=16">
+<link rel="stylesheet" href="css/weather.css?v=16">
+<link rel="stylesheet" href="css/detail.css?v=16">
+<link rel="stylesheet" href="css/standby.css?v=16">
+<link rel="stylesheet" href="css/transit.css?v=16">
+<link rel="stylesheet" href="css/photo.css?v=16">
+<link rel="stylesheet" href="css/standby-widgets.css?v=16">
+<link rel="stylesheet" href="css/settings.css?v=16">
 </head>
 <body class="idle" data-panel="now">
 <main id="stage" class="stage">
@@ -204,7 +204,9 @@
       <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="photo">사진</button></div>
     </div>
     <p class="remote-note">이 폰에서 <b>미러 설정</b>을 바꾸는 중이에요. 다 바꾼 뒤 아래 <b>미러에 적용</b>을 누르면 10초쯤 안에 반영되고, 미러가 받으면 여기에 알려 드려요.
-      이 폰은 이 미러를 기억해서, 다음엔 QR 없이 이 폰의 미러 설정 › <b>연결한 미러 설정</b>(또는 주소 mirror.pebblylabs.com/?remote)으로 바로 열려요. <span id="remote-msg"></span></p>
+      이 폰은 이 미러를 이름으로 기억해서, 다음엔 QR 없이 이 폰의 미러 설정 › <b>미러 설정하기</b>에서 이름을 누르면 열려요(주소 mirror.pebblylabs.com/?remote 는 마지막에 연 미러). <span id="remote-msg"></span></p>
+    <!-- 폰(설정 중): 이 미러 이름 정하기(처음 열 때), 기억한 다른 미러로 바로 바꾸기 (sync.js renderRemotes) -->
+    <div id="remote-bar" class="remote-bar"></div>
     <div class="set-page" data-page="screen">
       <div class="set-row">시계 형식
         <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
@@ -279,24 +281,28 @@
       <p id="sync-msg" class="tr-msg"></p>
       <button id="sync-off" class="sync-off" hidden>연결 끊기</button>
     </div>
+    <div class="set-page" data-page="remotes">
+      <p class="tr-msg">이 폰으로 QR을 찍어 연 미러예요. 이름을 누르면 그 미러 설정이 열려요. 새 미러는 그 미러의 설정 › 폰으로 설정 QR을 찍으면 추가돼요.</p>
+      <ul id="remote-list" class="tr-list"></ul>
+    </div>
     <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
     <a class="set-policy" href="privacy.html">개인정보처리방침</a>
     <!-- 폰(?remote=)에서는 '폰으로 설정' 대신 '미러에 적용' (바꾼 게 있을 때만 눌림)
-         QR로 다른 미러를 연 적 있는 폰은 '연결한 미러 설정'으로 QR 없이 그 미러 설정을 다시 엶 -->
-    <div class="set-foot"><button class="set-sync">폰으로 설정</button><button id="remote-open" class="remote-open" hidden>연결한 미러 설정</button><button id="remote-apply" class="remote-apply" disabled>미러에 적용</button><button class="set-close">닫기</button></div>
+         QR로 다른 미러를 연 적 있는 폰은 '미러 설정하기'에서 이름을 눌러 QR 없이 그 미러 설정을 엶 -->
+    <div class="set-foot"><button class="set-sync">폰으로 설정</button><button id="remote-open" class="remote-open" hidden>미러 설정하기</button><button id="remote-apply" class="remote-apply" disabled>미러에 적용</button><button class="set-close">닫기</button></div>
   </div>
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=15"></script>
-<script src="js/sync.js?v=15"></script>
-<script src="js/clock.js?v=15"></script>
-<script src="js/weather.js?v=15"></script>
-<script src="js/screen.js?v=15"></script>
-<script src="js/clock-modes.js?v=15"></script>
-<script src="js/settings.js?v=15"></script>
-<script src="js/transit.js?v=15"></script>
-<script src="js/photo.js?v=15"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/core.js?v=16"></script>
+<script src="js/sync.js?v=16"></script>
+<script src="js/clock.js?v=16"></script>
+<script src="js/weather.js?v=16"></script>
+<script src="js/screen.js?v=16"></script>
+<script src="js/clock-modes.js?v=16"></script>
+<script src="js/settings.js?v=16"></script>
+<script src="js/transit.js?v=16"></script>
+<script src="js/photo.js?v=16"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

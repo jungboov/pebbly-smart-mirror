@@ -6,16 +6,26 @@
 // 시계 형식·시계 강조·날씨 넘김 주기는 화면을 두 번 탭하면 나오는 설정에서 바꿈
 const params = new URLSearchParams(location.search);
 // remote=연결 번호: 폰으로 QR을 찍어 열면 이 번호의 미러 설정을 바꾸는 화면 (폰 자기 설정은 그대로)
-// 한 번 연 번호는 폰에 기억해 둠 (다른 QR을 찍으면 바뀜). 번호 없이 ?remote 로 열거나 설정의 '연결한 미러 설정'을 누르면 그 미러로
-const REMOTE_KEY = 'mirror_remote';
+// 폰은 QR로 연 미러들을 이름과 함께 기억함 [{ id, name, at }] (최근에 연 순). 설정 › 미러 설정하기나 설정 중 위쪽 이름을 누르면 그 미러로,
+// 번호 없이 ?remote 로 열면 마지막에 연 미러로
+const REMOTES_KEY = 'mirror_remotes';
 const isSyncId = v => /^[0-9a-f]{32}$/.test(v || '');
-const savedRemote = () => { try { const v = localStorage.getItem(REMOTE_KEY); return isSyncId(v) ? v : null; } catch (e) { return null; } };
+const savedRemotes = () => { try { const a = JSON.parse(localStorage.getItem(REMOTES_KEY)); return Array.isArray(a) ? a.filter(r => r && isSyncId(r.id)) : []; } catch (e) { return []; } };
+const saveRemotes = a => { try { localStorage.setItem(REMOTES_KEY, JSON.stringify(a)); } catch (e) {} };
+// 예전에 하나만 기억하던 번호는 목록으로
+try {
+  const old = localStorage.getItem('mirror_remote');
+  if (isSyncId(old) && !savedRemotes().some(r => r.id === old)) saveRemotes([...savedRemotes(), { id: old, name: '', at: 0 }]);
+  localStorage.removeItem('mirror_remote');
+} catch (e) {}
 const REMOTE = (() => {
   if (!params.has('remote')) return null;
-  const v = params.get('remote');
-  if (!isSyncId(v)) return savedRemote();
-  try { localStorage.setItem(REMOTE_KEY, v); } catch (e) {}
-  return v;
+  const v = params.get('remote'), list = savedRemotes();
+  const id = isSyncId(v) ? v : list.length ? list[0].id : null;
+  if (!id) return null;
+  const cur = list.find(r => r.id === id) || { id, name: '' };
+  saveRemotes([{ ...cur, at: Date.now() }, ...list.filter(r => r.id !== id)]);
+  return id;
 })();
 const MANUAL_LOC = params.has('lat') && params.has('lon');
 const CONFIG = {
