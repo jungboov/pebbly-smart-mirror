@@ -13,8 +13,10 @@ $('settings').addEventListener('click', e => {
   if (b && b.dataset.tab) { b.closest('.set-card').dataset.tab = b.dataset.tab; return; }
   if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
   if (b && b.id === 'sync-off') { syncOff(); return; }
+  if (b && b.id === 'remote-apply') { remoteApply(); return; }
   if (REMOTE && (e.target === $('settings') || (b && b.classList.contains('set-close')))) {
-    if (b) location.href = '/';   // 다 바꿨으면 이 폰의 원래 화면으로 (바깥을 눌러서는 안 닫힘)
+    // 다 바꿨으면 이 폰의 원래 화면으로 (바깥을 눌러서는 안 닫힘). 미러에 적용 안 한 게 있으면 한 번 물어봄
+    if (b && (!remoteDirty || confirm('미러에 적용하지 않은 설정이 있어요. 그냥 나갈까요?'))) location.href = '/';
     return;
   }
   if (b && b.parentNode.dataset.key) S[b.parentNode.dataset.key] = { 1: true, 0: false }[b.dataset.v] ?? b.dataset.v;

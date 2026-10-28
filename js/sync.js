@@ -1,12 +1,13 @@
 // Pebbly Mirror — 폰으로 설정: 연결 번호, 올리기·받기, QR, 폰(원격) 화면
 // ===== 폰으로 설정 =====
 // 미러: 설정 > '폰으로 설정' → 연결 번호를 만들어(한 번 만들면 계속 씀) 지금 설정을 올리고 QR을 띄움.
-//   그 뒤로 1분마다(QR을 띄운 동안은 3초마다) 받아서 폰에서 바꾼 게 있으면 반영하고, 미러에서 바꾼 것도 올림
-// 폰: QR 주소(?remote=번호)로 열면 미러 설정을 받아 설정 화면만 띄우고, 바꿀 때마다 올림
-// 서버 /api/sync (functions/api/sync.js, Cloudflare KV)
+//   그 뒤로 10초마다(QR을 띄운 동안은 3초마다) 받아서 폰에서 바꾼 게 있으면 반영하고 '받았음'을 남김. 미러에서 바꾼 것도 올림
+// 폰: QR 주소(?remote=번호)로 열면 미러 설정을 받아 설정 화면만 띄움. 바꾼 설정은 '미러에 적용'을 누를 때 한꺼번에 보내고,
+//   미러가 받았는지 확인해서 알려 줌 (안 받으면 미러 앱이 꺼졌거나 QR 주소가 바뀐 것)
+// 서버 /api/sync (functions/api/sync.js, Cloudflare KV + 같은 데이터센터 캐시)
 const SYNC_KEY = 'mirror_sync';   // 미러: { id: 연결 번호, at: 마지막으로 맞춘 서버 시각 }
 let sync = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)); } catch (e) { return null; } })();
-let syncTimer = 0, syncFast = 0, remoteOrient = null;
+let syncTimer = 0, syncFast = 0, remoteOrient = null, remoteDirty = false, remoteWait = 0;
 const syncMsg = t => { $('sync-msg').textContent = t; $('remote-msg').textContent = t; };
 const syncSave = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) {} };
 async function syncSend() {
@@ -14,12 +15,13 @@ async function syncSend() {
     body: JSON.stringify({ orient: REMOTE ? remoteOrient : wgNow(), settings: S }) })).json();
   if (r.error) throw new Error(r.error);
   if (!REMOTE) { sync.at = r.at; syncSave(); }
+  return r.at;
 }
-function syncPush() {   // +/− 버튼을 누르고 있을 때처럼 연달아 바뀌면 다 끝난 뒤 한 번만
+// 설정을 바꿀 때마다(saveSettings): 미러는 +/− 버튼을 누르고 있을 때처럼 연달아 바뀌면 다 끝난 뒤 한 번만 올림, 폰은 '미러에 적용'을 기다림
+function syncPush() {
+  if (REMOTE) { remoteDirty = true; remoteState("바뀐 설정이 있어요. 다 바꾼 뒤 아래 '미러에 적용'을 눌러 주세요."); return; }
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => syncSend()
-    .then(() => { if (REMOTE) syncMsg('미러로 보냈어요. 1분쯤 안에 반영돼요.'); })
-    .catch(e => syncMsg('보내지 못했어요: ' + e.message)), 800);
+  syncTimer = setTimeout(() => syncSend().catch(e => syncMsg('보내지 못했어요: ' + e.message)), 800);
 }
 async function syncPull() {
   if (!sync) return;
@@ -32,7 +34,34 @@ async function syncPull() {
     try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {}
     applySettings();
     syncMsg('폰에서 바꾼 설정을 반영했어요.');
+    fetch(`/api/sync?id=${sync.id}&ack=${r.at}`, { method: 'POST' }).catch(() => {});   // 폰에 '받았음'
   } catch (e) {}
+}
+// 폰: '미러에 적용' 버튼 (바꾼 게 있을 때만 눌림)
+function remoteState(t) {
+  $('remote-apply').disabled = !remoteDirty;
+  if (t != null) syncMsg(t);
+}
+// 보내고 2초마다 미러의 '받았음'을 확인, 1분 반 안에 안 오면 안내
+async function remoteApply() {
+  if (!remoteDirty) return;
+  remoteDirty = false;
+  remoteState('미러로 보내는 중…');
+  let at;
+  try { at = await syncSend(); } catch (e) { remoteDirty = true; remoteState('보내지 못했어요: ' + e.message); return; }
+  syncMsg('보냈어요. 미러가 받는 중… (보통 10초 안)');
+  clearInterval(remoteWait);
+  const until = Date.now() + 90e3;
+  remoteWait = setInterval(async () => {
+    try {
+      const a = await (await fetch(`/api/sync?id=${REMOTE}&ack=1`, { cache: 'no-store' })).json();
+      if (a.at >= at) { clearInterval(remoteWait); syncMsg('미러에 적용했어요 ✓'); return; }
+    } catch (e) {}
+    if (Date.now() > until) {
+      clearInterval(remoteWait);
+      syncMsg('미러가 아직 못 받았어요. 미러 앱이 켜져 있는지 확인해 주세요. 그래도 안 되면 미러 설정 > 폰으로 설정의 QR을 다시 찍어 주세요.');
+    }
+  }, 2000);
 }
 const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, no) => {
   const el = document.createElement('script');

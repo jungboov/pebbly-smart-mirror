@@ -78,7 +78,7 @@ $('ph-file').addEventListener('change', async e => {
   if (added.length) phChanged([...photos, ...added]);
   phMsg((added.length ? `${added.length}장 올렸어요.` : '')
     + (fails.length ? ` ${fails.length}장은 못 올렸어요 (${fails[0]}).` : '')
-    + (added.length && REMOTE ? ' 미러에는 1분쯤 뒤에 나와요.' : ''));
+    + (added.length && REMOTE ? " 아래 '미러에 적용'을 누르면 1분 안에 미러에 나와요." : ''));
 });
 
 async function phUpload(file) {

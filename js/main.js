@@ -58,9 +58,9 @@ function scheduleReload() {
   loadAir();
   loadBoard();
   locate();
-  // 폰으로 설정을 연결했으면 1분마다 확인. 켠 뒤에 처음 연결해도 받도록 연결 전부터 돌림 (연결 전엔 syncPull이 바로 끝남)
+  // 폰으로 설정을 연결했으면 10초마다 확인. 켠 뒤에 처음 연결해도 받도록 연결 전부터 돌림 (연결 전엔 syncPull이 바로 끝남)
   if (REMOTE) remoteStart();
-  else { syncPull(); setInterval(syncPull, 60e3); }
+  else { syncPull(); setInterval(syncPull, 10e3); }
   setInterval(loadWeather, CONFIG.weatherEvery);
   setInterval(loadAir, CONFIG.airEvery);
   setInterval(nextPhrase, CONFIG.phraseEvery);

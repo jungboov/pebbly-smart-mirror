@@ -41,6 +41,10 @@
 .set-card[data-tab="sync"] .set-hint{display:none}
 body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:var(--note-bg);font-size:2.6rem;line-height:1.5;color:var(--text)}
 body.remote .set-card .set-sync{display:none}
+/* 폰: '미러에 적용' — 바꾼 게 있으면 밝게(눌림), 없으면 흐리게 */
+.set-card .remote-apply{display:none}
+body.remote .set-card .remote-apply{display:block;flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
+body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var(--text-dim);font-weight:600;cursor:default}
 /* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
 .tr-sec{display:flex;flex-direction:column;gap:1.8rem}
 .tr-add{display:flex;gap:1.2rem}
