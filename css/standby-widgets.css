@@ -88,9 +88,8 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb.has-music .music{display:flex}
   body.sb .w-hero{flex-grow:1}   /* 기온·설명은 제목과 정보 카드 사이 가운데 */
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}   /* 그래프가 남는 높이만큼 커짐 */
-  body.sb .cards{grid-template-rows:auto 1fr}
-  body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}   /* 카드가 길어져도 숫자는 가운데 */
-  body.sb .sun-card{justify-content:center}
+  body.sb .cards{grid-template-rows:auto auto;align-content:space-between}   /* 공기 카드는 늘리지 않고 원래 높이로 아래에 (길어지면 휑함) */
+  body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}   /* 해·달 카드 높이에 맞춰 늘어난 미세먼지 카드의 숫자는 가운데 */
   body.sb .mu-main{flex:1;min-height:0}
   /* 교통 위젯이 길어지면 시계가 작아지므로 다른 위젯 높이만큼만 */
   body.sb .transit{max-height:46rem;overflow:hidden}
@@ -121,13 +120,14 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
-   (공기 위젯은 미세먼지 카드가 늘어나고 해·달 카드는 아래, 음악은 플레이어를 남은 칸 가운데) */
+   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 해·달 카드는 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
 @media (orientation: landscape){
   body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch}
   body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
   body.sb .w-hero{flex-grow:1}
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}
   body.sb .cards{grid-template-rows:auto 1fr auto}
+  body.sb .cards .card:not(.sun-card){align-self:start;aspect-ratio:5 / 6}
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
   body.sb .music{justify-content:flex-start}
   body.sb .mu-main{flex:1;min-height:0;justify-content:center}
