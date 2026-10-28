@@ -20,10 +20,10 @@ export async function onRequestGet({ request, env }) {
     const kst = new Date(Date.now() + 9 * 3600e3);   // 아래 계산은 모두 한국 시각 (getUTC*로 읽음)
     // 단기예보: 02·05·08·11·14·17·20·23시 발표, 10분쯤 뒤부터 나옴. 아직 없으면(NO_DATA) 한 번 앞 발표
     const vil = await withFallback(back => vilBase(kst, back), b => call(env, 'getVilageFcst', b, at, 3 * 3600));
-    // 오늘 최저(06시)는 05시 발표, 최고(15시)는 14시 발표가 그 시각이 들어 있는 마지막 발표 → 지났으면 그것도 받음
-    // (그 전이면 최신 발표에 들어 있음. 02시 발표엔 둘 다, 02시 10분 전엔 전날 23시 발표에 둘 다) 오전 지난 시간 기온도 여기서
+    // 오늘 최저(06시)는 02시 발표(05시 발표엔 오늘 최저가 빠져 있음), 최고(15시)는 14시 발표가 그 값이 들어 있는 마지막 발표
+    // → 지났으면 그것도 받음 (그 전이면 최신 발표에 들어 있음. 02시 10분 전엔 전날 23시 발표에 둘 다). 오늘 지난 시간 기온도 여기서
     const today = ymd(new Date(kst.getTime() - 10 * 60e3)), older = [];
-    for (const time of ['0500', '1400']) {
+    for (const time of ['0200', '0500', '1400']) {
       if (today + time >= vil.base.date + vil.base.time) continue;
       const src = await call(env, 'getVilageFcst', { date: today, time }, at, 24 * 3600).catch(() => null);
       if (src) older.push(src);
