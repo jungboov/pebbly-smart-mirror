@@ -42,14 +42,29 @@ function remoteState(t) {
   $('remote-apply').disabled = !remoteDirty;
   if (t != null) syncMsg(t);
 }
+// 폰 두 대가 한 미러를 설정할 때: 보내기 직전에 미러의 지금 설정을 다시 받아, 이 폰에서 바꾼 항목만 그 위에 얹어 보냄
+//   (그사이 다른 폰이 바꾼 항목은 살아남음. 같은 항목을 둘 다 바꿨으면 나중에 누른 쪽)
+let remoteBase = null, remoteAt = 0;   // 이 폰이 받은(또는 마지막으로 보낸) 미러 설정과 그 시각
+const clone = o => JSON.parse(JSON.stringify(o));
 // 보내고 2초마다 미러의 '받았음'을 확인, 1분 반 안에 안 오면 안내
 async function remoteApply() {
   if (!remoteDirty) return;
   remoteDirty = false;
   remoteState('미러로 보내는 중…');
-  let at;
-  try { at = await syncSend(); } catch (e) { remoteDirty = true; remoteState('보내지 못했어요: ' + e.message); return; }
-  syncMsg('보냈어요. 미러가 받는 중… (보통 10초 안)');
+  let at, merged = false;
+  try {
+    const latest = await (await fetch('/api/sync?id=' + REMOTE, { cache: 'no-store' })).json();
+    if (latest.settings && remoteBase && latest.at > remoteAt) {
+      const mine = {};
+      for (const k of Object.keys(S)) if (JSON.stringify(S[k]) !== JSON.stringify(remoteBase[k])) mine[k] = S[k];
+      Object.assign(S, latest.settings, mine);
+      merged = true;
+    }
+    at = await syncSend();
+  } catch (e) { remoteDirty = true; remoteState('보내지 못했어요: ' + e.message); return; }
+  remoteBase = clone(S); remoteAt = at;
+  if (merged) applySettings();   // 다른 폰에서 바꾼 것도 화면에
+  syncMsg((merged ? '다른 폰에서 바꾼 설정과 합쳐서 ' : '') + '보냈어요. 미러가 받는 중… (보통 10초 안)');
   clearInterval(remoteWait);
   const until = Date.now() + 90e3;
   remoteWait = setInterval(async () => {
@@ -115,6 +130,7 @@ async function remoteStart() {
     if (!r.settings) { syncMsg("미러를 찾지 못했어요. 미러 설정에서 '폰으로 설정'을 다시 눌러 주세요."); return; }
     Object.assign(S, r.settings);
     remoteOrient = r.orient;
+    remoteBase = clone(S); remoteAt = r.at;
     applySettings();
     wgEdit = remoteOrient; wgRender();
     syncMsg('');

@@ -101,6 +101,9 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .policy[hidden]{display:none}
 .policy iframe{display:block;width:100%;height:100%;border:0}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
+/* 사진 앨범 같이 쓰기: 이 미러만 / ○○와 같이 (다른 미러가 많으면 줄바꿈) */
+.ph-share-row[hidden]{display:none}
+.ph-share-row .chips{flex-wrap:wrap;justify-content:flex-end}
 /* 사진 탭: 올리기(사진 고르기) / 작은 그림 4칸 격자, 그림마다 오른쪽 위 지우기 */
 .set-card .ph-add{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;font-size:3.2rem;color:var(--text);cursor:pointer}
 .ph-list{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}

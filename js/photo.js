@@ -55,6 +55,45 @@ function phRenderList() {
     : '올린 사진이 사진 액자 위젯에서 한 장씩 돌아가요. 여러 장을 한 번에 골라도 돼요.');
 }
 
+// 사진 앨범 같이 쓰기: 이 기기가 기억한 다른 미러(설정 › 미러 설정하기) 중 사진이 있는 미러의 앨범을 같이 쓰거나 이 미러만 따로
+//   같이 쓰면 어느 미러에서 올리거나 지워도 둘 다 바뀜. '이 미러만'으로 돌아오면 원래 이 미러 앨범(S.albumOwn)으로
+let phOthers = [];   // [{ id, name, album }] 사진 탭을 열 때 받음
+const withWa = s => { const c = s.charCodeAt(s.length - 1) - 0xac00; return s + (c >= 0 && c < 11172 && c % 28 ? '과' : '와'); };   // 받침 있으면 '과'
+async function phLoadOthers() {
+  const me = REMOTE || (sync && sync.id);
+  const list = savedRemotes().filter(r => r.id !== me);
+  phOthers = (await Promise.all(list.map(async r => {
+    try {
+      const s = (await (await fetch('/api/sync?id=' + r.id, { cache: 'no-store' })).json()).settings;
+      return s && s.album ? { id: r.id, name: remoteLabel(r), album: s.album } : null;
+    } catch (e) { return null; }
+  }))).filter(Boolean);
+  phRenderShare();
+}
+function phRenderShare() {
+  const shared = phOthers.find(o => o.album === S.album);
+  $('ph-share-row').hidden = !phOthers.length;
+  $('ph-share').innerHTML = `<button data-share=""${shared ? '' : ' class="on"'}>이 미러만</button>`
+    + phOthers.map(o => `<button data-share="${o.id}"${shared && shared.id === o.id ? ' class="on"' : ''}>${esc(withWa(o.name))} 같이</button>`).join('');
+}
+$('ph-share').addEventListener('click', e => {
+  const b = e.target.closest('button[data-share]');
+  if (!b || phBusy) return;
+  const o = phOthers.find(x => x.id === b.dataset.share), shared = phOthers.some(x => x.album === S.album);
+  if (o) {
+    if (o.album === S.album || !confirm(`${withWa(o.name)} 같은 사진을 쓸까요? 어느 쪽에서 올리거나 지워도 둘 다 바뀌어요. 이 미러에 올린 사진은 '이 미러만'으로 돌아오면 다시 보여요.`)) return;
+    if (!shared) S.albumOwn = S.album || null;   // 원래 이 미러 앨범 기억
+    S.album = o.album;
+  } else {
+    if (!shared) return;
+    S.album = S.albumOwn || null;
+  }
+  S.photoAt = Date.now();   // 미러가 목록을 새로 받게
+  saveSettings();
+  applySettings();          // 이 화면 목록도 새 앨범으로 (phApply)
+  phRenderShare();
+});
+
 // 자동 넘김 때 이번 차례에 사진을 더 보여 줄지: 사진만 켰으면 계속, 아니면 설정한 장수(phPer, 0 = 모두)까지
 function phMore() {
   const n = photos.length, per = +S.phPer || n;

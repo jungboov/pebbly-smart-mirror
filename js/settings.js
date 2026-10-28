@@ -13,7 +13,12 @@ function openSettings() {
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
-  if (b && b.dataset.tab) { b.closest('.set-card').dataset.tab = b.dataset.tab; return; }
+  if (b && !b.isConnected) return;   // 위젯·사진 탭 안쪽 처리에서 목록을 다시 그려 떨어져 나간 버튼 (이미 처리됨)
+  if (b && b.dataset.tab) {
+    b.closest('.set-card').dataset.tab = b.dataset.tab;
+    if (b.dataset.tab === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
+    return;
+  }
   if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
   if (b && b.id === 'sync-off') { syncOff(); return; }
   if (b && b.id === 'remote-apply') { remoteApply(); return; }
