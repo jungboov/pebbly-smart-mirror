@@ -327,6 +327,14 @@ body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
 .cm-pm{display:flex;flex-direction:column;gap:1.4rem;align-self:center;justify-self:start}
 .cm-foot{grid-area:ft;align-self:end;display:flex;flex-direction:column;gap:1.6rem;font-size:2.6rem}
 .cm-name{font-family:var(--num);font-weight:500;color:var(--text-dim);letter-spacing:.06em;line-height:1}
+/* 알람 칩: 고른 알람은 흰 테두리, 꺼진 알람은 흐리게 */
+.al-top{display:flex;align-items:center;gap:2rem}
+.al-list{display:flex;gap:1rem}
+.cm .al-list button{padding:.9rem 2rem;font-family:var(--num);font-size:2.4rem;font-weight:700;color:var(--text-muted)}
+.cm .al-list button.sel{color:var(--text);border-color:var(--text)}
+.cm .al-list button.off{color:var(--text-dim)}
+.cm .al-list button[data-al="add"]{padding:.9rem 1.8rem}
+.cm button[hidden]{display:none}
 .cm-ctl{display:flex;gap:1.4rem}
 .cm button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3.2rem;line-height:1;
   color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
@@ -702,7 +710,8 @@ body.night.night-red::after{background:#ff3b30}
     <div id="cm-al" class="cm">
       <span class="lbl cm-l1">hour</span><b id="al-h" class="cm-d1"></b><div class="cm-pm cm-c1"><button data-al="60">+</button><button data-al="-60">−</button></div>
       <span class="lbl cm-l2">min</span><b id="al-m" class="cm-d2"></b><div class="cm-pm cm-c2"><button data-al="1">+</button><button data-al="-1">−</button></div>
-      <div class="cm-foot"><span class="cm-name">alarm</span><div class="cm-ctl"><button id="al-go" data-al="toggle"></button></div></div>
+      <div class="cm-foot"><div class="al-top"><span class="cm-name">alarm</span><div id="al-list" class="al-list"></div></div>
+        <div class="cm-ctl"><button id="al-go" data-al="toggle"></button><button id="al-days" data-al="days"></button><button id="al-del" data-al="del">삭제</button></div></div>
     </div>
     <!-- 시계 쪽 화면 위치 점 (시계 / 스톱워치 / 타이머 / 알람) -->
     <div class="cm-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
@@ -947,14 +956,16 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
-// transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
+// transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarms: 알람 [{ h, m, on, days: 'all' 매일 · 'wk' 평일(공휴일 빼고) · 'we' 주말 }]
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
   { hour12: false, secs: true, date: true, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
-    alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
+    alarms: [{ on: false, h: 7, m: 0, days: 'all' }], music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
+// 예전 알람 하나짜리 설정은 목록으로
+if (S.alarm) { S.alarms = [{ ...S.alarm, days: 'all' }]; delete S.alarm; }
 // 예전에 가로·세로 구분 없이 저장한 위젯 설정은 둘 다에 옮김
 for (const k of ['wgL', 'wgP']) if (!S[k]) S[k] = { order: S.wgOrder || null, off: S.wgOff || [] };
 delete S.wgOrder; delete S.wgOff;
@@ -1829,17 +1840,30 @@ setInterval(() => {
   if (CM[cm] === 'tm') renderTm();
 }, 250);
 
-// 알람: 시·분을 +/−로 맞추고 켜기 (24시간 기준, 설정에 저장)
+// 알람: 여러 개(최대 4개). 아래 칩으로 고르고 +로 추가, 고른 알람의 시·분을 +/−로 맞추고 켜기·반복·삭제 (24시간 기준, 설정에 저장)
+// 반복: 매일 / 평일(월~금, 공휴일 빼고) / 주말(토·일)
+const AL_DAYS = { all: '매일', wk: '평일', we: '주말' };
+let alSel = 0;
+const alNow = () => S.alarms[Math.min(alSel, S.alarms.length - 1)];
 function renderAl() {
-  digits($('al-h'), pad(S.alarm.h));
-  digits($('al-m'), pad(S.alarm.m));
-  $('al-go').textContent = S.alarm.on ? '켜짐' : '꺼짐';
-  $('al-go').classList.toggle('on', S.alarm.on);
+  const a = alNow();
+  digits($('al-h'), pad(a.h));
+  digits($('al-m'), pad(a.m));
+  $('al-go').textContent = a.on ? '켜짐' : '꺼짐';
+  $('al-go').classList.toggle('on', a.on);
+  $('al-days').textContent = AL_DAYS[a.days];
+  $('al-del').hidden = S.alarms.length < 2;
+  $('al-list').innerHTML = S.alarms.map((x, i) => `<button data-al-sel="${i}" class="${x === a ? 'sel' : ''}${x.on ? '' : ' off'}">${pad(x.h)}:${pad(x.m)}</button>`).join('')
+    + (S.alarms.length < 4 ? '<button data-al="add" aria-label="알람 추가">+</button>' : '');
+}
+function alarmToday(a, d) {
+  const wd = d.getDay(), weekend = wd === 0 || wd === 6;
+  return a.days === 'all' || (a.days === 'we' ? weekend : !weekend && !holidayName(ymd(d)));
 }
 function checkAlarm(d) {
-  if (S.alarm.on && d.getSeconds() === 0 && d.getHours() === S.alarm.h && d.getMinutes() === S.alarm.m) {
-    ring(`알람 ${pad(S.alarm.h)}:${pad(S.alarm.m)}`);
-  }
+  if (d.getSeconds() !== 0) return;
+  const a = S.alarms.find(x => x.on && x.h === d.getHours() && x.m === d.getMinutes() && alarmToday(x, d));
+  if (a) ring(`알람 ${pad(a.h)}:${pad(a.m)}`);
 }
 
 // 버튼: +/−는 누르고 있으면 빠르게 반복, 나머지는 한 번
@@ -1850,8 +1874,8 @@ function cmStep(b) {
     tm.left = tm.set;
     renderTm();
   } else if (d.al && !isNaN(d.al)) {
-    const t = ((S.alarm.h * 60 + S.alarm.m + Number(d.al)) % 1440 + 1440) % 1440;
-    S.alarm.h = Math.floor(t / 60); S.alarm.m = t % 60;
+    const a = alNow(), t = ((a.h * 60 + a.m + Number(d.al)) % 1440 + 1440) % 1440;
+    a.h = Math.floor(t / 60); a.m = t % 60;
     saveSettings(); renderAl();
   }
 }
@@ -1867,7 +1891,7 @@ $('clock').addEventListener('pointerdown', e => {
 document.addEventListener('pointerup', () => clearTimeout(holdTimer));
 document.addEventListener('pointercancel', () => clearTimeout(holdTimer));
 $('clock').addEventListener('click', e => {
-  const b = e.target.closest('.cm-ctl button');
+  const b = e.target.closest('.cm-ctl button, .al-list button');
   if (!b) return;
   unlockSound();
   cmAt = Date.now();
@@ -1878,7 +1902,11 @@ $('clock').addEventListener('click', e => {
   else if (d.tm === 'go') {
     if (tm.run) { tm.left = tmLeft(); tm.run = false; } else { tm.end = Date.now() + tm.left * 1e3; tm.run = true; }
   } else if (d.tm === 'reset') { tm.run = false; tm.left = tm.set; }
-  else if (d.al === 'toggle') { S.alarm.on = !S.alarm.on; saveSettings(); }
+  else if (d.alSel) alSel = Number(d.alSel);
+  else if (d.al === 'toggle') { alNow().on = !alNow().on; saveSettings(); }
+  else if (d.al === 'days') { const a = alNow(), k = Object.keys(AL_DAYS); a.days = k[(k.indexOf(a.days) + 1) % k.length]; saveSettings(); }
+  else if (d.al === 'add') { const a = alNow(); S.alarms.push({ on: true, h: a.h, m: a.m, days: 'all' }); alSel = S.alarms.length - 1; saveSettings(); }
+  else if (d.al === 'del' && S.alarms.length > 1) { S.alarms.splice(alSel, 1); alSel = Math.max(0, alSel - 1); saveSettings(); }
   renderCm();
 });
 
