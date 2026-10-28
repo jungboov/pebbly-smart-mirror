@@ -1,0 +1,14 @@
+/* Pebbly Mirror — 사진 액자 위젯 */
+/* 올린 사진이 있을 때만 (시계 강조 화면). 칸 크기는 다른 위젯과 화면이 정하고, 사진은 그 안에 잘리지 않게 맞춤
+   contain:size — 사진 크기가 위젯 칸 높이(세로 화면에선 그만큼 시계가 작아짐, fitClock)를 늘리지 않게 */
+.photo{display:none}
+body.sb.has-photo .photo{display:flex;flex-direction:column;contain:size}
+.ph-box{position:relative;flex:1;min-height:0}
+/* 두 장을 겹쳐 두고 새 사진을 다 받으면 서서히 바꿈 (photo.js) */
+.ph-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1.2s}
+.ph-box img.on{opacity:1}
+#ph-count{color:var(--text-dim)}
+/* 세로 '시계 크게': 다른 위젯이 다 꺼져도 사진 칸이 이만큼은 있게 (다른 위젯보다 낮아서 시계 크기는 그대로) */
+@media (orientation: portrait){
+  body.sb.has-photo .photo{min-height:40rem}
+}

@@ -6,6 +6,13 @@ function applyMode() {
   document.body.classList.toggle('phone', phoneMQ.matches);
   fitClock();
 }
+// OLED 번인 방지: 1분마다 화면 전체를 몇 px씩 옮김 (폰 시계 강조 화면에서만 CSS가 적용, tickClock이 부름)
+const SHIFT = [[0, 0], [3, 0], [3, 3], [0, 3], [-3, 3], [-3, 0], [-3, -3], [0, -3], [3, -3]];
+function shiftPixels(m) {
+  const [x, y] = SHIFT[m % SHIFT.length];
+  $('stage').style.setProperty('--sx', x + 'px');
+  $('stage').style.setProperty('--sy', y + 'px');
+}
 
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
 function applySettings() {
@@ -16,6 +23,7 @@ function applySettings() {
   renderAlert();
   document.body.classList.toggle('has-tr', S.transit.length > 0);
   trRenderList();
+  phApply();
   wgRender();
   const shown = panelList();
   PANELS.forEach((el, i) => el.classList.toggle('wg-off', S.focus && !shown.includes(PANEL_NAMES[i])));
@@ -76,16 +84,16 @@ async function loadHolidays(y) {
 }
 
 // ===== 날씨 위젯 넘기기 =====
-// 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장을 등록해야 나옴) / 상세 세로: 시간별 ↔ 일별
-// S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김
+// 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장을 등록해야, 사진 액자는 사진을 올려야 나옴) / 상세 세로: 시간별 ↔ 일별
+// S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김. 사진 액자는 넘어올 때마다 다음 사진
 let panel = 0, panelName = 'now', panelTimer;
-const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통' };
+const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자' };
 // o: 'L' 가로·'P' 세로 (없으면 지금 화면 방향)
 const portraitMQ = matchMedia('(orientation: portrait)');
 const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
 const wgCfg = (o = wgNow()) => S[o === 'P' ? 'wgP' : 'wgL'];
 const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NAMES.includes(n)), ...PANEL_NAMES])];   // 새 위젯은 뒤에
-const wgReady = n => n === 'transit' ? S.transit.length > 0 : true;
+const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'photo' ? photos.length > 0 : true;
 function panelList(o) {
   if (!S.focus) return PANEL_NAMES.slice(0, 4);
   const h = new Date().getHours();
@@ -107,6 +115,7 @@ function showPanel(p, dir, axis) {
   document.body.classList.toggle('alt', panel % 2 === 1);
   $('sb-dots').innerHTML = list.map((_, i) => `<i${i === panel ? ' class="on"' : ''}></i>`).join('');
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
+  if (panelName === 'photo') phShow(dir);
   if (dir && S.focus && old !== panelName) slide(panelEl(old), panelEl(panelName), dir, axis);
   schedulePanel();
 }

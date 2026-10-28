@@ -1,18 +1,18 @@
-/* Pebbly Mirror — 설정 화면 (탭, 교통 등록, 위젯, 폰으로 설정) */
+/* Pebbly Mirror — 설정 화면 (탭, 교통 등록, 위젯, 사진, 폰으로 설정) */
 /* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
 .settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:var(--scrim)}
 .settings[hidden]{display:none}
 .set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:var(--panel)}
 .set-title{font-size:4.6rem;font-weight:700}
-/* 설정 탭: 화면 / 위젯 / 야간 / 교통. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
+/* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 사진. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
 .set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
 .set-tabs{display:flex;gap:1rem}
 .set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
 .set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
-.set-card[data-tab="transit"] [data-tab="transit"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="photo"] [data-tab="photo"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
-.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="photo"] [data-page="photo"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
@@ -83,3 +83,10 @@ body.remote .set-card .set-sync{display:none}
 .policy[hidden]{display:none}
 .policy iframe{display:block;width:100%;height:100%;border:0}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
+/* 사진 탭: 올리기(사진 고르기) / 작은 그림 4칸 격자, 그림마다 오른쪽 위 지우기 */
+.set-card .ph-add{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;font-size:3.2rem;color:var(--text);cursor:pointer}
+.ph-list{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.ph-list:empty{display:none}
+.ph-list li{position:relative;aspect-ratio:1;border-radius:1.6rem;overflow:hidden;background:var(--panel-2)}
+.ph-list img{display:block;width:100%;height:100%;object-fit:cover}
+.set-card .ph-list button{position:absolute;top:.6rem;right:.6rem;width:5.2rem;height:5.2rem;display:grid;place-items:center;padding:0;border-radius:50%;background:var(--scrim);color:var(--text);font-size:3.4rem;line-height:1}

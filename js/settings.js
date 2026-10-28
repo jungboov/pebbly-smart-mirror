@@ -46,7 +46,7 @@ function wgRender() {
   $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
     const on = !off.includes(n), ready = wgReady(n), t = S.wgTime[n], open = wgTimeOpen === n;
-    const note = [ready ? '' : '교통 탭에서 정류장을 등록하면 나와요',
+    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '사진 탭에서 사진을 올리면 나와요',
       t ? `${hourName(t[0])}~${hourName(t[1])}에만` : ''].filter(Boolean).map(x => `<small>${x}</small>`).join('');
     const edit = !open ? '' : '<div class="wg-time">' + (t
       ? [0, 1].map(k => `<button data-th="${k}" data-step="-1" aria-label="${k ? '끝' : '시작'} 1시간 앞당기기">−</button><b>${hourName(t[k])}</b>`

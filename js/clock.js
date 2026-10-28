@@ -54,9 +54,9 @@ const setM1 = roller($('m1'), range(6), true);
 const setM2 = roller($('m2'), range(10), true);
 const setS = roller($('s'), range(60, pad));
 
-// 날씨 위젯 4개 + 교통 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
-const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit'];
-const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit'].map(s => document.querySelector(s));
+// 날씨 위젯 4개 + 교통·사진 액자 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
+const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'photo'];
+const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#photo'].map(s => document.querySelector(s));
 const panelEl = name => PANELS[PANEL_NAMES.indexOf(name)];
 
 // 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)

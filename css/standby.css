@@ -97,14 +97,14 @@ body.sb .alert:not([hidden]){position:absolute;top:.6rem;left:50%;transform:tran
 body.sb .ds{grid-area:ds;display:flex;align-items:center;gap:2rem;align-self:stretch;justify-self:end;margin-left:3rem;
   writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
 
-/* 위젯 4개(+ 교통)가 같은 자리에 겹쳐 있고 data-panel 이름의 위젯만 보임
+/* 위젯 4개(+ 교통·사진 액자)가 같은 자리에 겹쳐 있고 data-panel 이름의 위젯만 보임
    넘어갈 때 미끄러지는 효과는 JS(slide)가 줌. 숨은 위젯은 터치를 받지 않게 */
-body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit{
+body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .photo{
   grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;
   opacity:0;visibility:hidden;pointer-events:none;transition:none;
 }
 body.sb[data-panel="now"] .wmain, body.sb[data-panel="hourly"] .hourly,
 body.sb[data-panel="daily"] .wave, body.sb[data-panel="air"] .cards,
-body.sb[data-panel="transit"] .transit{opacity:1;visibility:visible;pointer-events:auto}
+body.sb[data-panel="transit"] .transit, body.sb[data-panel="photo"] .photo{opacity:1;visibility:visible;pointer-events:auto}
 /* 설정에서 끈 위젯: 자리도 빼서 세로 화면이면 그만큼 시계가 커짐 (fitClock이 위젯 높이를 봄) */
 body.sb .wg-off{display:none !important}
