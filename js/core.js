@@ -60,7 +60,9 @@ const SET_KEY = 'mirror_settings';
 const S = Object.assign(
   { hour12: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3 },
-  (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
+  // 폰에서 다른 미러 설정 중(REMOTE)이면 이 폰 자기 설정은 섞지 않음: 기본값 위에 그 미러 설정만 (remoteStart)
+  //   섞으면 그 미러에 없던 값(사진 앨범 등)이 이 폰 것으로 채워져 '미러에 적용' 때 그 미러로 넘어감
+  REMOTE ? {} : (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
 // 예전 알람 하나짜리 설정은 목록으로
 if (S.alarm) { S.alarms = [{ ...S.alarm, days: 'all' }]; delete S.alarm; }
