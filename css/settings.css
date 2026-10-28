@@ -1,18 +1,18 @@
-/* Pebbly Mirror — 설정 화면 (탭, 교통 등록, 위젯, 폰으로 설정, 음악 로그인) */
+/* Pebbly Mirror — 설정 화면 (탭, 교통 등록, 위젯, 폰으로 설정) */
 /* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
 .settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:var(--scrim)}
 .settings[hidden]{display:none}
 .set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:var(--panel)}
 .set-title{font-size:4.6rem;font-weight:700}
-/* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
+/* 설정 탭: 화면 / 위젯 / 야간 / 교통. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
 .set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
 .set-tabs{display:flex;gap:1rem}
 .set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
 .set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
-.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.set-card[data-tab="transit"] [data-tab="transit"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
-.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
@@ -75,17 +75,11 @@ body.remote .set-card .set-sync{display:none}
 .set-card .wg-time button{width:5.6rem;height:5.6rem}
 .set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
 .tr-msg:empty{display:none}
-.g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
+/* 개인정보처리방침 링크: 안내 문구 아래 작게 */
+.set-policy{align-self:flex-start;margin-top:-1.6rem;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
+.set-card[data-tab="sync"] .set-policy{margin-top:auto}   /* 폰으로 설정 탭은 안내 문구가 없어서 링크를 맨 아래로 */
 /* 개인정보처리방침을 앱 안에 겹쳐 보여 줌: 설정 위, 알람 울림 아래 */
 .policy{position:fixed;inset:0;z-index:15;background:var(--bg)}
 .policy[hidden]{display:none}
 .policy iframe{display:block;width:100%;height:100%;border:0}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
-/* Google 로그인 코드: 주소 + 큰 코드 */
-.g-code{display:flex;flex-direction:column;align-items:center;gap:1.4rem;padding:3rem;border:1px solid var(--card-bd);border-radius:2.4rem;text-align:center}
-.g-code[hidden]{display:none}
-.g-code span{font-size:2.6rem;color:var(--text-dim)}
-.g-code a{font-size:3.4rem;font-weight:600;color:var(--rain);text-decoration:none}
-.g-code b{font-family:var(--num);font-size:7rem;letter-spacing:.12em}
-.tr-res li.on{border-color:var(--accent)}
-.tr-res li > span{flex:none;font-size:2.6rem;color:var(--text-dim)}

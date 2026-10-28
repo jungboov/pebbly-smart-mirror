@@ -108,14 +108,12 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   }
   /* 위젯은 모두 위젯 칸 높이를 채움: 제목은 칸 맨 위에 고정(넘겨도 안 움직임), 내용이 남은 높이를 채움
      칸 높이는 시계 크게면 가장 높은 위젯, 반반이면 아래 절반 */
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch;margin:0}
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .music{flex-direction:column}
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb.has-music .music{display:flex}
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit{align-self:stretch;margin:0}
+  body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
   body.sb .w-hero{flex-grow:1}   /* 기온·설명은 제목과 정보 카드 사이 가운데 */
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}   /* 그래프가 남는 높이만큼 커짐 */
   body.sb .cards{grid-template-rows:auto auto;align-content:space-between}   /* 공기 카드는 늘리지 않고 원래 높이로 아래에 (길어지면 휑함) */
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}   /* 해·달 카드 높이에 맞춰 늘어난 미세먼지 카드의 숫자는 가운데 */
-  body.sb .mu-main{flex:1;min-height:0}
   /* 교통 위젯이 길어지면 시계가 작아지므로 다른 위젯 높이만큼만 */
   body.sb .transit{max-height:46rem;overflow:hidden}
   /* now '시계 크게': 시계에 높이를 주려고 낮게 — 그림 | 기온 | 날씨·체감·비교 한 줄 (정보 6칸 한 줄은 위 넓은 칸 규칙) */
@@ -140,16 +138,12 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
   body.sb.half .clock{align-self:center}
   body.sb.half .transit{max-height:100%}
-  /* 반반 음악: 위 앨범아트(남는 높이 가득, 가운데) / 아래 곡 정보·버튼(좌우 가득) */
-  body.sb.half .mu-main{flex-direction:column;align-items:stretch;gap:2.4rem}
-  body.sb.half .mu-video{flex:1;width:100%;min-height:0;aspect-ratio:auto}
-  body.sb.half .mu-side{flex:none}
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
-   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 그 아래 해 카드, 큰 달은 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
+   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 그 아래 해 카드, 큰 달은 맨 아래) */
 @media (orientation: landscape){
-  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch}
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit{align-self:stretch}
   body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
   body.sb .w-hero{flex-grow:1}
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}
@@ -166,8 +160,6 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .cards{container-type:inline-size}
   body.sb .sun-arc{max-height:18rem}
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
-  body.sb .music{justify-content:flex-start}
-  body.sb .mu-main{flex:1;min-height:0;justify-content:center}
 }
 @container (min-width: 80rem){
   body.sb .moon-card{display:none}

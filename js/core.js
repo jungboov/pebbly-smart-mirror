@@ -34,11 +34,10 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarms: 알람 [{ h, m, on, days: 'all' 매일 · 'wk' 평일(공휴일 빼고) · 'we' 주말 }]
-// music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
   { hour12: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
-    alarms: [{ on: false, h: 7, m: 0, days: 'all' }], music: null, muShuffle: false, muRepeat: false },
+    alarms: [{ on: false, h: 7, m: 0, days: 'all' }] },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
 // 예전 알람 하나짜리 설정은 목록으로
@@ -46,6 +45,13 @@ if (S.alarm) { S.alarms = [{ ...S.alarm, days: 'all' }]; delete S.alarm; }
 // 예전에 가로·세로 구분 없이 저장한 위젯 설정은 둘 다에 옮김
 for (const k of ['wgL', 'wgP']) if (!S[k]) S[k] = { order: S.wgOrder || null, off: S.wgOff || [] };
 delete S.wgOrder; delete S.wgOff;
+// 음악 위젯은 없앰: 예전 재생목록 설정을 지우고, Google 로그인 토큰은 Google에 취소를 요청한 뒤 기기에서 지움
+delete S.music; delete S.muShuffle; delete S.muRepeat; if (S.wgTime) delete S.wgTime.music;
+try {
+  const g = JSON.parse(localStorage.getItem('mirror_google'));
+  if (g && g.refresh) fetch('https://oauth2.googleapis.com/revoke', { method: 'POST', mode: 'no-cors', body: new URLSearchParams({ token: g.refresh }) }).catch(() => {});
+  localStorage.removeItem('mirror_google');
+} catch (e) {}
 function saveSettings() {
   if (REMOTE) { syncPush(); return; }   // 폰에서 미러 설정 중: 폰 자기 설정은 그대로 두고 미러로만 보냄
   try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {}

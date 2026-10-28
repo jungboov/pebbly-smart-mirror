@@ -15,17 +15,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 음악 → 교통 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=7">
-<link rel="stylesheet" href="css/base.css?v=7">
-<link rel="stylesheet" href="css/clock.css?v=7">
-<link rel="stylesheet" href="css/weather.css?v=7">
-<link rel="stylesheet" href="css/detail.css?v=7">
-<link rel="stylesheet" href="css/standby.css?v=7">
-<link rel="stylesheet" href="css/music.css?v=7">
-<link rel="stylesheet" href="css/transit.css?v=7">
-<link rel="stylesheet" href="css/standby-widgets.css?v=7">
-<link rel="stylesheet" href="css/settings.css?v=7">
+<!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
+<link rel="stylesheet" href="css/theme.css?v=8">
+<link rel="stylesheet" href="css/base.css?v=8">
+<link rel="stylesheet" href="css/clock.css?v=8">
+<link rel="stylesheet" href="css/weather.css?v=8">
+<link rel="stylesheet" href="css/detail.css?v=8">
+<link rel="stylesheet" href="css/standby.css?v=8">
+<link rel="stylesheet" href="css/transit.css?v=8">
+<link rel="stylesheet" href="css/standby-widgets.css?v=8">
+<link rel="stylesheet" href="css/settings.css?v=8">
 </head>
 <body class="idle" data-panel="now">
 <main id="stage" class="stage">
@@ -179,26 +178,6 @@
   </section>
 
   <p id="phrase" class="phrase"></p>
-  <!-- 음악: 유튜브 플레이어(앨범아트) / 곡 정보 / 진행 바 / 셔플·이전·재생·다음·반복 -->
-  <section id="music" class="music">
-    <div class="lbl f-lbl mu-top">music<span id="mu-list"></span></div>
-    <div class="mu-main">
-      <div class="mu-video"><div id="yt-player"></div></div>
-      <div class="mu-side">
-      <div class="mu-info"><b id="mu-title"></b><span id="mu-ch"></span></div>
-      <div class="mu-bar"><i id="mu-fill"></i></div>
-      <div class="mu-time"><span id="mu-cur">0:00</span><span id="mu-dur">0:00</span></div>
-      <div class="mu-ctl">
-        <button data-mu="shuffle" id="mu-shuffle" class="mu-tog" aria-label="셔플"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
-        <button data-mu="prev" aria-label="이전 곡"><svg viewBox="0 0 24 24" class="fill"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
-        <button data-mu="play" id="mu-play" aria-label="재생"><svg viewBox="0 0 24 24" class="fill"><path id="mu-play-ico" d="M7 4v16l13-8z"/></svg></button>
-        <button data-mu="next" aria-label="다음 곡"><svg viewBox="0 0 24 24" class="fill"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
-        <button data-mu="repeat" id="mu-repeat" class="mu-tog" aria-label="반복"><svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>
-      </div>
-      <p id="mu-msg" class="mu-msg"></p>
-      </div>
-    </div>
-  </section>
 
   <!-- 알림 띠: 비·눈·미세먼지 (시계 강조 화면 위 가운데) -->
   <div id="alert" class="alert" hidden></div>
@@ -213,9 +192,9 @@
 
 <div id="settings" class="settings" hidden>
   <div class="set-card" data-tab="screen">
-    <!-- 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 고른 탭의 내용만 보임 -->
+    <!-- 탭: 화면 / 위젯 / 야간 / 교통. 고른 탭의 내용만 보임 -->
     <div class="set-head"><div class="set-title">설정</div>
-      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="music">음악</button></div>
+      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button></div>
     </div>
     <p class="remote-note">이 폰에서 <b>미러 설정</b>을 바꾸는 중이에요. 바꾸면 몇 초 안에 미러에 반영돼요. <span id="remote-msg"></span></p>
     <div class="set-page" data-page="screen">
@@ -269,43 +248,28 @@
         </div>
       </div>
     </div>
-    <div class="set-page" data-page="music">
-      <div id="mu-sec" class="tr-sec">
-        <div class="set-row">YouTube 음악
-          <div class="tr-add"><button id="g-login">Google 로그인</button><button id="g-logout" hidden>로그아웃</button></div>
-        </div>
-        <p id="g-msg" class="tr-msg"></p>
-        <div id="g-code" class="g-code" hidden>
-          <span>폰이나 PC에서 아래 주소를 열고 코드를 입력하세요</span>
-          <a id="g-url" target="_blank" rel="noopener"></a>
-          <b id="g-user"></b>
-        </div>
-        <ul id="mu-lists" class="tr-res"></ul>
-        <a class="g-policy" href="privacy.html">개인정보처리방침</a>
-      </div>
-    </div>
     <div class="set-page" data-page="sync">
-      <p class="tr-msg">폰 카메라로 QR을 찍으면 폰에서 이 미러 설정을 바꾸고, 몇 초 안에 미러에 반영돼요. 열린 주소를 저장해 두면 나중에도 돼요. (음악 로그인은 기기마다 따로)</p>
+      <p class="tr-msg">폰 카메라로 QR을 찍으면 폰에서 이 미러 설정을 바꾸고, 몇 초 안에 미러에 반영돼요. 열린 주소를 저장해 두면 나중에도 돼요.</p>
       <div id="sync-qr" class="sync-qr"></div>
       <p id="sync-url" class="sync-url"></p>
       <p id="sync-msg" class="tr-msg"></p>
       <button id="sync-off" class="sync-off" hidden>연결 끊기</button>
     </div>
     <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
+    <a class="set-policy" href="privacy.html">개인정보처리방침</a>
     <div class="set-foot"><button class="set-sync">폰으로 설정</button><button class="set-close">닫기</button></div>
   </div>
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=7"></script>
-<script src="js/sync.js?v=7"></script>
-<script src="js/clock.js?v=7"></script>
-<script src="js/weather.js?v=7"></script>
-<script src="js/screen.js?v=7"></script>
-<script src="js/clock-modes.js?v=7"></script>
-<script src="js/settings.js?v=7"></script>
-<script src="js/transit.js?v=7"></script>
-<script src="js/music.js?v=7"></script>
-<script src="js/main.js?v=7"></script>
+<script src="js/core.js?v=8"></script>
+<script src="js/sync.js?v=8"></script>
+<script src="js/clock.js?v=8"></script>
+<script src="js/weather.js?v=8"></script>
+<script src="js/screen.js?v=8"></script>
+<script src="js/clock-modes.js?v=8"></script>
+<script src="js/settings.js?v=8"></script>
+<script src="js/transit.js?v=8"></script>
+<script src="js/main.js?v=8"></script>
 </body>
 </html>

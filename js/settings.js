@@ -6,7 +6,6 @@ function openSettings() {
   settingsAt = performance.now();
   wgEdit = wgNow();
   wgRender();
-  if (gSaved() && !muLists.length) muLoadLists();
 }
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
@@ -47,7 +46,7 @@ function wgRender() {
   $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
     const on = !off.includes(n), ready = wgReady(n), t = S.wgTime[n], open = wgTimeOpen === n;
-    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '음악 탭에서 로그인하면 나와요',
+    const note = [ready ? '' : '교통 탭에서 정류장을 등록하면 나와요',
       t ? `${hourName(t[0])}~${hourName(t[1])}에만` : ''].filter(Boolean).map(x => `<small>${x}</small>`).join('');
     const edit = !open ? '' : '<div class="wg-time">' + (t
       ? [0, 1].map(k => `<button data-th="${k}" data-step="-1" aria-label="${k ? '끝' : '시작'} 1시간 앞당기기">−</button><b>${hourName(t[k])}</b>`
@@ -85,7 +84,7 @@ document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
 
 // 개인정보처리방침: 앱 안에 겹쳐 열기 (설치한 앱·키오스크에서 새 창으로 열면 앱을 떠나거나 닫을 곳이 없음)
 // 그 페이지의 닫기(✕)가 알려 오면 닫음
-document.querySelector('.g-policy').addEventListener('click', e => {
+document.querySelector('.set-policy').addEventListener('click', e => {
   e.preventDefault();
   const f = $('policy').querySelector('iframe');
   if (!f.getAttribute('src')) f.src = 'privacy.html';

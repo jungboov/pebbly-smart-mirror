@@ -3,7 +3,7 @@
 // 미러: 설정 > '폰으로 설정' → 연결 번호를 만들어(한 번 만들면 계속 씀) 지금 설정을 올리고 QR을 띄움.
 //   그 뒤로 1분마다(QR을 띄운 동안은 3초마다) 받아서 폰에서 바꾼 게 있으면 반영하고, 미러에서 바꾼 것도 올림
 // 폰: QR 주소(?remote=번호)로 열면 미러 설정을 받아 설정 화면만 띄우고, 바꿀 때마다 올림
-// 서버 /api/sync (functions/api/sync.js, Cloudflare KV). Google 로그인 정보는 보내지 않음 (기기마다 따로 로그인)
+// 서버 /api/sync (functions/api/sync.js, Cloudflare KV)
 const SYNC_KEY = 'mirror_sync';   // 미러: { id: 연결 번호, at: 마지막으로 맞춘 서버 시각 }
 let sync = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)); } catch (e) { return null; } })();
 let syncTimer = 0, syncFast = 0, remoteOrient = null;
