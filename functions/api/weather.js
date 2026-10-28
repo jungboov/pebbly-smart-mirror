@@ -3,7 +3,7 @@
 //   필요한 활용신청: 기상청_단기예보 ((구)_동네예보) 조회서비스
 // 좌표를 기상청 5km 격자(nx, ny)로 바꿔 세 가지를 합침
 //   초단기실황(지금 관측) + 초단기예보(6시간, 매시 30분 발표) + 단기예보(약 3일, 하루 8번 발표)
-//   오늘 최저·최고는 그날 02시 발표(02시 전엔 전날 23시) 단기예보 값 — 날씨누리·네이버와 같은 기준
+//   하루 최저(06시)·최고(15시)는 그 시각이 들어 있는 가장 최근 발표 값 — 날씨누리와 같은 기준
 // 응답: { grid, base, now: { time, t, feel, reh, wsd, vec, code, desc }, hours: [{ time, t, pop, code }], days: [{ date, min, max }] }
 //   code는 화면이 쓰는 WMO 날씨 코드, desc는 기상청 말(구름많음 등). 실패하면 오류 상태 코드 → 화면은 Open-Meteo 값을 씀
 
@@ -20,18 +20,23 @@ export async function onRequestGet({ request, env }) {
     const kst = new Date(Date.now() + 9 * 3600e3);   // 아래 계산은 모두 한국 시각 (getUTC*로 읽음)
     // 단기예보: 02·05·08·11·14·17·20·23시 발표, 10분쯤 뒤부터 나옴. 아직 없으면(NO_DATA) 한 번 앞 발표
     const vil = await withFallback(back => vilBase(kst, back), b => call(env, 'getVilageFcst', b, at, 3 * 3600));
-    // 오늘 최저(06시)·최고(15시)가 다 들어 있는 그날 02시(02시 10분 전엔 전날 23시) 발표 — 오전 지난 시간 기온도 여기서
-    const firstBase = dayBase(kst);
-    const first = sameBase(firstBase, vil.base) ? vil : await call(env, 'getVilageFcst', firstBase, at, 24 * 3600).catch(() => null);
+    // 오늘 최저(06시)는 05시 발표, 최고(15시)는 14시 발표가 그 시각이 들어 있는 마지막 발표 → 지났으면 그것도 받음
+    // (그 전이면 최신 발표에 들어 있음. 02시 발표엔 둘 다, 02시 10분 전엔 전날 23시 발표에 둘 다) 오전 지난 시간 기온도 여기서
+    const today = ymd(new Date(kst.getTime() - 10 * 60e3)), older = [];
+    for (const time of ['0500', '1400']) {
+      if (today + time >= vil.base.date + vil.base.time) continue;
+      const src = await call(env, 'getVilageFcst', { date: today, time }, at, 24 * 3600).catch(() => null);
+      if (src) older.push(src);
+    }
     // 초단기: 실황은 매시 정각 자료가 40분쯤, 예보는 매시 30분 발표가 45분쯤 나옴. 없어도 단기예보로 그림
     const [obs, ultra] = await Promise.all([
       withFallback(back => hourBase(kst, 40, 0, back), b => call(env, 'getUltraSrtNcst', b, at, 3600)).catch(() => null),
       withFallback(back => hourBase(kst, 45, 30, back), b => call(env, 'getUltraSrtFcst', b, at, 3600)).catch(() => null)
     ]);
 
-    // 시간별: 02시 발표 → 최신 단기예보 → 초단기예보 순으로 덮어씀 (가까운 발표일수록 정확)
+    // 시간별: 앞 발표 → 최신 단기예보 → 초단기예보 순으로 덮어씀 (가까운 발표일수록 정확)
     const hours = new Map();
-    for (const src of [first, vil, ultra]) {
+    for (const src of [...older, vil, ultra]) {
       if (!src) continue;
       for (const it of src.items) {
         const key = `${iso(it.fcstDate)}T${it.fcstTime.slice(0, 2)}:00`;
@@ -40,10 +45,9 @@ export async function onRequestGet({ request, env }) {
         hours.set(key, h);
       }
     }
-    // 하루 최저·최고: 그날 TMN·TMX (02시 발표 것을 먼저, 없으면 최신 발표), 그래도 없으면 시간별 기온에서
+    // 하루 최저·최고: 그날 TMN·TMX를 앞 발표부터 덮어씀 → 들어 있는 가장 최근 발표 값 (없는 날은 화면이 시간별 기온에서)
     const days = new Map();
-    for (const src of [vil, first]) {
-      if (!src) continue;
+    for (const src of [...older, vil]) {
       for (const it of src.items) {
         if (it.category !== 'TMN' && it.category !== 'TMX') continue;
         const d = days.get(iso(it.fcstDate)) || {};
@@ -83,7 +87,6 @@ export async function onRequestGet({ request, env }) {
 // ── 발표 시각 ──
 const ymd = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
 const pad = n => String(n).padStart(2, '0');
-const sameBase = (a, b) => a.date === b.date && a.time === b.time;
 // 단기예보: ready분 지난 가장 최근 발표 (back번째 앞 것)
 function vilBase(kst, back = 0) {
   const t = new Date(kst.getTime() - 10 * 60e3);
@@ -92,11 +95,6 @@ function vilBase(kst, back = 0) {
   let day = new Date(t);
   while (k < 0) { k += 8; day = new Date(day.getTime() - 864e5); }
   return { date: ymd(day), time: pad(hrs[k]) + '00' };
-}
-// 오늘 02시 발표, 02시 10분 전이면 전날 23시 발표
-function dayBase(kst) {
-  const t = new Date(kst.getTime() - 10 * 60e3);
-  return t.getUTCHours() >= 2 ? { date: ymd(t), time: '0200' } : { date: ymd(new Date(t.getTime() - 864e5)), time: '2300' };
 }
 // 초단기: 매시 minute분 발표가 ready분에 나옴 (back시간 앞 것)
 function hourBase(kst, ready, minute, back = 0) {

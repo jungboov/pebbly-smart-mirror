@@ -115,7 +115,7 @@ function useKma(w, k) {
   }
   d.time.forEach((iso, i) => {
     const hrs = k.hours.filter(x => x.time.startsWith(iso)), kd = k.days.find(x => x.date === iso) || {};
-    const ts = hrs.map(x => x.t), whole = hrs.length >= 18;   // 하루 대부분이 예보에 들어 있는 날만 시간별로 셈
+    const ts = hrs.map(x => x.t), whole = hrs.length >= 15;   // 하루 대부분이 예보에 들어 있는 날만 시간별로 셈
     if (kd.max != null || whole) d.temperature_2m_max[i] = kd.max ?? Math.max(...ts);
     if (kd.min != null || whole) d.temperature_2m_min[i] = kd.min ?? Math.min(...ts);
     if (!whole) return;
