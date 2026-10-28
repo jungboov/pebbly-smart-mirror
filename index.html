@@ -615,7 +615,7 @@ body.night.night-red::after{background:#ff3b30}
 .set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:#fff;color:#000;font-weight:700;border-color:#fff}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
-.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"]{display:flex}
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
@@ -625,7 +625,21 @@ body.night.night-red::after{background:#ff3b30}
 .step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .step span{min-width:9rem;text-align:center}
 .set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
-.set-card .set-close{align-self:stretch;padding:1.8rem;border-radius:2.2rem;background:#222;color:var(--text);font-weight:600}
+.set-foot{display:flex;gap:1.4rem}
+.set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:#222;color:var(--text);font-weight:600}
+.set-card .set-sync{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
+/* 폰으로 설정: QR(흰 바탕)과 주소. 폰에서 미러 설정 중이면 위에 안내, '폰으로 설정' 버튼은 숨김 */
+.sync-qr{align-self:center;width:min(30rem, 100%);border-radius:2rem;overflow:hidden}
+.sync-qr:empty{display:none}
+.sync-qr svg{display:block;width:100%;height:auto}
+.sync-url{align-self:center;font-size:2rem;color:var(--text-dim);word-break:break-all;text-align:center}
+.sync-url:empty{display:none}
+.set-card .sync-off{align-self:center;padding:1.4rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--bad)}
+.set-card .sync-off[hidden]{display:none}
+.remote-note{display:none}
+.set-card[data-tab="sync"] .set-hint{display:none}
+body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:rgba(142,197,255,.12);font-size:2.6rem;line-height:1.5;color:var(--text)}
+body.remote .set-card .set-sync{display:none}
 /* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
 .tr-sec{display:flex;flex-direction:column;gap:1.8rem}
 .tr-add{display:flex;gap:1.2rem}
@@ -850,6 +864,7 @@ body.night.night-red::after{background:#ff3b30}
     <div class="set-head"><div class="set-title">설정</div>
       <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="music">음악</button></div>
     </div>
+    <p class="remote-note">이 폰에서 <b>미러 설정</b>을 바꾸는 중이에요. 바꾸면 몇 초 안에 미러에 반영돼요. <span id="remote-msg"></span></p>
     <div class="set-page" data-page="screen">
       <div class="set-row">시계 형식
         <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
@@ -919,8 +934,15 @@ body.night.night-red::after{background:#ff3b30}
         <a class="g-policy" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
       </div>
     </div>
+    <div class="set-page" data-page="sync">
+      <p class="tr-msg">폰 카메라로 QR을 찍으면 폰에서 이 미러 설정을 바꾸고, 몇 초 안에 미러에 반영돼요. 열린 주소를 저장해 두면 나중에도 돼요. (음악 로그인은 기기마다 따로)</p>
+      <div id="sync-qr" class="sync-qr"></div>
+      <p id="sync-url" class="sync-url"></p>
+      <p id="sync-msg" class="tr-msg"></p>
+      <button id="sync-off" class="sync-off" hidden>연결 끊기</button>
+    </div>
     <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
-    <button class="set-close">닫기</button>
+    <div class="set-foot"><button class="set-sync">폰으로 설정</button><button class="set-close">닫기</button></div>
   </div>
 </div>
 
@@ -931,6 +953,8 @@ body.night.night-red::after{background:#ff3b30}
 // mode=detail: 처음 화면을 상세 화면으로 (설정 화면에서 바꾸면 그 설정이 우선)
 // 시계 형식·시계 강조·날씨 넘김 주기는 화면을 두 번 탭하면 나오는 설정에서 바꿈
 const params = new URLSearchParams(location.search);
+// remote=연결 번호: 폰으로 QR을 찍어 열면 이 번호의 미러 설정을 바꾸는 화면 (폰 자기 설정은 그대로)
+const REMOTE = /^[0-9a-f]{32}$/.test(params.get('remote') || '') ? params.get('remote') : null;
 const MANUAL_LOC = params.has('lat') && params.has('lon');
 const CONFIG = {
   lat: parseFloat(params.get('lat')) || 37.5034,   // 위치를 모를 때 기본: 부천시청
@@ -970,7 +994,102 @@ if (S.alarm) { S.alarms = [{ ...S.alarm, days: 'all' }]; delete S.alarm; }
 for (const k of ['wgL', 'wgP']) if (!S[k]) S[k] = { order: S.wgOrder || null, off: S.wgOff || [] };
 delete S.wgOrder; delete S.wgOff;
 function saveSettings() {
+  if (REMOTE) { syncPush(); return; }   // 폰에서 미러 설정 중: 폰 자기 설정은 그대로 두고 미러로만 보냄
   try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {}
+  if (sync) syncPush();
+}
+
+// ===== 폰으로 설정 =====
+// 미러: 설정 > '폰으로 설정' → 연결 번호를 만들어(한 번 만들면 계속 씀) 지금 설정을 올리고 QR을 띄움.
+//   그 뒤로 1분마다(QR을 띄운 동안은 3초마다) 받아서 폰에서 바꾼 게 있으면 반영하고, 미러에서 바꾼 것도 올림
+// 폰: QR 주소(?remote=번호)로 열면 미러 설정을 받아 설정 화면만 띄우고, 바꿀 때마다 올림
+// 서버 /api/sync (functions/api/sync.js, Cloudflare KV). Google 로그인 정보는 보내지 않음 (기기마다 따로 로그인)
+const SYNC_KEY = 'mirror_sync';   // 미러: { id: 연결 번호, at: 마지막으로 맞춘 서버 시각 }
+let sync = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)); } catch (e) { return null; } })();
+let syncTimer = 0, syncFast = 0, remoteOrient = null;
+const syncMsg = t => { $('sync-msg').textContent = t; $('remote-msg').textContent = t; };
+const syncSave = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) {} };
+async function syncSend() {
+  const r = await (await fetch('/api/sync?id=' + (REMOTE || sync.id), { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ orient: REMOTE ? remoteOrient : wgNow(), settings: S }) })).json();
+  if (r.error) throw new Error(r.error);
+  if (!REMOTE) { sync.at = r.at; syncSave(); }
+}
+function syncPush() {   // +/− 버튼을 누르고 있을 때처럼 연달아 바뀌면 다 끝난 뒤 한 번만
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncSend()
+    .then(() => { if (REMOTE) syncMsg('미러로 보냈어요. 몇 초 안에 반영돼요.'); })
+    .catch(e => syncMsg('보내지 못했어요: ' + e.message)), 800);
+}
+async function syncPull() {
+  if (!sync) return;
+  try {
+    const r = await (await fetch('/api/sync?id=' + sync.id, { cache: 'no-store' })).json();
+    if (!r.settings || r.at <= (sync.at || 0)) return;
+    Object.assign(S, r.settings);
+    sync.at = r.at;
+    syncSave();
+    try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {}
+    applySettings();
+    syncMsg('폰에서 바꾼 설정을 반영했어요.');
+  } catch (e) {}
+}
+const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, no) => {
+  const el = document.createElement('script');
+  el.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+  el.onload = ok; el.onerror = () => no(new Error('QR을 그리지 못했어요'));
+  document.head.append(el);
+});
+// 미러: 폰으로 설정 탭 — 지금 설정을 올리고 QR, 10분 동안 3초마다 받아 봄 (탭을 떠나거나 설정을 닫으면 멈춤)
+async function syncOpen() {
+  if (!sync) {
+    sync = { id: [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''), at: 0 };
+    syncSave();
+  }
+  const url = location.origin + '/?remote=' + sync.id;
+  $('sync-url').textContent = url.replace(/^https?:\/\//, '');
+  $('sync-off').hidden = false;
+  syncMsg('미러 설정을 올리는 중…');
+  try {
+    await syncSend();
+    await loadQR();
+    const qr = qrcode(0, 'M');
+    qr.addData(url); qr.make();
+    $('sync-qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 3, scalable: true });
+    syncMsg('폰 카메라로 QR을 찍어 주세요.');
+  } catch (e) { syncMsg('준비하지 못했어요: ' + e.message); return; }
+  clearInterval(syncFast);
+  const until = Date.now() + 600e3, card = document.querySelector('.set-card');
+  syncFast = setInterval(() => {
+    if ($('settings').hidden || card.dataset.tab !== 'sync' || Date.now() > until) clearInterval(syncFast);
+    else syncPull();
+  }, 3000);
+}
+function syncOff() {
+  if (!sync) return;
+  const id = sync.id;
+  sync = null;
+  try { localStorage.removeItem(SYNC_KEY); } catch (e) {}
+  clearInterval(syncFast);
+  $('sync-qr').innerHTML = ''; $('sync-url').textContent = ''; $('sync-off').hidden = true;
+  syncMsg('연결을 끊었어요. 폰에 저장한 주소로는 더 이상 바꿀 수 없어요.');
+  fetch('/api/sync?id=' + id, { method: 'DELETE' }).catch(() => {});
+}
+// 폰: 미러 설정을 받아서 설정 화면만 띄움
+async function remoteStart() {
+  document.body.classList.add('remote');
+  openSettings();
+  syncMsg('미러 설정을 받는 중…');
+  try {
+    const r = await (await fetch('/api/sync?id=' + REMOTE, { cache: 'no-store' })).json();
+    if (r.error) throw new Error(r.error);
+    if (!r.settings) { syncMsg("미러를 찾지 못했어요. 미러 설정에서 '폰으로 설정'을 다시 눌러 주세요."); return; }
+    Object.assign(S, r.settings);
+    remoteOrient = r.orient;
+    applySettings();
+    wgEdit = remoteOrient; wgRender();
+    syncMsg('');
+  } catch (e) { syncMsg('미러 설정을 받지 못했어요: ' + e.message); }
 }
 
 const state = { weather: null, air: null, weatherAt: 0, weatherErr: false, airErr: false };
@@ -1714,7 +1833,7 @@ let panel = 0, panelName = 'now', panelTimer;
 const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', music: '음악' };
 // o: 'L' 가로·'P' 세로 (없으면 지금 화면 방향)
 const portraitMQ = matchMedia('(orientation: portrait)');
-const wgNow = () => portraitMQ.matches ? 'P' : 'L';
+const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
 const wgCfg = (o = wgNow()) => S[o === 'P' ? 'wgP' : 'wgL'];
 const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NAMES.includes(n)), ...PANEL_NAMES])];   // 새 위젯은 뒤에
 const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'music' ? !!gSaved() : true;
@@ -1969,6 +2088,12 @@ $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
   if (b && b.dataset.tab) { b.closest('.set-card').dataset.tab = b.dataset.tab; return; }
+  if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
+  if (b && b.id === 'sync-off') { syncOff(); return; }
+  if (REMOTE && (e.target === $('settings') || (b && b.classList.contains('set-close')))) {
+    if (b) location.href = '/';   // 다 바꿨으면 이 폰의 원래 화면으로 (바깥을 눌러서는 안 닫힘)
+    return;
+  }
   if (b && b.parentNode.dataset.key) S[b.parentNode.dataset.key] = { 1: true, 0: false }[b.dataset.v] ?? b.dataset.v;
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
@@ -2500,6 +2625,8 @@ function scheduleReload() {
   loadAir();
   loadBoard();
   locate();
+  if (REMOTE) remoteStart();
+  else if (sync) { syncPull(); setInterval(syncPull, 60e3); }   // 폰으로 설정을 한 번 연결했으면 1분마다 확인
   setInterval(loadWeather, CONFIG.weatherEvery);
   setInterval(loadAir, CONFIG.airEvery);
   setInterval(nextPhrase, CONFIG.phraseEvery);
