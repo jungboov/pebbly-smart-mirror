@@ -1,0 +1,11 @@
+# Cloudflare Pages 응답 헤더
+# 화면 파일(CSS·JS)·서비스 워커·manifest는 열 때마다 새 버전인지 확인 (안 바뀌었으면 ETag로 304라 가벼움)
+# 기본값은 4시간 보관이라, 배포해도 기기가 몇 시간 동안 옛 파일을 씀
+/css/*
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
