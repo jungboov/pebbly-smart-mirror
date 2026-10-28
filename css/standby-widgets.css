@@ -120,6 +120,19 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.half .mu-side{flex:none}
 }
 
+/* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
+   (공기 위젯은 미세먼지 카드가 늘어나고 해·달 카드는 아래, 음악은 플레이어를 남은 칸 가운데) */
+@media (orientation: landscape){
+  body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch}
+  body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
+  body.sb .w-hero{flex-grow:1}
+  body.sb .h-plot, body.sb .wave-plot{flex-grow:1}
+  body.sb .cards{grid-template-rows:auto 1fr auto}
+  body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
+  body.sb .music{justify-content:flex-start}
+  body.sb .mu-main{flex:1;min-height:0;justify-content:center}
+}
+
 /* 위젯을 모두 끄면(설정 > 위젯) 시계만 화면 가운데에 꽉 차게. 크기는 fitClock
    세로: 날짜를 시계 아래 가로 줄로 옮겨 그만큼 넓게 → 위아래로 꽉 / 가로: 초를 분 옆에 작게 붙여 시·분 2줄 높이만 → 좌우로 꽉 */
 body.sb.no-panel .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto 1fr;grid-template-areas:"." "clock" "."}
