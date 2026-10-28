@@ -162,10 +162,14 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
 }
 /* 가로 '반반'(설정 > 화면 > 가로 배치): 왼쪽 절반 시계(가운데) / 오른쪽 절반 위젯. 시계 크기는 왼쪽 절반에 맞춤 (fitClock)
-   위젯을 모두 끈 '시계만'은 아래 규칙이 덮어씀 */
+   절반 칸이 넓으면 날짜를 시계 옆 세로 대신 아래 가로 줄로(ds-below, fitClock이 시계가 더 커지는 쪽을 고름) → 위젯 칸 위·아래 끝까지 채움
+   위젯을 모두 끈 '시계만'은 빼고 */
 @media (orientation: landscape){
-  body.sb.half-l .stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  body.sb.half-l .clock{justify-self:center}
+  body.sb.half-l:not(.no-panel) .stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  body.sb.half-l:not(.no-panel) .clock{justify-self:center}
+  body.sb.ds-below .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss" "ds ds"}
+  body.sb.ds-below.no-sec .clock-in{grid-template-areas:"lh hh" "lm mm" "ds ds"}
+  body.sb.ds-below .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:3rem 0 0;contain:inline-size}
 }
 @container (min-width: 80rem){
   body.sb .moon-card{display:none}
@@ -179,7 +183,8 @@ body.sb.no-panel .sb-dots{display:none}
 @media (orientation: portrait){
   body.sb.no-panel .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss" "ds ds";justify-content:center}
   body.sb.no-panel.no-sec .clock-in{grid-template-areas:"lh hh" "lm mm" "ds ds"}
-  body.sb.no-panel .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:3rem 0 0}
+  /* contain:inline-size — 긴 날짜 줄이 시계 칸 폭을 늘리지 않게 (늘면 라벨 칸이 넓어져 fitClock이 시계를 작게 잡음). 길면 fitClock이 날짜를 줄임 */
+  body.sb.no-panel .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:3rem 0 0;contain:inline-size}
 }
 @media (orientation: landscape){
   body.sb.no-panel .clock{justify-self:center}

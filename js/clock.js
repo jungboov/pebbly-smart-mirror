@@ -71,29 +71,41 @@ function fitClock() {
     // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
     // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12, 초를 끄면 시 .82 + 분 .82 + 줄 간격 .04
     const stage = $('stage'), st = getComputedStyle(stage);
-    // 날짜는 시계 옆에 있어서 높이는 안 씀
+    // 날짜는 보통 시계 옆에 눕혀 있어서 높이는 안 씀
     // 위젯을 모두 끄면(solo) 시계만: 세로는 날짜를 시계 아래 가로 줄로(그만큼 넓게), 가로는 초를 분 옆에(시·분 2줄 높이)
     const portrait = innerHeight > innerWidth, solo = document.body.classList.contains('no-panel');
-    const dateBelow = portrait && solo && S.date, secBeside = !portrait && solo && S.secs;
+    const secBeside = !portrait && solo && S.secs;
     const ds = document.querySelector('.ds');
     ds.style.zoom = '';
-    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
-    if (dateBelow) h -= ds.offsetHeight + 3 * rem;   // 시계 아래 날짜 줄(위 여백 3rem)
-    else if (portrait && S.half) h /= 2;   // 반반: 위 절반
-    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
-    h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
-    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
+    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌
     const sw = stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight), cg = parseFloat(st.columnGap);
     const w = portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem;
     const gap = parseFloat(getComputedStyle(inner).columnGap);
     const lbl = $('lbl-h').offsetWidth + gap;
-    const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
     const secEm = secBeside ? $('sgroup').offsetWidth / fs + gap / fs : 0;   // 분 옆 초 칸 + 간격 (지금 글자 크기 기준)
     const span = 2 * wmax + .02 + secEm;
     const rows = S.secs && !secBeside ? 2.25 : 1.68;
     // 가로: 시 숫자 위 여유(.1em)는 위로 빼서(CSS) 숫자 윗끝·초 아랫끝을 위젯 칸 위·아래 끝에 맞춤. 폭이 모자라면 가운데
     const top = portrait ? 0 : .1;
-    size = Math.min((w - lbl - side) / span, h / (rows - top));
+    // below: 날짜가 시계 아래 줄이면 그 위 줄 간격(.04em)도 높이에 들어감
+    const fit = (sideW, hh, below) => Math.min((w - lbl - sideW) / span, hh / (rows - top + (below ? .04 : 0)));
+    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+    const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
+    // 가로 반반: 날짜를 옆(세로)과 아래(가로 줄) 중 시계가 더 커지는 쪽으로 — 넓은 절반 칸은 아래(위젯 칸 위·아래 끝까지 참), 낮고 긴 화면은 옆
+    // 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
+    let dateBelow = S.date && portrait && solo;
+    if (S.date && !portrait && !solo && S.halfL) {
+      const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;
+      dateBelow = fit(0, h - pb - t - 3 * rem, true) > fit(t + gap + 3 * rem, h - pb);
+    }
+    const moved = document.body.classList.contains('ds-below') !== (!portrait && dateBelow);
+    document.body.classList.toggle('ds-below', !portrait && dateBelow);
+    if (dateBelow) h -= ds.offsetHeight + 3 * rem;   // 시계 아래 날짜 줄(위 여백 3rem)
+    else if (portrait && S.half) h /= 2;   // 반반: 위 절반
+    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    h -= pb;
+    const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
+    size = fit(side, h, dateBelow);
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
@@ -104,6 +116,7 @@ function fitClock() {
     ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
+    if (moved) return fitClock();   // 날짜 자리를 옮겼으면 옮긴 모양으로 한 번 더 맞춤 (그다음엔 안 옮겨서 한 번뿐)
   } else {
     $('clock').style.width = '';
     const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
