@@ -17,6 +17,13 @@ body.sb .stage{
 }
 body.sb .head, body.sb .zone, body.sb .phrase{display:none}
 body.sb .clock{position:relative;padding-bottom:6rem}
+/* 가로: 시계 위·아래 끝을 위젯 칸 위·아래 끝에 맞춤 — 시 숫자 위 여유(.1em)는 위로 빼고(날짜·스톱워치 등도 같이), 초 아래로 비치는 숫자는 아래 여백으로 넘침 */
+@media (orientation: landscape){
+  body.sb .clock{padding-bottom:0}
+  body.sb .clock-in{margin-top:-.1em}
+  body.sb .ds{margin-top:.1em}
+  body.sb .cm{inset:calc(-.1 * var(--cm, var(--clock))) 0 0}
+}
 
 /* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
    줄마다 라벨 | 숫자 | +·− 버튼, 셋째 줄 왼쪽에 이름과 시작·초기화 버튼 */

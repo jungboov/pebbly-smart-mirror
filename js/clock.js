@@ -82,24 +82,26 @@ function fitClock() {
     else if (portrait && S.half) h /= 2;   // 반반: 위 절반
     else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
     h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
-    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
+    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
     const w = portrait ? $('clock').clientWidth
       : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
-        - (solo ? 0 : parseFloat(st.columnGap) + 62 * rem);
+        - (solo ? 0 : parseFloat(st.columnGap) + 54 * rem);
     const gap = parseFloat(getComputedStyle(inner).columnGap);
     const lbl = $('lbl-h').offsetWidth + gap;
     const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
     const secEm = secBeside ? $('sgroup').offsetWidth / fs + gap / fs : 0;   // 분 옆 초 칸 + 간격 (지금 글자 크기 기준)
     const span = 2 * wmax + .02 + secEm;
     const rows = S.secs && !secBeside ? 2.25 : 1.68;
-    size = Math.min((w - lbl - side) / span, h / rows);
+    // 가로: 시 숫자 위 여유(.1em)는 위로 빼서(CSS) 숫자 윗끝·초 아랫끝을 위젯 칸 위·아래 끝에 맞춤. 폭이 모자라면 가운데
+    const top = portrait ? 0 : .1;
+    size = Math.min((w - lbl - side) / span, h / (rows - top));
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
     // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 아래 날짜 줄은 시계 폭에 맞춤)
     const items = [...ds.children].filter(c => c.offsetHeight);
     const dateLen = items.reduce((s, c) => s + (dateBelow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-    const z = dateLen ? Math.min(1, (dateBelow ? lbl + span * size : size * rows) / dateLen) : 1;
+    const z = dateLen ? Math.min(1, (dateBelow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
     ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
