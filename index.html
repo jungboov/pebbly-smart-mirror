@@ -356,6 +356,7 @@ body.sb .sgroup{grid-area:ss;justify-self:end;font-size:.5em;margin:.24em 0 0}
 body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0;text-align:center}
 /* 날짜: 시계 오른쪽 칸(오른쪽 끝)에 시 숫자 위 끝 ~ 초 숫자 아래 끝 높이로 눕힘 (시·분 라벨과 같은 방향) */
 body.sb #date{display:none}
+body.sb.no-date .ds{display:none}   /* 날짜 표시 끄기(설정) */
 body.sb .ds{grid-area:ds;display:flex;align-items:center;gap:2rem;align-self:stretch;justify-self:end;margin-left:3rem;
   writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
 
@@ -560,6 +561,22 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.half .mu-side{flex:none}
 }
 
+/* 위젯을 모두 끄면(설정 > 위젯) 시계만 화면 가운데에 꽉 차게. 크기는 fitClock
+   세로: 날짜를 시계 아래 가로 줄로 옮겨 그만큼 넓게 → 위아래로 꽉 / 가로: 초를 분 옆에 작게 붙여 시·분 2줄 높이만 → 좌우로 꽉 */
+body.sb.no-panel .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto 1fr;grid-template-areas:"." "clock" "."}
+body.sb.no-panel .sb-dots{display:none}
+@media (orientation: portrait){
+  body.sb.no-panel .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss" "ds ds";justify-content:center}
+  body.sb.no-panel.no-sec .clock-in{grid-template-areas:"lh hh" "lm mm" "ds ds"}
+  body.sb.no-panel .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:3rem 0 0}
+}
+@media (orientation: landscape){
+  body.sb.no-panel .clock{justify-self:center}
+  body.sb.no-panel:not(.no-sec) .clock-in{grid-template-columns:auto auto auto 1fr;grid-template-areas:"lh hh ls ds" "lm mm ss ds"}
+  body.sb.no-panel .clock #lbl-s{grid-area:ls;align-self:end}
+  body.sb.no-panel .sgroup{grid-area:ss;justify-self:start;align-self:end;margin:0}
+}
+
 /* 폰(OLED): 번인 방지로 JS가 1분마다 화면 전체를 몇 px씩 옮김 */
 body.sb.phone .stage{transform:translate(var(--sx, 0px), var(--sy, 0px))}
 /* 밤(설정 '붉게'): 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 */
@@ -578,7 +595,7 @@ body.night.night-red::after{background:#ff3b30}
 .set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
 .set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
 .set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:#fff;color:#000;font-weight:700;border-color:#fff}
-.set-page{display:none;flex-direction:column;gap:3rem}
+.set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
 .set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
@@ -810,6 +827,9 @@ body.night.night-red::after{background:#ff3b30}
       <div class="set-row">초 표시
         <div class="seg" data-key="secs"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
       </div>
+      <div class="set-row">날짜 표시
+        <div class="seg" data-key="date"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
+      </div>
       <div class="set-row">시계 강조
         <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
       </div>
@@ -826,7 +846,6 @@ body.night.night-red::after{background:#ff3b30}
       </div>
       <p id="wg-hint" class="tr-msg"></p>
       <ul id="wg-list" class="wg-list"></ul>
-      <p id="wg-msg" class="tr-msg"></p>
     </div>
     <div class="set-page" data-page="night">
       <div class="set-row">야간 모드
@@ -900,7 +919,7 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
-// hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
+// hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게) / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
@@ -908,7 +927,7 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, secs: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, date: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -994,31 +1013,37 @@ function fitClock() {
     // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12, 초를 끄면 시 .82 + 분 .82 + 줄 간격 .04
     const stage = $('stage'), st = getComputedStyle(stage);
     // 날짜는 시계 옆에 있어서 높이는 안 씀
-    const portrait = innerHeight > innerWidth;
-    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
-    if (portrait && S.half) h /= 2;   // 반반: 위 절반
-    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
-    h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
-    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭. 여기서 라벨과 오른쪽 날짜 칸을 뺌
-    const w = portrait ? $('clock').clientWidth
-      : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
-        - parseFloat(st.columnGap) - 62 * rem;
-    const gap = parseFloat(getComputedStyle(inner).columnGap);
-    const lbl = $('lbl-h').offsetWidth + gap;
-    const side = document.querySelector('.ds').offsetWidth + gap + 3 * rem;
-    const rows = S.secs ? 2.25 : 1.68;
-    size = Math.min((w - lbl - side) / (2 * wmax + .02), h / rows);
-    // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기
-    cmSize = Math.min((w - lbl - side) / (2 * wmax + .02), h / 2.25);
-    // 눕힌 날짜가 시계 높이보다 길면 날짜를 줄임 (시계가 작아질 때 날짜가 칸을 늘려 아래 위젯과 겹치지 않게)
+    // 위젯을 모두 끄면(solo) 시계만: 세로는 날짜를 시계 아래 가로 줄로(그만큼 넓게), 가로는 초를 분 옆에(시·분 2줄 높이)
+    const portrait = innerHeight > innerWidth, solo = document.body.classList.contains('no-panel');
+    const dateBelow = portrait && solo && S.date, secBeside = !portrait && solo && S.secs;
     const ds = document.querySelector('.ds');
     ds.style.zoom = '';
+    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+    if (dateBelow) h -= ds.offsetHeight + 3 * rem;   // 시계 아래 날짜 줄(위 여백 3rem)
+    else if (portrait && S.half) h /= 2;   // 반반: 위 절반
+    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
+    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
+    const w = portrait ? $('clock').clientWidth
+      : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
+        - (solo ? 0 : parseFloat(st.columnGap) + 62 * rem);
+    const gap = parseFloat(getComputedStyle(inner).columnGap);
+    const lbl = $('lbl-h').offsetWidth + gap;
+    const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
+    const secEm = secBeside ? $('sgroup').offsetWidth / fs + gap / fs : 0;   // 분 옆 초 칸 + 간격 (지금 글자 크기 기준)
+    const span = 2 * wmax + .02 + secEm;
+    const rows = S.secs && !secBeside ? 2.25 : 1.68;
+    size = Math.min((w - lbl - side) / span, h / rows);
+    // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
+    const cmSide = side || 9.4 * rem + gap;
+    cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
+    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 아래 날짜 줄은 시계 폭에 맞춤)
     const items = [...ds.children].filter(c => c.offsetHeight);
-    const dateLen = items.reduce((s, c) => s + c.offsetHeight, 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-    const z = Math.min(1, size * rows / dateLen);
+    const dateLen = items.reduce((s, c) => s + (dateBelow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
+    const z = dateLen ? Math.min(1, (dateBelow ? lbl + span * size : size * rows) / dateLen) : 1;
     ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
-    $('clock').style.width = portrait ? '' : (lbl + (2 * wmax + .02) * size * .99 + side) + 'px';
+    $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
   } else {
     $('clock').style.width = '';
     const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
@@ -1553,6 +1578,7 @@ function applySettings() {
   document.body.classList.toggle('sb', S.focus);
   document.body.classList.toggle('half', S.half);
   document.body.classList.toggle('no-sec', !S.secs);
+  document.body.classList.toggle('no-date', !S.date);
   document.body.classList.toggle('has-tr', S.transit.length > 0);
   document.body.classList.toggle('has-music', !!gSaved());
   trRenderList();
@@ -1560,6 +1586,7 @@ function applySettings() {
   wgRender();
   const shown = panelList();
   PANELS.forEach((el, i) => el.classList.toggle('wg-off', S.focus && !shown.includes(PANEL_NAMES[i])));
+  document.body.classList.toggle('no-panel', S.focus && !shown.length);
   renderBoard();
   setupH1();
   renderClock(new Date());
@@ -1623,12 +1650,19 @@ const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NA
 const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'music' ? !!gSaved() : true;
 function panelList(o) {
   if (!S.focus) return PANEL_NAMES.slice(0, 4);
-  const list = wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n));
-  return list.length ? list : ['now'];
+  return wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n));   // 다 끄면 빈 목록 = 시계만
 }
 // dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 미끄러짐
 function showPanel(p, dir, axis) {
   const list = panelList(), old = panelName;
+  if (!list.length) {   // 위젯을 모두 끔: 시계만
+    panel = 0; panelName = '';
+    document.body.dataset.panel = '';
+    $('sb-dots').innerHTML = '';
+    if (old === 'music') muHidden();
+    clearTimeout(panelTimer);
+    return;
+  }
   panel = (p + list.length) % list.length;
   panelName = list[panel];
   document.body.dataset.panel = panelName;
@@ -2078,13 +2112,13 @@ async function ytAll(path, params, max = 200) {
 
 // 설정 화면
 const gMsg = t => { $('g-msg').textContent = t; };
-// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 위로·아래로 / 켜짐·꺼짐. 하나는 켜 두어야 함
+// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
 const CHEV = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
 let wgEdit = 'L';
 function wgRender() {
   const order = wgOrder(wgEdit), off = wgCfg(wgEdit).off;
   document.querySelectorAll('.wg-or button').forEach(b => b.classList.toggle('on', b.dataset.or === wgEdit));
-  $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
+  $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
     const on = !off.includes(n), ready = wgReady(n);
     const note = ready ? '' : `<small>${n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '음악 탭에서 로그인하면 나와요'}</small>`;
@@ -2097,7 +2131,6 @@ function wgRender() {
 document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
   const b = e.target.closest('button'), li = b && b.closest('li');
   if (!b || b.disabled) return;
-  $('wg-msg').textContent = '';
   if (b.dataset.or) { wgEdit = b.dataset.or; wgRender(); return; }
   if (!li) return;
   const n = li.dataset.wg, cfg = wgCfg(wgEdit);
@@ -2106,7 +2139,6 @@ document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
     [order[i], order[j]] = [order[j], order[i]];
     cfg.order = order;
   } else if (cfg.off.includes(n)) cfg.off = cfg.off.filter(x => x !== n);
-  else if (panelList(wgEdit).filter(x => x !== n).length === 0) { $('wg-msg').textContent = '위젯을 하나는 켜 두어야 해요.'; return; }
   else cfg.off = [...cfg.off, n];
   saveSettings();
   applySettings();
