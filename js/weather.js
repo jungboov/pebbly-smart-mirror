@@ -477,7 +477,10 @@ function renderAlert() {
     if (g >= 2) out.push([`<i class="pm${g >= 3 ? ' worst' : ''}"></i>`, `미세먼지 ${g >= 3 ? '매우 나쁨' : '나쁨'} · 마스크 챙기세요`]);
   }
   $('alert').innerHTML = out.map(([ico, text]) => `<span>${ico}${text}</span>`).join('<b>·</b>');
-  $('alert').hidden = !out.length;
+  if ($('alert').hidden !== !out.length) {
+    $('alert').hidden = !out.length;
+    fitClock();   // 띠가 나타나거나 사라지면 시계 위 여백을 다시 맞춤
+  }
 }
 
 // ===== 문구 =====

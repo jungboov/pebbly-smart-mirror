@@ -104,7 +104,7 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto 1fr auto;
     grid-template-areas:"clock" "." "panel";
-    padding:6rem 6.5rem 8rem;
+    padding:calc(6rem + env(safe-area-inset-top)) 6.5rem 8rem;   /* 위: 아이폰 세로 상태 표시줄·카메라 자리만큼 더 */
   }
   /* 위젯은 모두 위젯 칸 높이를 채움: 제목은 칸 맨 위에 고정(넘겨도 안 움직임), 내용이 남은 높이를 채움
      칸 높이는 시계 크게면 가장 높은 위젯, 반반이면 아래 절반 */

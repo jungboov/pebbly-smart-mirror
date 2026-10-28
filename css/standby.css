@@ -12,7 +12,7 @@ body.sb .stage{
     "clock panel"
     ".     panel";
   column-gap:2.4rem;
-  padding:5rem max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
+  padding:calc(5rem + env(safe-area-inset-top)) max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
   transition:opacity 3s, filter 3s, transform 2s;
 }
 body.sb .head, body.sb .zone, body.sb .phrase{display:none}
@@ -86,7 +86,7 @@ body.sb #date{display:none}
 body.sb.no-date .ds{display:none}   /* 날짜 표시 끄기(설정) */
 /* 알림 띠: 지금 비·눈 / 몇 시쯤 비·눈 소식 / 미세먼지 나쁨을 화면 위 가운데에 한 줄로 (시계 강조 화면) */
 .alert{display:none}
-body.sb .alert:not([hidden]){position:absolute;top:.6rem;left:50%;transform:translateX(-50%);max-width:calc(100% - 8rem);display:flex;align-items:center;gap:1.4rem;
+body.sb .alert:not([hidden]){position:absolute;top:calc(.6rem + env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:calc(100% - 8rem);display:flex;align-items:center;gap:1.4rem;
   padding:.5rem 2.4rem;border:1px solid var(--card-bd);border-radius:999px;background:rgba(var(--glow), .07);
   font-size:2.3rem;font-weight:600;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden}
 .alert span{display:flex;align-items:center;gap:1rem}
