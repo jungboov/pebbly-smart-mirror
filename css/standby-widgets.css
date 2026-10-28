@@ -162,14 +162,17 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
 }
 /* 가로 '반반'(설정 > 화면 > 가로 배치): 왼쪽 절반 시계(가운데) / 오른쪽 절반 위젯. 시계 크기는 왼쪽 절반에 맞춤 (fitClock)
-   절반 칸이 넓으면 날짜를 시계 옆 세로 대신 아래 가로 줄로(ds-below, fitClock이 시계가 더 커지는 쪽을 고름) → 위젯 칸 위·아래 끝까지 채움
    위젯을 모두 끈 '시계만'은 빼고 */
 @media (orientation: landscape){
   body.sb.half-l:not(.no-panel) .stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   body.sb.half-l:not(.no-panel) .clock{justify-self:center}
-  body.sb.ds-below .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss" "ds ds"}
-  body.sb.ds-below.no-sec .clock-in{grid-template-areas:"lh hh" "lm mm" "ds ds"}
-  body.sb.ds-below .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:3rem 0 0;contain:inline-size}
+  /* 시계 칸이 폭에 막히면(반반 등) 날짜를 시계 옆 세로 대신 시계 위 가로 줄로(ds-top, fitClock이 시계가 더 커지는 쪽을 고름)
+     시계 칸을 위젯 칸 높이만큼 늘여 날짜 윗끝 = 위젯 칸 윗끝(위젯 제목 줄과 나란히), 초 아랫끝 = 위젯 칸 아랫끝.
+     폭에 막혀 시계가 낮으면 남는 높이는 날짜와 시 사이로 (1fr 줄, 숫자는 아래로 붙음) */
+  body.sb.ds-top .clock{grid-row:1 / -1;align-self:stretch}
+  body.sb.ds-top .clock-in{height:100%;margin-top:0;grid-template-columns:auto auto;grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"ds ds" "lh hh" "lm mm" ". ss"}
+  body.sb.ds-top.no-sec .clock-in{grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"ds ds" "lh hh" "lm mm"}
+  body.sb.ds-top .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;align-self:start;margin:0 0 3rem;contain:inline-size}
 }
 @container (min-width: 80rem){
   body.sb .moon-card{display:none}

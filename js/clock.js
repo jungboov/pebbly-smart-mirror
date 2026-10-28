@@ -87,32 +87,36 @@ function fitClock() {
     const rows = S.secs && !secBeside ? 2.25 : 1.68;
     // 가로: 시 숫자 위 여유(.1em)는 위로 빼서(CSS) 숫자 윗끝·초 아랫끝을 위젯 칸 위·아래 끝에 맞춤. 폭이 모자라면 가운데
     const top = portrait ? 0 : .1;
-    // below: 날짜가 시계 아래 줄이면 그 위 줄 간격(.04em)도 높이에 들어감
-    const fit = (sideW, hh, below) => Math.min((w - lbl - sideW) / span, hh / (rows - top + (below ? .04 : 0)));
+    // row: 날짜가 시계 위(가로)·아래(세로 시계만) 따로 줄이면 날짜와 시계 사이 줄 간격(.04em)이 들고, 시 숫자 위 여유는 안 뺌
+    const fit = (sideW, hh, row) => Math.min((w - lbl - sideW) / span, hh / (rows + (row ? .04 : -top)));
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
     const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
-    // 가로 반반: 날짜를 옆(세로)과 아래(가로 줄) 중 시계가 더 커지는 쪽으로 — 넓은 절반 칸은 아래(위젯 칸 위·아래 끝까지 참), 낮고 긴 화면은 옆
-    // 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
-    let dateBelow = S.date && portrait && solo;
-    if (S.date && !portrait && !solo && S.halfL) {
+    // 가로: 날짜를 옆(세로)과 위(가로 줄) 중 시계가 더 커지는 쪽으로 — 시계 칸이 폭에 막히면(반반 등) 위로 올려 위젯 칸 위·아래 끝까지 채움,
+    // 높이에 막히는 낮고 긴 화면은 옆. 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
+    let dateRow = S.date && portrait && solo;
+    if (S.date && !portrait && !solo) {
       const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;
-      dateBelow = fit(0, h - pb - t - 3 * rem, true) > fit(t + gap + 3 * rem, h - pb);
+      dateRow = fit(0, h - pb - t - 3 * rem, true) > fit(t + gap + 3 * rem, h - pb);
     }
-    const moved = document.body.classList.contains('ds-below') !== (!portrait && dateBelow);
-    document.body.classList.toggle('ds-below', !portrait && dateBelow);
-    if (dateBelow) h -= ds.offsetHeight + 3 * rem;   // 시계 아래 날짜 줄(위 여백 3rem)
+    const moved = document.body.classList.contains('ds-top') !== (!portrait && dateRow);
+    document.body.classList.toggle('ds-top', !portrait && dateRow);
+    if (dateRow) h -= ds.offsetHeight + 3 * rem;   // 날짜 줄(시계와 사이 3rem)
     else if (portrait && S.half) h /= 2;   // 반반: 위 절반
     else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
     h -= pb;
-    const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
-    size = fit(side, h, dateBelow);
+    const side = dateRow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
+    size = fit(side, h, dateRow);
+    // 가로: 날짜가 옆인데 폭에 막혀 시계가 칸보다 낮으면, 남는 높이를 시·분·초 줄 사이에 나눠 위·아래 끝을 위젯 칸에 맞춤
+    // (날짜가 위면 남는 높이는 CSS의 날짜 아래 1fr 줄이 받음. 글자는 size의 .99)
+    const spare = !portrait && !solo && !dateRow ? h - .99 * size * (rows - top) : 0;
+    inner.style.rowGap = spare > 2 ? `calc(.04em + ${spare / (S.secs ? 2 : 1)}px)` : '';
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
-    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 아래 날짜 줄은 시계 폭에 맞춤)
+    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤)
     const items = [...ds.children].filter(c => c.offsetHeight);
-    const dateLen = items.reduce((s, c) => s + (dateBelow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-    const z = dateLen ? Math.min(1, (dateBelow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
+    const dateLen = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
+    const z = dateLen ? Math.min(1, (dateRow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
     ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
