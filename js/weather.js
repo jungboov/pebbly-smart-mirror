@@ -29,7 +29,7 @@ const WMO = {
   45: ['안개', 'fog'], 48: ['안개', 'fog'],
   51: ['약한 이슬비', 'drizzle'], 53: ['이슬비', 'drizzle'], 55: ['강한 이슬비', 'drizzle'],
   56: ['어는 이슬비', 'drizzle'], 57: ['어는 이슬비', 'drizzle'],
-  61: ['약한 비', 'rain'], 63: ['비', 'rain'], 65: ['강한 비', 'rain'], 66: ['어는 비', 'rain'], 67: ['어는 비', 'rain'],
+  61: ['약한 비', 'rain'], 63: ['비', 'rain'], 65: ['강한 비', 'rain'], 66: ['어는 비', 'rain'], 67: ['어는 비', 'rain'], 68: ['비 또는 눈', 'snow'],
   71: ['약한 눈', 'snow'], 73: ['눈', 'snow'], 75: ['많은 눈', 'snow'], 77: ['싸락눈', 'snow'],
   80: ['소나기', 'rain'], 81: ['소나기', 'rain'], 82: ['강한 소나기', 'rain'],
   85: ['소낙눈', 'snow'], 86: ['강한 소낙눈', 'snow'],
@@ -66,6 +66,8 @@ function load(key, maxAge) {
 // 요청하는 사이 위치가 바뀌었으면(기기 위치 확인 직후) 늦게 온 이전 위치 응답은 버림
 const sameLoc = ({ lat, lon }) => lat === CONFIG.lat && lon === CONFIG.lon;
 
+// Open-Meteo로 전체 모양(6일·해 뜨고 지는 시각·자외선·어제)을 받고, 기상청 동네예보(같은 사이트 /api/weather 중계)가 되면
+// 지금·시간별·하루 최저최고를 기상청 값으로 덮어씀 (네이버·날씨누리와 같은 숫자). 기상청이 안 되면 Open-Meteo 그대로
 async function loadWeather() {
   const at = { lat: CONFIG.lat, lon: CONFIG.lon };
   const url = 'https://api.open-meteo.com/v1/forecast?' + new URLSearchParams({
@@ -75,8 +77,10 @@ async function loadWeather() {
     hourly: 'temperature_2m,weather_code,precipitation_probability,is_day'
   });
   try {
-    const data = await getJSON(url);
+    const [data, kma] = await Promise.all([getJSON(url),
+      getJSON('/api/weather?' + new URLSearchParams({ lat: at.lat, lon: at.lon })).catch(() => null)]);
     if (!sameLoc(at)) return;
+    if (kma && kma.hours && kma.hours.length) useKma(data, kma);
     state.weather = data;
     state.weatherAt = Date.now();
     state.weatherErr = false;
@@ -87,6 +91,50 @@ async function loadWeather() {
   }
   renderWeather();
   renderFoot();
+}
+
+// 기상청 값으로 덮어쓰기: 지금(관측) / 시간별 기온·강수확률·날씨 / 하루 최저·최고·강수확률·날씨 (기상청 예보가 있는 날만)
+// '어제보다'는 기상청 최고기온끼리 비교하려고 날마다 이 기기에 적어 둔 값을 씀 (첫날은 없어서 안 보임)
+function useKma(w, k) {
+  const h = w.hourly, d = w.daily, c = w.current, at = new Map(h.time.map((t, i) => [t, i]));
+  for (const x of k.hours) {
+    const i = at.get(x.time);
+    if (i == null) continue;
+    h.temperature_2m[i] = x.t;
+    if (x.pop != null) h.precipitation_probability[i] = x.pop;
+    h.weather_code[i] = x.code;
+  }
+  const today = ymd(new Date()), first = k.hours[0].time;
+  // 오늘 중 기상청 예보가 없는 이른 시각(00~02시)은 비움 → 최고·최저 시각을 다른 예보와 섞어 고르지 않음
+  h.time.forEach((t, i) => { if (t.startsWith(today) && t < first) h.temperature_2m[i] = null; });
+  if (k.now) {
+    const i = at.get(`${today}T${pad(new Date().getHours())}:00`);
+    Object.assign(c, { temperature_2m: k.now.t, apparent_temperature: k.now.feel, weather_code: k.now.code, desc: k.now.desc,
+      relative_humidity_2m: k.now.reh ?? c.relative_humidity_2m, wind_speed_10m: k.now.wsd ?? c.wind_speed_10m,
+      wind_direction_10m: k.now.vec ?? c.wind_direction_10m, precipitation_probability: i == null ? c.precipitation_probability : h.precipitation_probability[i] });
+  }
+  d.time.forEach((iso, i) => {
+    const hrs = k.hours.filter(x => x.time.startsWith(iso)), kd = k.days.find(x => x.date === iso) || {};
+    const ts = hrs.map(x => x.t), whole = hrs.length >= 18;   // 하루 대부분이 예보에 들어 있는 날만 시간별로 셈
+    if (kd.max != null || whole) d.temperature_2m_max[i] = kd.max ?? Math.max(...ts);
+    if (kd.min != null || whole) d.temperature_2m_min[i] = kd.min ?? Math.min(...ts);
+    if (!whole) return;
+    d.precipitation_probability_max[i] = Math.max(...hrs.map(x => x.pop || 0));
+    // 하루 날씨: 낮(06~21시)에 비·눈이 있으면 가장 많은 강수 코드, 없으면 가장 많은 하늘 상태 (같으면 더 흐린 쪽)
+    const daytime = hrs.filter(x => x.time.slice(11, 13) >= '06' && x.time.slice(11, 13) <= '21').map(x => x.code);
+    const wet = daytime.filter(code => code >= 50), pool = wet.length ? wet : daytime;
+    const count = pool.reduce((m, code) => m.set(code, (m.get(code) || 0) + 1), new Map());
+    if (pool.length) d.weather_code[i] = [...count].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+  });
+  // 어제 최고·최저: 어제 이 기기가 적어 둔 기상청 값 (없으면 '어제보다'를 안 보임)
+  const days = (load('kmadays', 5 * 864e5) || {}).data || {}, ti = d.time.indexOf(today);
+  const yIso = d.time[ti - 1];
+  w.kma = true;
+  w.kmaYday = !!(yIso && days[yIso]);
+  if (w.kmaYday) [d.temperature_2m_max[ti - 1], d.temperature_2m_min[ti - 1]] = days[yIso];
+  if (ti >= 0) days[today] = [d.temperature_2m_max[ti], d.temperature_2m_min[ti]];
+  for (const iso in days) if (iso < d.time[0]) delete days[iso];
+  save('kmadays', days);
 }
 
 // 미세먼지: 에어코리아 실측(같은 사이트의 /api/air 중계)을 먼저, 안 되면 Open-Meteo 예측값
@@ -248,7 +296,7 @@ function renderWeather() {
   const w = state.weather;
   if (!w) return;
   const c = w.current, d = w.daily;
-  const [desc, kind] = wmo(c.weather_code);
+  const [name, kind] = wmo(c.weather_code), desc = c.desc || name;   // 기상청 값이면 기상청 말(구름많음 등)
   const today = upcomingDays(w)[0];
   $('w-ico').innerHTML = icon(kind, c.is_day === 1);
   $('w-big').innerHTML = icon(kind, c.is_day === 1).replace('<svg', '<svg preserveAspectRatio="xMinYMin meet"');   // 시계 강조: 왼쪽 위에 크게
@@ -262,8 +310,8 @@ function renderWeather() {
     const [hiAt, loAt] = extremeHours(w, today[0]);
     $('w-hi-t').textContent = hiAt;
     $('w-lo-t').textContent = loAt;
-    // 어제 최고기온과 비교 (past_days=1로 어제 값이 함께 옴)
-    const diff = i > 0 ? Math.round(d.temperature_2m_max[i] - d.temperature_2m_max[i - 1]) : null;
+    // 어제 최고기온과 비교 (past_days=1로 어제 값이 함께 옴. 기상청 값이면 어제도 기상청 값이 있을 때만)
+    const diff = i > 0 && (!w.kma || w.kmaYday) ? Math.round(d.temperature_2m_max[i] - d.temperature_2m_max[i - 1]) : null;
     $('w-diff').textContent = diff == null ? '' : diff === 0 ? '어제와 비슷한 기온이에요'
       : `어제보다 ${Math.abs(diff)}° ${diff > 0 ? '높아요' : '낮아요'}`;
   }
@@ -273,11 +321,16 @@ function renderWeather() {
   $('w-uv').textContent = c.uv_index == null ? '-' : Math.round(c.uv_index);
   $('w-uv-t').textContent = uvText;
   $('w-uv-t').className = 'c-sub ' + uvCls;
-  // 바람(m/s, 10 미만은 소수 한 자리)·풍향(불어오는 쪽), 지금 강수확률 — 시계 강조 화면 now 위젯에만 표시
+  // 바람(m/s, 10 미만은 소수 한 자리)·풍향(불어오는 쪽), 오늘 남은 시간 중 가장 높은 강수확률 — 시계 강조 화면 now 위젯에만 표시
+  // (지금 시각 확률만 보이면 '7%'인데 오후에 비가 오는 날도 있어서)
   const ws = c.wind_speed_10m;
   $('w-wind').innerHTML = ws == null ? '-' : `${ws < 10 ? ws.toFixed(1) : Math.round(ws)}<small>m/s</small>`;
   $('w-wind-t').textContent = c.wind_direction_10m == null ? '' : WIND_DIR[Math.round(c.wind_direction_10m / 45) % 8];
-  $('w-rain').textContent = c.precipitation_probability == null ? '-' : c.precipitation_probability + '%';
+  const nowKey = `${ymd(new Date())}T${pad(new Date().getHours())}:00`, hh = w.hourly;
+  const rest = hh ? hh.time.map((t, i) => t >= nowKey && t.slice(0, 10) === nowKey.slice(0, 10) ? hh.precipitation_probability[i] : null).filter(v => v != null) : [];
+  const pop = rest.length ? Math.max(...rest) : c.precipitation_probability;
+  $('w-rain').textContent = pop == null ? '-' : pop + '%';
+  $('w-rain-t').textContent = rest.length ? '오늘' : '';
   renderHourly(w);
   renderWave(w);
   renderSun();
@@ -294,7 +347,7 @@ const humLevel = v => v < 30 ? '건조' : v <= 60 ? '쾌적' : v <= 80 ? '습함
 function extremeHours(w, iso) {
   const h = w.hourly;
   if (!h) return ['', ''];
-  const idx = h.time.map((t, i) => [t, i]).filter(([t]) => t.startsWith(iso)).map(([, i]) => i);
+  const idx = h.time.map((t, i) => [t, i]).filter(([t, i]) => t.startsWith(iso) && h.temperature_2m[i] != null).map(([, i]) => i);
   if (!idx.length) return ['', ''];
   const pick = better => idx.reduce((a, b) => better(h.temperature_2m[b], h.temperature_2m[a]) ? b : a);
   const label = i => {
