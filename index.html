@@ -1547,8 +1547,14 @@ function renderFoot() {
 
 // ===== 알림 띠 (시계 강조 화면) =====
 // 지금 비·눈이 오면 그 얘기, 아니면 오늘 안에 강수확률 60% 이상인 첫 시각, 그리고 미세먼지 나쁨 이상
+// 인터넷이 끊겼으면(꺼져 있거나 날씨를 30분 넘게 못 받음) 마지막으로 받은 시각도 — 이건 알림 띠를 꺼도 보임
+const WIFI_OFF = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5.2 12.3a10 10 0 0 1 13.6 0M8.6 15.7a5 5 0 0 1 6.8 0M12 19.5h.01M3 3l18 18"/></svg>';
 function renderAlert() {
   const out = [], w = state.weather, a = state.air, now = new Date(), h = now.getHours();
+  if (!navigator.onLine || (state.weatherErr && now - (state.weatherAt || 0) > 30 * 60e3)) {
+    const t = state.weatherAt && new Date(state.weatherAt);
+    out.push([WIFI_OFF, t ? `인터넷 연결 끊김 · ${pad(t.getHours())}:${pad(t.getMinutes())} 기준` : '인터넷 연결 끊김']);
+  }
   if (S.alert && w) {
     const kind = wmo(w.current.weather_code)[1];
     if (['rain', 'drizzle', 'thunder'].includes(kind)) out.push([icon('rain'), '지금 비가 와요 · 우산 챙기세요']);
@@ -2465,9 +2471,10 @@ function scheduleReload() {
   applyMode();
   applySettings();
   if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
-  const cw = load('weather', 3 * 3600e3);
+  // 마지막으로 받은 날씨·공기는 하루까지 보여 줌 (인터넷이 끊겨도 빈 화면 대신)
+  const cw = load('weather', 24 * 3600e3);
   if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
-  const ca = load('air2', 3 * 3600e3);
+  const ca = load('air2', 24 * 3600e3);
   if (ca) state.air = ca.data;
   renderWeather();
   renderAir();
@@ -2484,6 +2491,10 @@ function scheduleReload() {
   window.addEventListener('resize', fitClock);
   portraitMQ.addEventListener('change', applySettings);   // 가로·세로 위젯 설정이 따로라 돌리면 다시 그림
   phoneMQ.addEventListener('change', applyMode);
+  // 인터넷이 끊겼다 돌아오면 바로 새로 받음. 화면 파일·글꼴은 서비스 워커(sw.js)가 기기에 저장해 둬서 끊긴 채로 켜도 뜸
+  window.addEventListener('offline', renderAlert);
+  window.addEventListener('online', () => { renderAlert(); loadWeather(); loadAir(); loadBoard(); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(e => console.warn('서비스 워커 등록 실패', e));
 
   loadWeather();
   loadAir();
