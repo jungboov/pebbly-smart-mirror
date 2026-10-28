@@ -50,13 +50,13 @@
 .wt.today b{text-shadow:0 0 2rem rgba(var(--glow), .45)}
 .wave-plot{position:relative;height:11rem;margin-top:1.4rem}
 #h-fill stop, #wave-g stop{stop-color:rgb(var(--glow))}   /* 그래프 선·채움 그라데이션 색 */
-.wave-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.wave-plot > svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}   /* 그래프 선만 (동그라미 안 날씨 아이콘은 빼야 가운데에 옴) */
 .node{position:absolute;width:5.4rem;height:5.4rem;transform:translate(-50%,-50%);border:1px solid var(--node-bd);border-radius:50%;background:var(--bg);display:grid;place-items:center}
 .node .ico{width:3rem;height:3rem}
 .node.past{opacity:.45}
 .node.today{border-color:var(--accent);box-shadow:0 0 1.4rem .3rem rgba(var(--glow), .35)}   /* 오늘: 밝은 테두리 + 점선 */
 .wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(var(--glow), .4)}
-.wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem}
+.wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem;white-space:nowrap}   /* ☂ 100% 가 두 줄로 꺾이지 않게 */
 .f-lbl{margin-bottom:1.8rem}
 
 /* ── 시간별 예보: 기온 영역 그래프 + 강수확률 막대 ── */
@@ -68,7 +68,7 @@
 .ht b{font-size:3rem;font-weight:300;font-variant-numeric:tabular-nums}
 .ht.now .hl{color:var(--text);font-weight:600}
 .h-plot{position:relative;height:6.5rem;margin-top:1.4rem}
-.h-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.h-plot > svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .h-dot{position:absolute;width:.9rem;height:.9rem;transform:translate(-50%,-50%);border-radius:50%;background:rgb(var(--glow))}
 .h-dot.now{width:1.6rem;height:1.6rem;box-shadow:0 0 1.2rem .4rem rgba(var(--glow), .5)}
 .h-bars{margin-top:1.2rem}
