@@ -71,7 +71,8 @@ body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-ch
 /* 세로 라벨 | 숫자 — 시 / 분 / 초(절반 크기) 3줄. 크기는 JS(fitClock)가 칸 폭·남는 높이에 맞춤 */
 body.sb .clock-in{width:100%;grid-template-columns:auto auto 1fr;grid-template-areas:"lh hh ds" "lm mm ds" ". ss ds";justify-content:start;column-gap:2rem;row-gap:.04em}
 body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
-body.sb #hh{grid-area:hh} body.sb #mm{grid-area:mm}
+/* 시·분은 오른쪽 끝에 맞춤 — '1'처럼 좁은 숫자가 있어도 일의 자리(16의 6, 22의 2)가 위아래로 같은 줄, 초도 그 끝선에 */
+body.sb #hh{grid-area:hh;justify-self:end} body.sb #mm{grid-area:mm;justify-self:end}
 body.sb #lbl-gap, body.sb #colon, body.sb .sgroup .colon{display:none}
 body.sb.no-sec .clock-in{grid-template-areas:"lh hh ds" "lm mm ds"}
 body.sb .clock .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1;margin:0;padding:0}
