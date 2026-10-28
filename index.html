@@ -623,7 +623,7 @@ body.night.night-red::after{background:#ff3b30}
 .tr-msg{font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
 /* 위젯 탭: 이름 | 위로·아래로 | 켜짐·꺼짐 */
 .wg-list{list-style:none;display:flex;flex-direction:column;gap:1.4rem}
-.wg-list li{display:flex;align-items:center;gap:1.4rem;font-size:3.4rem;color:var(--text)}
+.wg-list li{display:flex;flex-wrap:wrap;align-items:center;gap:1.4rem;font-size:3.4rem;color:var(--text)}
 .wg-list li span{flex:1;min-width:0}
 .wg-list li.wait span{color:var(--text-dim)}
 .wg-list small{display:block;margin-top:.4rem;font-size:2.4rem;color:var(--text-dim)}
@@ -632,6 +632,15 @@ body.night.night-red::after{background:#ff3b30}
 .set-card .wg-list .wg-tog{width:11rem;border-radius:2.2rem;color:var(--text-muted)}
 .set-card .wg-list .wg-tog.on{background:#fff;color:#000;font-weight:700;border-color:#fff}
 .wg-list svg{width:3rem;height:3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* 보이는 시간: 시계 버튼(시간을 정했으면 밝게) → 아래 줄에 시작 −/+ ~ 끝 −/+ / 항상 */
+.set-card .wg-list button[data-tm]{color:var(--text-dim)}
+.set-card .wg-list button.timed, .set-card .wg-list button.open{color:var(--text);border-color:var(--text-muted)}
+.wg-time{flex-basis:100%;display:flex;align-items:center;gap:1.2rem;padding:.4rem 0 1rem;font-size:3rem;color:var(--text)}
+.wg-time b{min-width:8rem;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.wg-time i, .wg-time em{font-style:normal;color:var(--text-dim)}
+.wg-time em{flex:1}
+.set-card .wg-time button{width:5.6rem;height:5.6rem}
+.set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
 .tr-msg:empty{display:none}
 .g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:#fff;color:#000;font-weight:700}
@@ -920,14 +929,14 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
 // hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게) / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
-// wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 (설정 > 위젯)
+// wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, secs: true, date: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, date: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -1057,11 +1066,12 @@ function fitClock() {
 }
 
 // ===== 시계 =====
+// [시작시, 끝시) 안인지. 끝이 시작보다 작으면 자정을 넘김 (23~6시)
+const inHours = ([s, e], h) => s > e ? (h >= s || h < e) : (h >= s && h < e);
+const hourName = h => S.hour12 ? `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}시` : h + '시';
 const nightStyle = () => S.night || (phoneMQ.matches ? 'red' : 'dim');
 function isNight(h) {
-  if (nightStyle() === 'off') return false;
-  const s = S.nightStart, e = S.nightEnd;
-  return s > e ? (h >= s || h < e) : (h >= s && h < e);
+  return nightStyle() !== 'off' && inHours([S.nightStart, S.nightEnd], h);
 }
 
 function renderClock(d) {
@@ -1094,7 +1104,7 @@ function tickClock() {
   const d = new Date();
   renderClock(d);
   if (d.getSeconds() === 0) {
-    if (d.getMinutes() === 0) renderWeather();   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
+    if (d.getMinutes() === 0) { renderWeather(); wgHour(d.getHours()); }   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
     else renderSun();
     shiftPixels(d.getMinutes());
   }
@@ -1599,7 +1609,6 @@ function applySettings() {
     seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   });
   $('set-rotate').textContent = S.rotate ? S.rotate + '초' : '끔';
-  const hourName = h => S.hour12 ? `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}시` : h + '시';
   $('set-ns').textContent = hourName(S.nightStart);
   $('set-ne').textContent = hourName(S.nightEnd);
   document.querySelectorAll('.nt-row').forEach(r => { r.style.display = nightStyle() === 'off' ? 'none' : ''; });
@@ -1650,7 +1659,8 @@ const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NA
 const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'music' ? !!gSaved() : true;
 function panelList(o) {
   if (!S.focus) return PANEL_NAMES.slice(0, 4);
-  return wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n));   // 다 끄면 빈 목록 = 시계만
+  const h = new Date().getHours();
+  return wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n) && (!S.wgTime[n] || inHours(S.wgTime[n], h)));   // 다 끄면 빈 목록 = 시계만
 }
 // dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 미끄러짐
 function showPanel(p, dir, axis) {
@@ -2112,20 +2122,34 @@ async function ytAll(path, params, max = 200) {
 
 // 설정 화면
 const gMsg = t => { $('g-msg').textContent = t; };
-// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
+// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
+// 보이는 시간을 정한 위젯은 그 시간에만 나오고, 시작 시각이 되면 바로 그 위젯으로 넘어감 (시간은 가로·세로 공통)
 const CHEV = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
-let wgEdit = 'L';
+let wgEdit = 'L', wgTimeOpen = null;
+const CLOCKI = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+function wgHour(h) {
+  if (!S.focus || !Object.keys(S.wgTime).length) return;
+  applySettings();
+  const list = panelList(), started = list.find(n => S.wgTime[n] && S.wgTime[n][0] === h);
+  if (started && panelName !== started) showPanel(list.indexOf(started), 1, innerWidth > innerHeight ? 'y' : 'x');
+}
 function wgRender() {
   const order = wgOrder(wgEdit), off = wgCfg(wgEdit).off;
   document.querySelectorAll('.wg-or button').forEach(b => b.classList.toggle('on', b.dataset.or === wgEdit));
   $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
-    const on = !off.includes(n), ready = wgReady(n);
-    const note = ready ? '' : `<small>${n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '음악 탭에서 로그인하면 나와요'}</small>`;
-    return `<li data-wg="${n}"${ready ? '' : ' class="wait"'}><span>${WG_NAMES[n]}${note}</span>`
+    const on = !off.includes(n), ready = wgReady(n), t = S.wgTime[n], open = wgTimeOpen === n;
+    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '음악 탭에서 로그인하면 나와요',
+      t ? `${hourName(t[0])}~${hourName(t[1])}에만` : ''].filter(Boolean).map(x => `<small>${x}</small>`).join('');
+    const edit = !open ? '' : '<div class="wg-time">' + (t
+      ? [0, 1].map(k => `<button data-th="${k}" data-step="-1" aria-label="${k ? '끝' : '시작'} 1시간 앞당기기">−</button><b>${hourName(t[k])}</b>`
+        + `<button data-th="${k}" data-step="1" aria-label="${k ? '끝' : '시작'} 1시간 늦추기">+</button>`).join('<i>~</i>') + '<button class="wg-always">항상</button>'
+      : '<em>항상 보여요</em><button class="wg-set">시간 정하기</button>') + '</div>';
+    return `<li data-wg="${n}" class="${ready ? '' : 'wait'}"><span>${WG_NAMES[n]}${note}</span>`
+      + `<button data-tm class="${t ? 'timed' : ''}${open ? ' open' : ''}" aria-label="보이는 시간">${CLOCKI}</button>`
       + `<button data-mv="-1" aria-label="위로"${i ? '' : ' disabled'}>${CHEV('M6 15l6-6 6 6')}</button>`
       + `<button data-mv="1" aria-label="아래로"${i < order.length - 1 ? '' : ' disabled'}>${CHEV('M6 9l6 6 6-6')}</button>`
-      + `<button class="wg-tog${on ? ' on' : ''}">${on ? '켜짐' : '꺼짐'}</button></li>`;
+      + `<button class="wg-tog${on ? ' on' : ''}">${on ? '켜짐' : '꺼짐'}</button>${edit}</li>`;
   }).join('');
 }
 document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
@@ -2134,12 +2158,19 @@ document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
   if (b.dataset.or) { wgEdit = b.dataset.or; wgRender(); return; }
   if (!li) return;
   const n = li.dataset.wg, cfg = wgCfg(wgEdit);
+  if (b.dataset.tm != null) { wgTimeOpen = wgTimeOpen === n ? null : n; wgRender(); return; }
   if (b.dataset.mv) {
     const order = wgOrder(wgEdit), i = order.indexOf(n), j = i + Number(b.dataset.mv);
     [order[i], order[j]] = [order[j], order[i]];
     cfg.order = order;
-  } else if (cfg.off.includes(n)) cfg.off = cfg.off.filter(x => x !== n);
-  else cfg.off = [...cfg.off, n];
+  } else if (b.classList.contains('wg-tog')) cfg.off = cfg.off.includes(n) ? cfg.off.filter(x => x !== n) : [...cfg.off, n];
+  else if (b.classList.contains('wg-set')) S.wgTime[n] = [7, 9];
+  else if (b.classList.contains('wg-always')) delete S.wgTime[n];
+  else if (b.dataset.th) {   // 1시간씩, 0~23시 돌아감. 시작과 끝이 같아지면 한 칸 더
+    const t = S.wgTime[n], k = +b.dataset.th, d = Number(b.dataset.step);
+    t[k] = (t[k] + d + 24) % 24;
+    if (t[0] === t[1]) t[k] = (t[k] + d + 24) % 24;
+  } else return;
   saveSettings();
   applySettings();
 });
