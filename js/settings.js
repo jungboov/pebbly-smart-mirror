@@ -6,6 +6,9 @@ function openSettings() {
   settingsAt = performance.now();
   wgEdit = wgNow();
   wgRender();
+  // QR로 다른 미러를 연 적이 있으면 그 미러 설정 바로 열기 (이 기기 자신의 연결 번호면 숨김)
+  const rid = savedRemote();
+  $('remote-open').hidden = !!REMOTE || !rid || !!(sync && sync.id === rid);
 }
 $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
@@ -14,6 +17,7 @@ $('settings').addEventListener('click', e => {
   if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
   if (b && b.id === 'sync-off') { syncOff(); return; }
   if (b && b.id === 'remote-apply') { remoteApply(); return; }
+  if (b && b.id === 'remote-open') { location.href = '/?remote=' + savedRemote(); return; }
   if (REMOTE && (e.target === $('settings') || (b && b.classList.contains('set-close')))) {
     // 다 바꿨으면 이 폰의 원래 화면으로 (바깥을 눌러서는 안 닫힘). 미러에 적용 안 한 게 있으면 한 번 물어봄
     if (b && (!remoteDirty || confirm('미러에 적용하지 않은 설정이 있어요. 그냥 나갈까요?'))) location.href = '/';

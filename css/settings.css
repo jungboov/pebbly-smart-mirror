@@ -28,7 +28,7 @@
 .set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
 .set-foot{display:flex;gap:1.4rem}
 .set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--panel-2);color:var(--text);font-weight:600}
-.set-card .set-sync{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
+.set-card .set-sync, .set-card .remote-open{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
 /* 폰으로 설정: QR(흰 바탕)과 주소. 폰에서 미러 설정 중이면 위에 안내, '폰으로 설정' 버튼은 숨김 */
 .sync-qr{align-self:center;width:min(30rem, 100%);border-radius:2rem;overflow:hidden}
 .sync-qr:empty{display:none}

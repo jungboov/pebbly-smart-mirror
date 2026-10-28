@@ -6,7 +6,17 @@
 // 시계 형식·시계 강조·날씨 넘김 주기는 화면을 두 번 탭하면 나오는 설정에서 바꿈
 const params = new URLSearchParams(location.search);
 // remote=연결 번호: 폰으로 QR을 찍어 열면 이 번호의 미러 설정을 바꾸는 화면 (폰 자기 설정은 그대로)
-const REMOTE = /^[0-9a-f]{32}$/.test(params.get('remote') || '') ? params.get('remote') : null;
+// 한 번 연 번호는 폰에 기억해 둠 (다른 QR을 찍으면 바뀜). 번호 없이 ?remote 로 열거나 설정의 '연결한 미러 설정'을 누르면 그 미러로
+const REMOTE_KEY = 'mirror_remote';
+const isSyncId = v => /^[0-9a-f]{32}$/.test(v || '');
+const savedRemote = () => { try { const v = localStorage.getItem(REMOTE_KEY); return isSyncId(v) ? v : null; } catch (e) { return null; } };
+const REMOTE = (() => {
+  if (!params.has('remote')) return null;
+  const v = params.get('remote');
+  if (!isSyncId(v)) return savedRemote();
+  try { localStorage.setItem(REMOTE_KEY, v); } catch (e) {}
+  return v;
+})();
 const MANUAL_LOC = params.has('lat') && params.has('lon');
 const CONFIG = {
   lat: parseFloat(params.get('lat')) || 37.5034,   // 위치를 모를 때 기본: 부천시청
