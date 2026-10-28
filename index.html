@@ -47,6 +47,30 @@ html{font-size:min(1vw, .625vh)}
   /* 날짜: 토요일 하늘색, 일요일·공휴일 핑크 */
   --sat:#7cc8ff;
   --sun:#ff8fb8;
+  /* 면·선: 설정 창, 버튼 바탕, 진행 바·구분선, 꺼진 막대·달 그림자, 위치 점, 그래프 테두리 */
+  --panel:#111;
+  --panel-2:#222;
+  --track:#2a2a2a;
+  --off:#262626;
+  --dot:#333;
+  --node-bd:#2c2c2c;
+  --arc:#555;
+  --horizon:#2e2e2e;
+  /* 켜짐·선택(밝은 바탕)과 그 위 글자 */
+  --accent:#fff;
+  --on-accent:#000;
+  /* 빛·유리 효과에 쓰는 밝은색 (r,g,b) — rgba(var(--glow), 투명도)로 씀 */
+  --glow:255,255,255;
+  --sun-glow:255,224,138;
+  /* 덮개: 설정 뒤, 알람 울림 */
+  --scrim:rgba(0,0,0,.72);
+  --ring-bg:rgba(0,0,0,.85);
+  --note-bg:rgba(142,197,255,.12);
+  /* 그 밖: 기온 숫자 위→아래 그라데이션, 달 밝은 쪽, 밤 붉은 단색 */
+  --temp-hi:#fff;
+  --temp-lo:#7d7d7d;
+  --moon-lit:#f4efd9;
+  --night-tint:#ff3b30;
   --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -91,7 +115,7 @@ body.night.night-dim .stage{opacity:.45}
 .zone{grid-area:zone}
 
 .lbl{font-family:var(--num);font-weight:500;font-size:2rem;color:var(--text-dim);letter-spacing:.06em;text-transform:lowercase}
-.card{display:flex;flex-direction:column;border:1px solid var(--card-bd);border-radius:2.6rem;background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));padding:2rem 2.2rem}
+.card{display:flex;flex-direction:column;border:1px solid var(--card-bd);border-radius:2.6rem;background:linear-gradient(160deg, rgba(var(--glow), .06), rgba(var(--glow), .015));padding:2rem 2.2rem}
 
 /* 아이콘: 흰 선 아이콘. .occ는 뒤에 있는 해/달을 가리는 구름 */
 .ico{display:block;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
@@ -158,8 +182,8 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .wmain{grid-area:wmain;min-width:0;display:contents}
 /* 큰 기온 | 설명 — 가는 세로선으로 나눈 매거진식 구성 */
 .w-hero{grid-area:hero;justify-self:end;display:flex;align-items:center;gap:3.2rem}
-.w-temp{flex:none;font-size:15rem;font-weight:200;line-height:.85;letter-spacing:-.05em;background:linear-gradient(180deg,#fff 35%,#7d7d7d);-webkit-background-clip:text;background-clip:text;color:transparent}
-.w-desc{min-width:0;padding-left:3.2rem;border-left:1px solid #2a2a2a}
+.w-temp{flex:none;font-size:15rem;font-weight:200;line-height:.85;letter-spacing:-.05em;background:linear-gradient(180deg,var(--temp-hi) 35%,var(--temp-lo));-webkit-background-clip:text;background-clip:text;color:transparent}
+.w-desc{min-width:0;padding-left:3.2rem;border-left:1px solid var(--track)}
 .w-title{display:flex;align-items:center;gap:1.4rem;font-size:4.8rem;font-weight:400;line-height:1.15;letter-spacing:-.02em}
 .w-title .ico{width:4.4rem;height:4.4rem;flex:none}
 .w-sub{margin-top:.6rem;font-size:2.6rem;font-weight:300;color:var(--text-muted)}
@@ -179,16 +203,16 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .sun-times b{display:block;font-weight:500;font-size:2.8rem;color:var(--text);font-variant-numeric:tabular-nums}
 .sun-times div:last-child{text-align:right}
 .sun-arc{display:block;width:100%;margin-top:-2rem;overflow:visible}
-.sun-arc .arc{fill:none;stroke:#555;stroke-width:.6;stroke-dasharray:.4 2.2;stroke-linecap:round}
-.sun-arc .arc-done{fill:none;stroke:rgba(255,255,255,.55);stroke-width:.7}
-.sun-arc .horizon{stroke:#2e2e2e;stroke-width:.5}
+.sun-arc .arc{fill:none;stroke:var(--arc);stroke-width:.6;stroke-dasharray:.4 2.2;stroke-linecap:round}
+.sun-arc .arc-done{fill:none;stroke:rgba(var(--glow), .55);stroke-width:.7}
+.sun-arc .horizon{stroke:var(--horizon);stroke-width:.5}
 .sun-arc .half{fill:none;stroke:var(--text-muted);stroke-width:.8;stroke-linecap:round}
-.sun-arc .sun{fill:#fff;filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 3px rgba(255,224,138,.9))}
+.sun-arc .sun{fill:rgb(var(--glow));filter:drop-shadow(0 0 1.2px rgb(var(--glow))) drop-shadow(0 0 3px rgba(var(--sun-glow), .9))}
 /* 달 모양: 오늘 위상(초승·상현·보름 …)과 밝은 비율 */
 .moon{display:flex;align-items:center;gap:1rem;margin-top:1.2rem;font-size:2.3rem;color:var(--text-muted)}
 .moon-ico{width:3rem;height:3rem;flex:none}
-.moon-bg{fill:#262626}
-.moon-lit{fill:#f4efd9}
+.moon-bg{fill:var(--off)}
+.moon-lit{fill:var(--moon-lit)}
 .moon-pct{margin-left:auto;color:var(--text-dim);font-variant-numeric:tabular-nums}
 
 /* ── 예보 곡선 ── */
@@ -199,14 +223,15 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .wt small{font-size:.5em;color:var(--text-dim);margin-left:.35em}
 .wt.past .wd, .wt.past b{color:var(--text-dim)}
 .wt.today .wd{color:var(--text);font-weight:600}
-.wt.today b{text-shadow:0 0 2rem rgba(255,255,255,.45)}
+.wt.today b{text-shadow:0 0 2rem rgba(var(--glow), .45)}
 .wave-plot{position:relative;height:11rem;margin-top:1.4rem}
+#h-fill stop, #wave-g stop{stop-color:rgb(var(--glow))}   /* 그래프 선·채움 그라데이션 색 */
 .wave-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.node{position:absolute;width:5.4rem;height:5.4rem;transform:translate(-50%,-50%);border:1px solid #2c2c2c;border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.node{position:absolute;width:5.4rem;height:5.4rem;transform:translate(-50%,-50%);border:1px solid var(--node-bd);border-radius:50%;background:var(--bg);display:grid;place-items:center}
 .node .ico{width:3rem;height:3rem}
 .node.past{opacity:.45}
-.wave-dot{position:absolute;width:1.8rem;height:1.8rem;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 1.4rem .5rem rgba(255,255,255,.55),0 0 4.5rem 1.8rem rgba(255,255,255,.18)}
-.wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(255,255,255,.4)}
+.wave-dot{position:absolute;width:1.8rem;height:1.8rem;transform:translate(-50%,-50%);border-radius:50%;background:rgb(var(--glow));box-shadow:0 0 1.4rem .5rem rgba(var(--glow), .55),0 0 4.5rem 1.8rem rgba(var(--glow), .18)}
+.wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(var(--glow), .4)}
 .wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem}
 .f-lbl{margin-bottom:1.8rem}
 
@@ -220,13 +245,13 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .ht.now .hl{color:var(--text);font-weight:600}
 .h-plot{position:relative;height:6.5rem;margin-top:1.4rem}
 .h-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.h-dot{position:absolute;width:.9rem;height:.9rem;transform:translate(-50%,-50%);border-radius:50%;background:#fff}
-.h-dot.now{width:1.6rem;height:1.6rem;box-shadow:0 0 1.2rem .4rem rgba(255,255,255,.5)}
+.h-dot{position:absolute;width:.9rem;height:.9rem;transform:translate(-50%,-50%);border-radius:50%;background:rgb(var(--glow))}
+.h-dot.now{width:1.6rem;height:1.6rem;box-shadow:0 0 1.2rem .4rem rgba(var(--glow), .5)}
 .h-bars{margin-top:1.2rem}
 .hb{display:flex;flex-direction:column;align-items:center}
 .bar{width:1.2rem;height:2.6rem;display:flex;align-items:flex-end;border-radius:.6rem;overflow:hidden}
 .bar i{display:block;width:100%;border-radius:.6rem;background:var(--rain)}
-.bar.dry i{background:#262626}
+.bar.dry i{background:var(--off)}
 .hb span{margin-top:.5rem;font-size:1.9rem;color:var(--rain);min-height:1.3em}
 
 /* 세로: 같은 자리에서 시간별 ↔ 일별을 번갈아 표시 (body.alt = 일별) */
@@ -339,17 +364,17 @@ body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
 .cm button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3.2rem;line-height:1;
   color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
 .cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
-.cm button.on{background:#fff;color:#000;border-color:#fff}
+.cm button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 /* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때 날짜 자리(오른쪽 끝)에 세로로. 메인 시계 화면은 그 자리에 날짜가 있어서 숨김 */
 .cm-dots{display:none}
 body.sb:not([data-cm="clock"]) .cm-dots{position:absolute;right:0;top:calc(50% - 3rem);transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
-body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:#fff}
+body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:var(--accent)}
 /* 울림 */
-.ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:rgba(0,0,0,.85);animation:ring 1s steps(2) infinite}
+.ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:var(--ring-bg);animation:ring 1s steps(2) infinite}
 .ring[hidden]{display:none}
-@keyframes ring{50%{background:rgba(255,255,255,.22)}}
+@keyframes ring{50%{background:rgba(var(--glow), .22)}}
 .ring b{font-family:var(--num);font-size:9rem;font-weight:900}
-.ring button{font:inherit;font-size:4.4rem;font-weight:700;padding:2.4rem 7rem;border:0;border-radius:999px;background:#fff;color:#000}
+.ring button{font:inherit;font-size:4.4rem;font-weight:700;padding:2.4rem 7rem;border:0;border-radius:999px;background:var(--accent);color:var(--on-accent)}
 /* 세로 라벨 | 숫자 — 시 / 분 / 초(절반 크기) 3줄. 크기는 JS(fitClock)가 칸 폭·남는 높이에 맞춤 */
 body.sb .clock-in{width:100%;grid-template-columns:auto auto 1fr;grid-template-areas:"lh hh ds" "lm mm ds" ". ss ds";justify-content:start;column-gap:2rem;row-gap:.04em}
 body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
@@ -368,7 +393,7 @@ body.sb.no-date .ds{display:none}   /* 날짜 표시 끄기(설정) */
 /* 알림 띠: 지금 비·눈 / 몇 시쯤 비·눈 소식 / 미세먼지 나쁨을 화면 위 가운데에 한 줄로 (시계 강조 화면) */
 .alert{display:none}
 body.sb .alert:not([hidden]){position:absolute;top:.6rem;left:50%;transform:translateX(-50%);max-width:calc(100% - 8rem);display:flex;align-items:center;gap:1.4rem;
-  padding:.5rem 2.4rem;border:1px solid var(--card-bd);border-radius:999px;background:rgba(255,255,255,.07);
+  padding:.5rem 2.4rem;border:1px solid var(--card-bd);border-radius:999px;background:rgba(var(--glow), .07);
   font-size:2.3rem;font-weight:600;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden}
 .alert span{display:flex;align-items:center;gap:1rem}
 .alert .ico{width:2.8rem;height:2.8rem;flex:none}
@@ -399,18 +424,18 @@ body.sb .music{container-type:inline-size}
 #mu-list{color:var(--text-dim);text-transform:none;font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mu-main{display:flex;flex-direction:column;min-width:0}
-.mu-video{width:100%;aspect-ratio:16 / 9;border-radius:2rem;overflow:hidden;background:#000}
+.mu-video{width:100%;aspect-ratio:16 / 9;border-radius:2rem;overflow:hidden;background:var(--bg)}
 .mu-video iframe, .mu-video #yt-player{display:block;width:100%;height:100%;border:0}
 .mu-side{min-width:0}
 .mu-info{min-width:0;margin-top:2.4rem}
 .mu-info b{display:block;font-size:4.2rem;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mu-info span{display:block;margin-top:.6rem;font-size:3rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mu-bar{height:.7rem;margin-top:2.4rem;border-radius:1rem;background:#2a2a2a;overflow:hidden}
-.mu-bar i{display:block;height:100%;width:0;background:#fff;border-radius:1rem}
+.mu-bar{height:.7rem;margin-top:2.4rem;border-radius:1rem;background:var(--track);overflow:hidden}
+.mu-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:1rem}
 .mu-time{display:flex;justify-content:space-between;margin-top:1rem;font-size:2.4rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
 .mu-ctl{display:flex;align-items:center;justify-content:space-between;margin-top:1.6rem}
 .mu-ctl button{width:8rem;height:8rem;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:none;color:var(--text);cursor:pointer}
-.mu-ctl button#mu-play{width:11rem;height:11rem;background:#fff;color:#000}
+.mu-ctl button#mu-play{width:11rem;height:11rem;background:var(--accent);color:var(--on-accent)}
 .mu-ctl svg{width:4.2rem;height:4.2rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mu-ctl svg.fill{fill:currentColor;stroke:none}
 .mu-ctl .mu-tog{color:var(--text-dim)}
@@ -529,8 +554,8 @@ body.sb .moon-ico{width:4rem;height:4rem}
 
 /* 위젯 위치 표시 (아이폰 스마트 스택처럼 오른쪽 세로 점) */
 body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-right));transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
-.sb-dots i, .cm-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:#333;transition:height .6s, width .6s, background .6s}
-.sb-dots i.on{height:3.4rem;background:#fff}
+.sb-dots i, .cm-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:var(--dot);transition:height .6s, width .6s, background .6s}
+.sb-dots i.on{height:3.4rem;background:var(--accent)}
 
 /* 세로: 위젯을 넓고 낮게 (정보 카드 4장 한 줄, 공기·해 카드 3장 한 줄) 해서 남는 높이를 시계에 줌 */
 @media (orientation: portrait){
@@ -599,20 +624,21 @@ body.sb.no-panel .sb-dots{display:none}
 body.sb.phone .stage{transform:translate(var(--sx, 0px), var(--sy, 0px))}
 /* 밤(설정 '붉게'): 아이폰 스탠바이 야간 모드처럼 붉은 단색 — 어두운 방에서 덜 눈부심 */
 body.night.night-red .stage{opacity:.8;filter:grayscale(1)}
-body.night-red::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;pointer-events:none;transition:background 3s}
-body.night.night-red::after{background:#ff3b30}
+body.night-red::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;   /* 흰색 = 곱하기에서 그대로, 밤엔 붉게 */
+  pointer-events:none;transition:background 3s}
+body.night.night-red::after{background:var(--night-tint)}
 
 /* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
-.settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(0,0,0,.72)}
+.settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:var(--scrim)}
 .settings[hidden]{display:none}
-.set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:#111}
+.set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:var(--panel)}
 .set-title{font-size:4.6rem;font-weight:700}
 /* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
 .set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
 .set-tabs{display:flex;gap:1rem}
 .set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
 .set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
-.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
 .set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
@@ -620,17 +646,17 @@ body.night.night-red::after{background:#ff3b30}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
 .seg button{padding:1.4rem 2.8rem}
-.seg button.on{background:#fff;color:#000;font-weight:700}
+.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:700}
 /* 따로 켜고 끄는 칩 여러 개 (표시: 초 / 날짜 / 상세 주소) */
 .chips{display:flex;gap:1rem}
 .set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}
-.set-card .chips button.on{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.set-card .chips button.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .step{display:flex;align-items:center;gap:2rem;color:var(--text);font-variant-numeric:tabular-nums}
 .step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .step span{min-width:9rem;text-align:center}
 .set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
 .set-foot{display:flex;gap:1.4rem}
-.set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:#222;color:var(--text);font-weight:600}
+.set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--panel-2);color:var(--text);font-weight:600}
 .set-card .set-sync{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
 /* 폰으로 설정: QR(흰 바탕)과 주소. 폰에서 미러 설정 중이면 위에 안내, '폰으로 설정' 버튼은 숨김 */
 .sync-qr{align-self:center;width:min(30rem, 100%);border-radius:2rem;overflow:hidden}
@@ -642,7 +668,7 @@ body.night.night-red::after{background:#ff3b30}
 .set-card .sync-off[hidden]{display:none}
 .remote-note{display:none}
 .set-card[data-tab="sync"] .set-hint{display:none}
-body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:rgba(142,197,255,.12);font-size:2.6rem;line-height:1.5;color:var(--text)}
+body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:var(--note-bg);font-size:2.6rem;line-height:1.5;color:var(--text)}
 body.remote .set-card .set-sync{display:none}
 /* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
 .tr-sec{display:flex;flex-direction:column;gap:1.8rem}
@@ -653,9 +679,9 @@ body.remote .set-card .set-sync{display:none}
 .tr-list small, .tr-res small{display:block;margin-top:.5rem;font-size:2.4rem;color:var(--text-dim)}
 .tr-res li[data-i]{cursor:pointer}
 .tr-res label{display:flex;align-items:center;gap:1.8rem;flex:1;cursor:pointer}
-.tr-res input[type=checkbox]{width:3.8rem;height:3.8rem;accent-color:#fff;flex:none}
+.tr-res input[type=checkbox]{width:3.8rem;height:3.8rem;accent-color:var(--accent);flex:none}
 .tr-bar{display:flex;gap:1.2rem}
-.tr-bar input{flex:1;min-width:0;padding:1.4rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;background:#000;color:var(--text);font:inherit;font-size:3.2rem;user-select:text}
+.tr-bar input{flex:1;min-width:0;padding:1.4rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;background:var(--bg);color:var(--text);font:inherit;font-size:3.2rem;user-select:text}
 .tr-msg{font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
 /* 위젯 탭: 이름 | 위로·아래로 | 켜짐·꺼짐 */
 .wg-list{list-style:none;display:flex;flex-direction:column;gap:1.4rem}
@@ -666,7 +692,7 @@ body.remote .set-card .set-sync{display:none}
 .set-card .wg-list button{width:6.4rem;height:6.4rem;display:grid;place-items:center;flex:none;padding:0;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .set-card .wg-list button:disabled{opacity:.2;cursor:default}
 .set-card .wg-list .wg-tog{width:11rem;border-radius:2.2rem;color:var(--text-muted)}
-.set-card .wg-list .wg-tog.on{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.set-card .wg-list .wg-tog.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .wg-list svg{width:3rem;height:3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* 보이는 시간: 시계 버튼(시간을 정했으면 밝게) → 아래 줄에 시작 −/+ ~ 끝 −/+ / 항상 */
 .set-card .wg-list button[data-tm]{color:var(--text-dim)}
@@ -679,14 +705,14 @@ body.remote .set-card .set-sync{display:none}
 .set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
 .tr-msg:empty{display:none}
 .g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
-.set-card .tr-save{padding:1.6rem;border-radius:2rem;background:#fff;color:#000;font-weight:700}
+.set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
 /* Google 로그인 코드: 주소 + 큰 코드 */
 .g-code{display:flex;flex-direction:column;align-items:center;gap:1.4rem;padding:3rem;border:1px solid var(--card-bd);border-radius:2.4rem;text-align:center}
 .g-code[hidden]{display:none}
 .g-code span{font-size:2.6rem;color:var(--text-dim)}
 .g-code a{font-size:3.4rem;font-weight:600;color:var(--rain);text-decoration:none}
 .g-code b{font-family:var(--num);font-size:7rem;letter-spacing:.12em}
-.tr-res li.on{border-color:#fff}
+.tr-res li.on{border-color:var(--accent)}
 .tr-res li > span{flex:none;font-size:2.6rem;color:var(--text-dim)}
 </style>
 </head>
@@ -795,8 +821,8 @@ body.remote .set-card .set-sync{display:none}
       <svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="h-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
-            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+            <stop offset="0" stop-opacity=".16"/>
+            <stop offset="1" stop-opacity="0"/>
           </linearGradient>
         </defs>
         <path id="h-area" fill="url(#h-fill)"/>
@@ -814,10 +840,10 @@ body.remote .set-card .set-sync{display:none}
       <svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="wave-g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
-            <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-            <stop offset=".1" stop-color="#fff" stop-opacity=".7"/>
-            <stop offset=".9" stop-color="#fff" stop-opacity=".7"/>
-            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+            <stop offset="0" stop-opacity="0"/>
+            <stop offset=".1" stop-opacity=".7"/>
+            <stop offset=".9" stop-opacity=".7"/>
+            <stop offset="1" stop-opacity="0"/>
           </linearGradient>
         </defs>
         <path id="wave-path" fill="none" stroke="url(#wave-g)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
