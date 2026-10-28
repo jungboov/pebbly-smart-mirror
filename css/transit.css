@@ -1,0 +1,24 @@
+/* Pebbly Mirror — 교통 위젯 */
+/* 교통 위젯: 등록한 정류장·역마다 이름 / 노선별 도착까지 남은 시간 */
+.transit{display:none}
+body.sb.has-tr .transit{display:block}
+.tr-item{padding:2rem 0;border-top:1px solid var(--line)}
+.tr-item:first-child{padding-top:0;border-top:0}
+.tr-head{font-size:3.2rem;font-weight:600;color:var(--text-muted)}
+.tr-head small{margin-left:1.2rem;font-size:2.6rem;font-weight:400;color:var(--text-dim)}
+.tr-row{display:flex;align-items:baseline;justify-content:space-between;gap:2.4rem;margin-top:1.2rem}
+.tr-row b{font-size:4.6rem;font-weight:700}
+.tr-row span{font-size:4.6rem;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tr-row em{font-style:normal;font-weight:600;color:var(--bad)}
+.tr-row .tr-x{margin-left:.6rem;font-size:2.4rem;font-weight:600;color:var(--rain)}
+.tr-row .tr-st{margin-left:.6rem;font-size:2.4rem;font-weight:400;color:var(--text-dim)}
+/* 제목 줄: transit · 16:42:10 기준 ……… [새로고침] */
+.tr-top{display:flex;align-items:center;gap:1.4rem}
+#tr-at{color:var(--text-dim)}
+/* 새로고침: 동그란 아이콘 버튼, 받아 오는 동안 돎 */
+#tr-reload{margin-left:auto;width:5.6rem;height:5.6rem;padding:0;display:grid;place-items:center;flex:none;
+  border:1px solid var(--card-bd);border-radius:50%;background:none;color:var(--text-muted);cursor:pointer}
+#tr-reload svg{width:2.8rem;height:2.8rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#tr-reload:disabled svg{animation:tr-spin .8s linear infinite}
+@keyframes tr-spin{to{transform:rotate(360deg)}}
+.tr-none{font-size:3rem;color:var(--text-dim)}

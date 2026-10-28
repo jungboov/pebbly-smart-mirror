@@ -1,0 +1,61 @@
+/* Pebbly Mirror — 기본: 글꼴, 1rem 단위, 바탕, 무대(배치 틀), 밤 어둡게, 아이콘 */
+/* 한글: Paperlogy (기하학적 산세리프, Orbitron 숫자와 결을 맞춤). 없는 글자는 Pretendard로 대체 */
+@font-face{font-family:Paperlogy;font-weight:200;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:300;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:600;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2) format('woff2')}
+
+/* 1rem = 디자인 단위. 세로 화면은 100×160, 가로 화면은 160×100 단위로 설계하고
+   어떤 화면 비율이든 이 캔버스가 들어가도록 맞춤 (남는 공간은 가운데 거울 영역으로) */
+html{font-size:min(1vw, .625vh)}
+@media (orientation: landscape){ html{font-size:min(.625vw, 1vh)} }
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden}
+/* 터치는 JS가 직접 처리(밀어서 위젯 넘기기·두 번 탭 설정) — 확대·당겨서 새로고침 막음 */
+html,body{touch-action:none;overscroll-behavior:none}
+/* 마우스가 멈춰 있으면 커서를 숨김 (거울 너머로 화살표가 비치지 않게). 움직이면 다시 보임 */
+body.idle, body.idle *{cursor:none}
+body{
+  font-family:Paperlogy,"Pretendard Variable",Pretendard,system-ui,"Noto Sans KR","Malgun Gothic",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+  word-break:keep-all;
+}
+
+/* ── 무대: 세로 배치 ── */
+.stage{
+  position:fixed;inset:0;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:auto auto auto auto auto 1fr auto auto;
+  grid-template-areas:
+    "head   head"
+    "clock  clock"
+    "date   hero"
+    "wstats wstats"
+    "cards  cards"
+    "zone   zone"
+    "wave   wave"
+    "phrase phrase";
+  column-gap:4rem;
+  padding:5rem 6.5rem;
+  /* 레퍼런스의 타일 격자. 거울 너머로는 거의 안 보일 만큼 어둡게 */
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size:12.5rem 12.5rem;
+  transition:opacity 3s;
+}
+/* 밤(설정 '어둡게'): 화면 내용을 어둡게 */
+body.night.night-dim .stage{opacity:.45}
+.zone{grid-area:zone}
+
+.lbl{font-family:var(--num);font-weight:500;font-size:2rem;color:var(--text-dim);letter-spacing:.06em;text-transform:lowercase}
+.card{display:flex;flex-direction:column;border:1px solid var(--card-bd);border-radius:2.6rem;background:linear-gradient(160deg, rgba(var(--glow), .06), rgba(var(--glow), .015));padding:2rem 2.2rem}
+
+/* 아이콘: 흰 선 아이콘. .occ는 뒤에 있는 해/달을 가리는 구름 */
+.ico{display:block;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ico .occ{fill:var(--bg)}
+.ico .dots{stroke-width:2.6}

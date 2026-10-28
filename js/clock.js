@@ -1,0 +1,167 @@
+// Pebbly Mirror — 시계: 숫자 롤러, 시·분·초·날짜 그리기, 크기 맞추기, 밤
+// ===== 숫자 롤러 =====
+// 띠 구성: [마지막값, ...values, 첫값, 둘째값] — 위아래로 이웃 숫자가 보이고,
+// 마지막값→첫값(59→00 등)도 거꾸로 감기지 않고 한 칸 위로 굴러가도록 앞뒤에 여분을 둠
+// fitWidth: 칸 폭을 현재 숫자 폭에 맞춤 (시/분 숫자용)
+function roller(el, values, fitWidth) {
+  const n = values.length;
+  const strip = document.createElement('span');
+  strip.className = 'strip';
+  strip.innerHTML = [values[n - 1], ...values, values[0], values[1 % n]].map(v => `<span>${v}</span>`).join('');
+  el.appendChild(strip);
+  let idx = -1;
+  const setWidth = () => {
+    if (fitWidth && digitW && idx >= 0) el.style.width = digitW[values[idx]] + 'em';
+  };
+  const set = v => {
+    const next = values.indexOf(v);
+    if (next === idx) return;
+    const wrap = idx === n - 1 && next === 0;
+    const step = idx >= 0 && (next === idx + 1 || wrap);
+    strip.style.transition = step ? '' : 'none';
+    strip.style.setProperty('--p', wrap ? n + 1 : next + 1);
+    if (wrap) {
+      strip.addEventListener('transitionend', () => {
+        strip.style.transition = 'none';
+        strip.style.setProperty('--p', 1);
+      }, { once: true });
+    }
+    idx = next;
+    setWidth();
+  };
+  set.refresh = setWidth;
+  return set;
+}
+
+// 숫자별 글자 폭(em). 너무 좁으면 굴러갈 때 이웃 숫자가 많이 잘려서 최소 .62em
+let digitW = null;
+function measureDigits() {
+  const c = document.createElement('canvas').getContext('2d');
+  c.font = '900 100px Orbitron';
+  digitW = {};
+  for (let i = 0; i < 10; i++) digitW[i] = Math.max(c.measureText(String(i)).width / 100, .62);
+}
+
+// 시 첫 자리: 24시간제 0~2, 12시간제 0~1 (1~9시는 앞에 0을 붙여 두 자리. 형식을 바꾸면 다시 만듦)
+let setH1;
+function setupH1() {
+  $('h1').textContent = '';
+  setH1 = roller($('h1'), range(S.hour12 ? 2 : 3), true);
+}
+setupH1();
+const setH2 = roller($('h2'), range(10), true);
+const setM1 = roller($('m1'), range(6), true);
+const setM2 = roller($('m2'), range(10), true);
+const setS = roller($('s'), range(60, pad));
+
+// 날씨 위젯 4개 + 교통·음악 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
+const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'music'];
+const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#music'].map(s => document.querySelector(s));
+const panelEl = name => PANELS[PANEL_NAMES.indexOf(name)];
+
+// 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)
+// 가장 넓은 시각(예: 00:00) 기준이라 분마다 크기가 바뀌지 않음
+function fitClock() {
+  const inner = $('clock-in');
+  const fs = parseFloat(getComputedStyle(inner).fontSize);
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const wmax = digitW ? Math.max(...Object.values(digitW)) : .834;
+  let size, cmSize = 0;
+  if (document.body.classList.contains('sb')) {
+    // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
+    // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12, 초를 끄면 시 .82 + 분 .82 + 줄 간격 .04
+    const stage = $('stage'), st = getComputedStyle(stage);
+    // 날짜는 시계 옆에 있어서 높이는 안 씀
+    // 위젯을 모두 끄면(solo) 시계만: 세로는 날짜를 시계 아래 가로 줄로(그만큼 넓게), 가로는 초를 분 옆에(시·분 2줄 높이)
+    const portrait = innerHeight > innerWidth, solo = document.body.classList.contains('no-panel');
+    const dateBelow = portrait && solo && S.date, secBeside = !portrait && solo && S.secs;
+    const ds = document.querySelector('.ds');
+    ds.style.zoom = '';
+    let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+    if (dateBelow) h -= ds.offsetHeight + 3 * rem;   // 시계 아래 날짜 줄(위 여백 3rem)
+    else if (portrait && S.half) h /= 2;   // 반반: 위 절반
+    else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
+    h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
+    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 58rem + 여백 4rem)를 남긴 폭(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
+    const w = portrait ? $('clock').clientWidth
+      : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
+        - (solo ? 0 : parseFloat(st.columnGap) + 62 * rem);
+    const gap = parseFloat(getComputedStyle(inner).columnGap);
+    const lbl = $('lbl-h').offsetWidth + gap;
+    const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
+    const secEm = secBeside ? $('sgroup').offsetWidth / fs + gap / fs : 0;   // 분 옆 초 칸 + 간격 (지금 글자 크기 기준)
+    const span = 2 * wmax + .02 + secEm;
+    const rows = S.secs && !secBeside ? 2.25 : 1.68;
+    size = Math.min((w - lbl - side) / span, h / rows);
+    // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
+    const cmSide = side || 9.4 * rem + gap;
+    cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
+    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 아래 날짜 줄은 시계 폭에 맞춤)
+    const items = [...ds.children].filter(c => c.offsetHeight);
+    const dateLen = items.reduce((s, c) => s + (dateBelow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
+    const z = dateLen ? Math.min(1, (dateBelow ? lbl + span * size : size * rows) / dateLen) : 1;
+    ds.style.zoom = z < .99 ? z : '';
+    // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
+    $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
+  } else {
+    $('clock').style.width = '';
+    const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
+    size = $('clock').clientWidth / widestEm;
+  }
+  // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
+  $('clock').style.setProperty('--clock', (size / rem * .99) + 'rem');
+  if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
+  else $('clock').style.removeProperty('--cm');
+  $('clock').style.setProperty('--dw', wmax + 'em');
+}
+
+// ===== 시계 =====
+// [시작시, 끝시) 안인지. 끝이 시작보다 작으면 자정을 넘김 (23~6시)
+const inHours = ([s, e], h) => s > e ? (h >= s || h < e) : (h >= s && h < e);
+const hourName = h => S.hour12 ? `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}시` : h + '시';
+const nightStyle = () => S.night || (phoneMQ.matches ? 'red' : 'dim');
+function isNight(h) {
+  return nightStyle() !== 'off' && inHours([S.nightStart, S.nightEnd], h);
+}
+
+function renderClock(d) {
+  const h = d.getHours();
+  const hh = pad(S.hour12 ? h % 12 || 12 : h), mm = pad(d.getMinutes());
+  setH1(hh[0]); setH2(hh[1]); setM1(mm[0]); setM2(mm[1]);
+  setS(pad(d.getSeconds()));
+  const lbl = S.hour12 ? `hours · ${h < 12 ? 'am' : 'pm'}` : 'hours';
+  if ($('lbl-h').textContent !== lbl) $('lbl-h').textContent = lbl;
+  renderDate(d);
+}
+
+// 날짜: 상세 화면은 10.27 / 2026 · 화요일, 시계 강조 화면은 눕혀서 2026년 10월 27일 … 화요일
+// 토요일 하늘색, 일요일·공휴일 핑크 (공휴일이면 이름도)
+function renderDate(d) {
+  const iso = ymd(d);
+  if ($('date').dataset.iso === iso) return;
+  $('date').dataset.iso = iso;
+  const wd = WEEK[d.getDay()] + '요일', hol = holidayName(iso);
+  $('date-num').textContent = `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+  $('date-year').textContent = d.getFullYear();
+  $('date-wd').textContent = hol ? `${wd} · ${hol}` : wd;
+  $('ds-date').innerHTML = `<b>${d.getFullYear()}</b>년<b>${d.getMonth() + 1}</b>월<b>${d.getDate()}</b>일`;
+  $('ds-wd').textContent = wd;
+  $('ds-hol').textContent = hol;
+  document.body.dataset.day = hol || d.getDay() === 0 ? 'sun' : d.getDay() === 6 ? 'sat' : '';
+}
+
+function tickClock() {
+  const d = new Date();
+  renderClock(d);
+  if (d.getSeconds() === 0) {
+    if (d.getMinutes() === 0) { renderWeather(); wgHour(d.getHours()); }   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
+    else renderSun();
+    shiftPixels(d.getMinutes());
+  }
+  checkAlarm(d);
+  cmIdleCheck();
+  document.body.classList.toggle('night', isNight(d.getHours()));
+  document.body.classList.toggle('night-dim', nightStyle() === 'dim');
+  document.body.classList.toggle('night-red', nightStyle() === 'red');
+  setTimeout(tickClock, 1000 - d.getMilliseconds() + 5);
+}

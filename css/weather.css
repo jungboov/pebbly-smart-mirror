@@ -1,0 +1,86 @@
+/* Pebbly Mirror — 날씨: 지금 날씨, 정보 카드, 공기·해·달, 일별·시간별 그래프, 문구 */
+/* ── 현재 날씨 ── */
+/* 세로: wmain을 풀어서 기온(날짜 옆)과 정보 줄(전체 너비)을 각각 배치. 가로에선 한 덩어리 */
+.wmain{grid-area:wmain;min-width:0;display:contents}
+/* 큰 기온 | 설명 — 가는 세로선으로 나눈 매거진식 구성 */
+.w-hero{grid-area:hero;justify-self:end;display:flex;align-items:center;gap:3.2rem}
+.w-temp{flex:none;font-size:15rem;font-weight:200;line-height:.85;letter-spacing:-.05em;background:linear-gradient(180deg,var(--temp-hi) 35%,var(--temp-lo));-webkit-background-clip:text;background-clip:text;color:transparent}
+.w-desc{min-width:0;padding-left:3.2rem;border-left:1px solid var(--track)}
+.w-title{display:flex;align-items:center;gap:1.4rem;font-size:4.8rem;font-weight:400;line-height:1.15;letter-spacing:-.02em}
+.w-title .ico{width:4.4rem;height:4.4rem;flex:none}
+.w-sub{margin-top:.6rem;font-size:2.6rem;font-weight:300;color:var(--text-muted)}
+.w-title + .w-sub{margin-top:1.4rem}
+/* 최고·최저·습도·자외선 카드 4장 */
+.w-stats{grid-area:wstats;margin-top:4.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}
+
+/* ── 카드: 미세먼지·초미세먼지·일출일몰 ── */
+.cards{grid-area:cards;display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:2rem;margin-top:2rem}
+/* 숫자 카드 공통: 이름 / 큰 값 / 맨 아래 보조 정보(등급·시각 등) */
+.c-name{font-size:2.4rem;color:var(--text-muted)}
+.c-val{margin-top:1rem;font-size:5.2rem;font-weight:200;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.c-sub{margin-top:auto;padding-top:1rem;font-size:2.4rem;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.good{color:var(--good)} .normal{color:var(--normal)} .bad{color:var(--bad)} .worst{color:var(--worst)}
+
+.sun-times{display:flex;justify-content:space-between;font-size:2.3rem;color:var(--text-muted)}
+.sun-times b{display:block;font-weight:500;font-size:2.8rem;color:var(--text);font-variant-numeric:tabular-nums}
+.sun-times div:last-child{text-align:right}
+.sun-arc{display:block;width:100%;margin-top:-2rem;overflow:visible}
+.sun-arc .arc{fill:none;stroke:var(--arc);stroke-width:.6;stroke-dasharray:.4 2.2;stroke-linecap:round}
+.sun-arc .arc-done{fill:none;stroke:rgba(var(--glow), .55);stroke-width:.7}
+.sun-arc .horizon{stroke:var(--horizon);stroke-width:.5}
+.sun-arc .half{fill:none;stroke:var(--text-muted);stroke-width:.8;stroke-linecap:round}
+.sun-arc .sun{fill:rgb(var(--glow));filter:drop-shadow(0 0 1.2px rgb(var(--glow))) drop-shadow(0 0 3px rgba(var(--sun-glow), .9))}
+/* 달 모양: 오늘 위상(초승·상현·보름 …)과 밝은 비율 */
+.moon{display:flex;align-items:center;gap:1rem;margin-top:1.2rem;font-size:2.3rem;color:var(--text-muted)}
+.moon-ico{width:3rem;height:3rem;flex:none}
+.moon-bg{fill:var(--off)}
+.moon-lit{fill:var(--moon-lit)}
+.moon-pct{margin-left:auto;color:var(--text-dim);font-variant-numeric:tabular-nums}
+
+/* ── 예보 곡선 ── */
+.wave{grid-area:wave;--n:6}
+.wave-row{display:grid;grid-template-columns:repeat(var(--n),1fr);text-align:center}
+.wd{display:block;font-size:2.4rem;color:var(--text-muted)}
+.wt b{display:block;margin-top:.6rem;font-size:4.4rem;font-weight:300;line-height:1.1;font-variant-numeric:tabular-nums}
+.wt small{font-size:.5em;color:var(--text-dim);margin-left:.35em}
+.wt.past .wd, .wt.past b{color:var(--text-dim)}
+.wt.today .wd{color:var(--text);font-weight:600}
+.wt.today b{text-shadow:0 0 2rem rgba(var(--glow), .45)}
+.wave-plot{position:relative;height:11rem;margin-top:1.4rem}
+#h-fill stop, #wave-g stop{stop-color:rgb(var(--glow))}   /* 그래프 선·채움 그라데이션 색 */
+.wave-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.node{position:absolute;width:5.4rem;height:5.4rem;transform:translate(-50%,-50%);border:1px solid var(--node-bd);border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.node .ico{width:3rem;height:3rem}
+.node.past{opacity:.45}
+.wave-dot{position:absolute;width:1.8rem;height:1.8rem;transform:translate(-50%,-50%);border-radius:50%;background:rgb(var(--glow));box-shadow:0 0 1.4rem .5rem rgba(var(--glow), .55),0 0 4.5rem 1.8rem rgba(var(--glow), .18)}
+.wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(var(--glow), .4)}
+.wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem}
+.f-lbl{margin-bottom:1.8rem}
+
+/* ── 시간별 예보: 기온 영역 그래프 + 강수확률 막대 ── */
+.hourly{grid-area:wave;--n:12}
+.h-row{display:grid;grid-template-columns:repeat(var(--n),1fr);text-align:center}
+.ht{display:flex;flex-direction:column;align-items:center;gap:.9rem}
+.hl{font-size:2.2rem;color:var(--text-muted);white-space:nowrap}
+.ht .ico{width:3rem;height:3rem}
+.ht b{font-size:3rem;font-weight:300;font-variant-numeric:tabular-nums}
+.ht.now .hl{color:var(--text);font-weight:600}
+.h-plot{position:relative;height:6.5rem;margin-top:1.4rem}
+.h-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.h-dot{position:absolute;width:.9rem;height:.9rem;transform:translate(-50%,-50%);border-radius:50%;background:rgb(var(--glow))}
+.h-dot.now{width:1.6rem;height:1.6rem;box-shadow:0 0 1.2rem .4rem rgba(var(--glow), .5)}
+.h-bars{margin-top:1.2rem}
+.hb{display:flex;flex-direction:column;align-items:center}
+.bar{width:1.2rem;height:2.6rem;display:flex;align-items:flex-end;border-radius:.6rem;overflow:hidden}
+.bar i{display:block;width:100%;border-radius:.6rem;background:var(--rain)}
+.bar.dry i{background:var(--off)}
+.hb span{margin-top:.5rem;font-size:1.9rem;color:var(--rain);min-height:1.3em}
+
+/* 세로: 같은 자리에서 시간별 ↔ 일별을 번갈아 표시 (body.alt = 일별) */
+.wave,.hourly{transition:opacity 1.2s}
+body:not(.alt) .wave{opacity:0}
+body.alt .hourly{opacity:0}
+
+/* ── 문구 ── */
+.phrase{grid-area:phrase;margin-top:3.5rem;font-size:4.6rem;font-weight:700;line-height:1.3;letter-spacing:-.01em;transition:opacity 1.2s}
+.phrase.fade{opacity:0}

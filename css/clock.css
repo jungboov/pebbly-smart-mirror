@@ -1,0 +1,55 @@
+/* Pebbly Mirror — 시계: 머리줄, 숫자 롤러, 시·분·초, 날짜 */
+/* ── 헤더 ── */
+.head{grid-area:head;display:flex;align-items:center;justify-content:space-between;padding-bottom:3rem;margin-bottom:3rem;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:1.6rem;font-family:var(--num);font-weight:700;font-size:2.6rem;letter-spacing:.08em}
+.brand svg{width:3.4rem;height:3.4rem;fill:currentColor}
+.head-r{display:flex;align-items:center;gap:2.4rem;font-size:2.3rem;color:var(--text-dim)}
+.head-r .ico{width:2.6rem;height:2.6rem;color:var(--text-muted)}
+.loc{display:flex;align-items:center;gap:1rem}
+.menu{display:grid;grid-template-columns:repeat(2,.8rem);gap:.6rem}
+.menu i{width:.8rem;height:.8rem;border-radius:50%;background:var(--text-muted)}
+
+/* ── 숫자 롤러: 값이 바뀌면 세로로 굴러 올라감 ── */
+.roll{--lh:1em;display:inline-block;height:var(--lh);overflow:hidden;vertical-align:top;text-align:center}
+.strip{display:block;transform:translateY(calc(var(--p, 0) * -1 * var(--lh)));transition:transform .6s cubic-bezier(.2,.75,.2,1)}
+.strip span{display:block;height:var(--lh);line-height:var(--lh)}
+/* 초: 위아래로 이전·다음 숫자가 살짝 보이는 롤러 */
+.roll.peek{height:calc(var(--lh) * 1.7);-webkit-mask-image:linear-gradient(transparent, #000 32%, #000 68%, transparent);mask-image:linear-gradient(transparent, #000 32%, #000 68%, transparent)}
+.roll.peek .strip{transform:translateY(calc((var(--p, 0) * -1 + .35) * var(--lh)))}
+/* Orbitron 숫자는 높이 .72em·내림 0 → 줄 높이 .82em이면 잘리지 않으면서 위아래 여백이 거의 없음 */
+.clock .roll{--lh:.82em}
+
+/* ── 시계: 시·분·초 한 줄. 1행 라벨 / 2행 숫자, 칸 너비에 맞춰 JS가 --clock 크기를 계산 ── */
+.clock{grid-area:clock;min-width:0;padding-bottom:5.5rem}
+/* 세로: 양 끝을 아래 내용 폭에 맞춤. 크기는 가장 넓은 시각 기준이라 좁은 숫자('1' 등)일 때 남는 폭은 시·분·초 사이 간격으로 */
+.clock-in{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-items:end;width:100%;font-family:var(--num);font-weight:900;font-size:var(--clock, 20rem);line-height:.82}
+.clock .lbl{margin-bottom:2.4rem;line-height:1.2}
+/* 숫자마다 폭이 달라서('1'은 '0'의 절반) 칸 폭을 숫자에 맞추고 바뀔 때 부드럽게 늘고 줄게 함 */
+.clock .roll{width:.834em;transition:width .6s cubic-bezier(.2,.75,.2,1)}
+.colon{height:.82em;line-height:.82em;margin:0 .04em;color:var(--text-muted)}
+/* 초: 시·분의 40% 크기. 현재 숫자의 바닥을 시·분 바닥에 맞추고 다음 숫자는 그 아래로 살짝 비침 */
+.sgroup{display:flex;align-items:flex-end;font-size:.4em;margin-bottom:calc(-.35 * .82em)}
+.sgroup .colon{margin:0 .12em calc(.35 * .82em) .1em}
+.sgroup .roll{width:1.67em;text-align:left;transition:none}
+.lbl-s{padding-left:.6rem}
+/* 초 표시 끄기(설정): 시·분만 보이고 그만큼 시계가 커짐 (fitClock) */
+body.no-sec #sgroup, body.no-sec #lbl-s{display:none}
+body.no-sec:not(.sb) .clock-in{grid-template-columns:repeat(3,auto)}
+
+.date{grid-area:date;align-self:center}
+.date-num{font-family:var(--num);font-weight:700;font-size:6.4rem;line-height:1;letter-spacing:.02em}
+.date-day{margin-top:1.4rem;font-size:3rem;font-weight:600;color:var(--text-muted)}
+/* 토요일 하늘색, 일요일·공휴일 핑크 (body[data-day]는 JS가 정함) */
+body[data-day="sat"] #date-wd{color:var(--sat)}
+body[data-day="sun"] #date-wd{color:var(--sun)}
+/* 시계 강조 화면용 날짜 (.ds): 시계 오른쪽에 눕혀서(아래→위로 읽힘) 날짜는 아래 끝, 요일은 위 끝 */
+.ds{display:none}
+.ds-date{font-size:3.4rem;font-weight:600;line-height:1;white-space:nowrap;color:var(--text-muted)}
+.ds-date b{margin:0 .5rem 0 1.4rem;font-family:var(--num);font-weight:700;font-size:6.4rem;color:var(--text)}
+.ds-date b:first-child{margin-left:0}
+/* 요일(+공휴일 이름)은 반대쪽 끝(위)으로 */
+.ds .ds-wd{margin-inline-start:auto;font-size:5rem;font-weight:700;line-height:1}
+.ds .ds-hol{font-size:3.2rem;font-weight:600;line-height:1;color:var(--sun)}
+.ds .ds-hol:empty{display:none}
+body[data-day="sat"] .ds-wd{color:var(--sat)}
+body[data-day="sun"] .ds-wd{color:var(--sun)}

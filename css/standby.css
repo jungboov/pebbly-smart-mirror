@@ -1,0 +1,102 @@
+/* Pebbly Mirror — 시계 강조 화면: 배치, 스톱워치·타이머·알람, 울림, 알림 띠, 위젯 겹치기 */
+/* ── 시계 강조 (기본. ?mode=detail이면 위의 상세 화면): 멀리서도 보이게 시·분·초를 세로로 쌓은 큰 시계
+   + 날씨 위젯 하나가 10초마다 바뀜 (지금 날씨 → 시간별 → 일별 → 공기·해)
+   가로는 왼쪽 시계(+날짜) | 오른쪽 위젯, 세로는 위 시계(+날짜) / 아래 위젯 ── */
+.sb-dots{display:none}
+/* 시계 칸은 내용 폭(크기는 fitClock이 위젯 자리를 남기고 맞춤), 남는 폭은 위젯 */
+body.sb .stage{
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:1fr auto 1fr;
+  grid-template-areas:
+    ".     panel"
+    "clock panel"
+    ".     panel";
+  column-gap:2.4rem;
+  padding:5rem max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
+  transition:opacity 3s, filter 3s, transform 2s;
+}
+body.sb .head, body.sb .zone, body.sb .phrase{display:none}
+body.sb .clock{position:relative;padding-bottom:6rem}
+
+/* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
+   줄마다 라벨 | 숫자 | +·− 버튼, 셋째 줄 왼쪽에 이름과 시작·초기화 버튼 */
+.cm{display:none}
+body.sb .cm{display:grid;opacity:0;visibility:hidden;pointer-events:none}
+body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"] #cm-al{opacity:1;visibility:visible;pointer-events:auto}
+body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
+.cm{position:absolute;inset:0 0 6rem;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto 1fr;
+  grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft .";align-items:end;column-gap:2rem;row-gap:.04em;
+  font-family:var(--num);font-weight:900;font-size:var(--cm, var(--clock));line-height:.82}
+.cm b{display:flex;height:.82em}
+/* 숫자 칸 폭을 고정해서 빨리 바뀌어도 흔들리지 않게 */
+.cm b i{display:inline-block;width:var(--dw, .834em);text-align:center;font-style:normal}
+.cm .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1}
+.cm-l1{grid-area:l1} .cm-l2{grid-area:l2} .cm-d1{grid-area:d1} .cm-d2{grid-area:d2}
+/* 셋째 줄 숫자(1/100초)는 시계의 초처럼 숫자 칸 오른쪽 끝, 절반 크기 */
+.cm-d3{grid-row:3;grid-column:2;justify-self:end;font-size:.5em}
+.cm-c1{grid-area:c1} .cm-c2{grid-area:c2}
+.cm-pm{display:flex;flex-direction:column;gap:1.4rem;align-self:center;justify-self:start}
+.cm-foot{grid-area:ft;align-self:end;display:flex;flex-direction:column;gap:1.6rem;font-size:2.6rem}
+.cm-name{font-family:var(--num);font-weight:500;color:var(--text-dim);letter-spacing:.06em;line-height:1}
+/* 알람 칩: 고른 알람은 흰 테두리, 꺼진 알람은 흐리게 */
+.al-top{display:flex;align-items:center;gap:2rem}
+.al-list{display:flex;gap:1rem}
+.cm .al-list button{padding:.9rem 2rem;font-family:var(--num);font-size:2.4rem;font-weight:700;color:var(--text-muted)}
+.cm .al-list button.sel{color:var(--text);border-color:var(--text)}
+.cm .al-list button.off{color:var(--text-dim)}
+.cm .al-list button[data-al="add"]{padding:.9rem 1.8rem}
+.cm button[hidden]{display:none}
+.cm-ctl{display:flex;gap:1.4rem}
+.cm button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3.2rem;line-height:1;
+  color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
+.cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
+.cm button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+/* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때 날짜 자리(오른쪽 끝)에 세로로. 메인 시계 화면은 그 자리에 날짜가 있어서 숨김 */
+.cm-dots{display:none}
+body.sb:not([data-cm="clock"]) .cm-dots{position:absolute;right:0;top:calc(50% - 3rem);transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
+body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:var(--accent)}
+/* 울림 */
+.ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:var(--ring-bg);animation:ring 1s steps(2) infinite}
+.ring[hidden]{display:none}
+@keyframes ring{50%{background:rgba(var(--glow), .22)}}
+.ring b{font-family:var(--num);font-size:9rem;font-weight:900}
+.ring button{font:inherit;font-size:4.4rem;font-weight:700;padding:2.4rem 7rem;border:0;border-radius:999px;background:var(--accent);color:var(--on-accent)}
+/* 세로 라벨 | 숫자 — 시 / 분 / 초(절반 크기) 3줄. 크기는 JS(fitClock)가 칸 폭·남는 높이에 맞춤 */
+body.sb .clock-in{width:100%;grid-template-columns:auto auto 1fr;grid-template-areas:"lh hh ds" "lm mm ds" ". ss ds";justify-content:start;column-gap:2rem;row-gap:.04em}
+body.sb #lbl-h{grid-area:lh} body.sb #lbl-m{grid-area:lm}
+body.sb #hh{grid-area:hh} body.sb #mm{grid-area:mm}
+body.sb #lbl-gap, body.sb #colon, body.sb .sgroup .colon{display:none}
+body.sb.no-sec .clock-in{grid-template-areas:"lh hh ds" "lm mm ds"}
+body.sb .clock .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1;margin:0;padding:0}
+/* 초 줄: 숫자는 오른쪽 끝(시·분 끝선), 라벨은 왼쪽 끝(시·분 시작선)에 가로로 — 양 끝을 위 숫자에 맞춤 */
+body.sb .clock #lbl-s{grid-area:ss;justify-self:start;writing-mode:horizontal-tb;transform:none}
+/* 초: 위아래로 비치는 이웃 숫자는 줄 높이에 넣지 않고 위 여백·시계 아래 여백으로 넘치게 둠 */
+body.sb .sgroup{grid-area:ss;justify-self:end;font-size:.5em;margin:.24em 0 0}
+body.sb .sgroup .roll{margin:calc(-.35 * var(--lh)) 0;text-align:center}
+/* 날짜: 시계 오른쪽 칸(오른쪽 끝)에 시 숫자 위 끝 ~ 초 숫자 아래 끝 높이로 눕힘 (시·분 라벨과 같은 방향) */
+body.sb #date{display:none}
+body.sb.no-date .ds{display:none}   /* 날짜 표시 끄기(설정) */
+/* 알림 띠: 지금 비·눈 / 몇 시쯤 비·눈 소식 / 미세먼지 나쁨을 화면 위 가운데에 한 줄로 (시계 강조 화면) */
+.alert{display:none}
+body.sb .alert:not([hidden]){position:absolute;top:.6rem;left:50%;transform:translateX(-50%);max-width:calc(100% - 8rem);display:flex;align-items:center;gap:1.4rem;
+  padding:.5rem 2.4rem;border:1px solid var(--card-bd);border-radius:999px;background:rgba(var(--glow), .07);
+  font-size:2.3rem;font-weight:600;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden}
+.alert span{display:flex;align-items:center;gap:1rem}
+.alert .ico{width:2.8rem;height:2.8rem;flex:none}
+.alert .pm{width:1.6rem;height:1.6rem;flex:none;border-radius:50%;background:var(--bad)}
+.alert .pm.worst{background:var(--worst)}
+.alert b{color:var(--text-dim);font-weight:400}
+body.sb .ds{grid-area:ds;display:flex;align-items:center;gap:2rem;align-self:stretch;justify-self:end;margin-left:3rem;
+  writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg)}
+
+/* 위젯 4개(+ 교통·음악)가 같은 자리에 겹쳐 있고 data-panel 이름의 위젯만 보임
+   넘어갈 때 미끄러지는 효과는 JS(slide)가 줌. 숨은 위젯은 터치를 받지 않게 */
+body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{
+  grid-area:panel;align-self:center;margin:0 0 0 4rem;padding:0;
+  opacity:0;visibility:hidden;pointer-events:none;transition:none;
+}
+body.sb[data-panel="now"] .wmain, body.sb[data-panel="hourly"] .hourly,
+body.sb[data-panel="daily"] .wave, body.sb[data-panel="air"] .cards,
+body.sb[data-panel="transit"] .transit, body.sb[data-panel="music"] .music{opacity:1;visibility:visible;pointer-events:auto}
+/* 설정에서 끈 위젯: 자리도 빼서 세로 화면이면 그만큼 시계가 커짐 (fitClock이 위젯 높이를 봄) */
+body.sb .wg-off{display:none !important}

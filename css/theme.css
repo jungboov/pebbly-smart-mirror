@@ -1,0 +1,46 @@
+/* Pebbly Mirror — 테마 색·글꼴 변수 — 다른 테마는 이 변수만 바꿔 덮어쓰면 됨 */
+:root{
+  --bg:#000;
+  --text:#fff;
+  --text-muted:#a3a3a3;
+  --text-dim:#5f5f5f;
+  --line:#1c1c1c;
+  --grid:#101010;
+  --card-bd:#262626;
+  --rain:#8ec5ff;
+  --sunrise:#ffb35c;
+  --sunset:#8ec5ff;
+  /* 대기질 등급색 (환경부 4단계) */
+  --good:#6cb8ff;
+  --normal:#6fdc9a;
+  --bad:#ffb057;
+  --worst:#ff6b6b;
+  /* 날짜: 토요일 하늘색, 일요일·공휴일 핑크 */
+  --sat:#7cc8ff;
+  --sun:#ff8fb8;
+  /* 면·선: 설정 창, 버튼 바탕, 진행 바·구분선, 꺼진 막대·달 그림자, 위치 점, 그래프 테두리 */
+  --panel:#111;
+  --panel-2:#222;
+  --track:#2a2a2a;
+  --off:#262626;
+  --dot:#333;
+  --node-bd:#2c2c2c;
+  --arc:#555;
+  --horizon:#2e2e2e;
+  /* 켜짐·선택(밝은 바탕)과 그 위 글자 */
+  --accent:#fff;
+  --on-accent:#000;
+  /* 빛·유리 효과에 쓰는 밝은색 (r,g,b) — rgba(var(--glow), 투명도)로 씀 */
+  --glow:255,255,255;
+  --sun-glow:255,224,138;
+  /* 덮개: 설정 뒤, 알람 울림 */
+  --scrim:rgba(0,0,0,.72);
+  --ring-bg:rgba(0,0,0,.85);
+  --note-bg:rgba(142,197,255,.12);
+  /* 그 밖: 기온 숫자 위→아래 그라데이션, 달 밝은 쪽, 밤 붉은 단색 */
+  --temp-hi:#fff;
+  --temp-lo:#7d7d7d;
+  --moon-lit:#f4efd9;
+  --night-tint:#ff3b30;
+  --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
+}

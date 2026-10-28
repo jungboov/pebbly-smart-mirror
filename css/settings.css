@@ -1,0 +1,87 @@
+/* Pebbly Mirror — 설정 화면 (탭, 교통 등록, 위젯, 폰으로 설정, 음악 로그인) */
+/* ── 설정: 화면을 두 번 탭(PC는 더블클릭)하면 열림. 기기마다 저장 ── */
+.settings{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:var(--scrim)}
+.settings[hidden]{display:none}
+.set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:var(--panel)}
+.set-title{font-size:4.6rem;font-weight:700}
+/* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
+.set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
+.set-tabs{display:flex;gap:1rem}
+.set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
+.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
+.set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.set-page{display:none;flex-direction:column;gap:2.2rem}
+.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
+.set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"], .set-card[data-tab="sync"] [data-page="sync"]{display:flex}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
+.seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
+.set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
+.seg button{padding:1.4rem 2.8rem}
+.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:700}
+/* 따로 켜고 끄는 칩 여러 개 (표시: 초 / 날짜 / 상세 주소) */
+.chips{display:flex;gap:1rem}
+.set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}
+.set-card .chips button.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.step{display:flex;align-items:center;gap:2rem;color:var(--text);font-variant-numeric:tabular-nums}
+.step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
+.step span{min-width:9rem;text-align:center}
+.set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
+.set-foot{display:flex;gap:1.4rem}
+.set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--panel-2);color:var(--text);font-weight:600}
+.set-card .set-sync{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
+/* 폰으로 설정: QR(흰 바탕)과 주소. 폰에서 미러 설정 중이면 위에 안내, '폰으로 설정' 버튼은 숨김 */
+.sync-qr{align-self:center;width:min(30rem, 100%);border-radius:2rem;overflow:hidden}
+.sync-qr:empty{display:none}
+.sync-qr svg{display:block;width:100%;height:auto}
+.sync-url{align-self:center;font-size:2rem;color:var(--text-dim);word-break:break-all;text-align:center}
+.sync-url:empty{display:none}
+.set-card .sync-off{align-self:center;padding:1.4rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--bad)}
+.set-card .sync-off[hidden]{display:none}
+.remote-note{display:none}
+.set-card[data-tab="sync"] .set-hint{display:none}
+body.remote .remote-note{display:block;padding:2rem 2.6rem;border-radius:2.2rem;background:var(--note-bg);font-size:2.6rem;line-height:1.5;color:var(--text)}
+body.remote .set-card .set-sync{display:none}
+/* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
+.tr-sec{display:flex;flex-direction:column;gap:1.8rem}
+.tr-add{display:flex;gap:1.2rem}
+.set-card .tr-add button, .set-card .tr-bar button, .set-card .tr-list button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;color:var(--text)}
+.tr-list, .tr-res{list-style:none;display:flex;flex-direction:column;gap:1rem}
+.tr-list li, .tr-res li{display:flex;align-items:center;justify-content:space-between;gap:2rem;padding:1.6rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;font-size:3rem;color:var(--text)}
+.tr-list small, .tr-res small{display:block;margin-top:.5rem;font-size:2.4rem;color:var(--text-dim)}
+.tr-res li[data-i]{cursor:pointer}
+.tr-res label{display:flex;align-items:center;gap:1.8rem;flex:1;cursor:pointer}
+.tr-res input[type=checkbox]{width:3.8rem;height:3.8rem;accent-color:var(--accent);flex:none}
+.tr-bar{display:flex;gap:1.2rem}
+.tr-bar input{flex:1;min-width:0;padding:1.4rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;background:var(--bg);color:var(--text);font:inherit;font-size:3.2rem;user-select:text}
+.tr-msg{font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
+/* 위젯 탭: 이름 | 위로·아래로 | 켜짐·꺼짐 */
+.wg-list{list-style:none;display:flex;flex-direction:column;gap:1.4rem}
+.wg-list li{display:flex;flex-wrap:wrap;align-items:center;gap:1.4rem;font-size:3.4rem;color:var(--text)}
+.wg-list li span{flex:1;min-width:0}
+.wg-list li.wait span{color:var(--text-dim)}
+.wg-list small{display:block;margin-top:.4rem;font-size:2.4rem;color:var(--text-dim)}
+.set-card .wg-list button{width:6.4rem;height:6.4rem;display:grid;place-items:center;flex:none;padding:0;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
+.set-card .wg-list button:disabled{opacity:.2;cursor:default}
+.set-card .wg-list .wg-tog{width:11rem;border-radius:2.2rem;color:var(--text-muted)}
+.set-card .wg-list .wg-tog.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.wg-list svg{width:3rem;height:3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* 보이는 시간: 시계 버튼(시간을 정했으면 밝게) → 아래 줄에 시작 −/+ ~ 끝 −/+ / 항상 */
+.set-card .wg-list button[data-tm]{color:var(--text-dim)}
+.set-card .wg-list button.timed, .set-card .wg-list button.open{color:var(--text);border-color:var(--text-muted)}
+.wg-time{flex-basis:100%;display:flex;align-items:center;gap:1.2rem;padding:.4rem 0 1rem;font-size:3rem;color:var(--text)}
+.wg-time b{min-width:8rem;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.wg-time i, .wg-time em{font-style:normal;color:var(--text-dim)}
+.wg-time em{flex:1}
+.set-card .wg-time button{width:5.6rem;height:5.6rem}
+.set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
+.tr-msg:empty{display:none}
+.g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
+.set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
+/* Google 로그인 코드: 주소 + 큰 코드 */
+.g-code{display:flex;flex-direction:column;align-items:center;gap:1.4rem;padding:3rem;border:1px solid var(--card-bd);border-radius:2.4rem;text-align:center}
+.g-code[hidden]{display:none}
+.g-code span{font-size:2.6rem;color:var(--text-dim)}
+.g-code a{font-size:3.4rem;font-weight:600;color:var(--rain);text-decoration:none}
+.g-code b{font-family:var(--num);font-size:7rem;letter-spacing:.12em}
+.tr-res li.on{border-color:var(--accent)}
+.tr-res li > span{flex:none;font-size:2.6rem;color:var(--text-dim)}

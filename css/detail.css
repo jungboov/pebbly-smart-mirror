@@ -1,0 +1,50 @@
+/* Pebbly Mirror — 상세 화면(시계 강조 끔) 가로 배치 */
+/* ── 가로 배치: 왼쪽 시계 / 오른쪽 날씨, 아래 예보 곡선과 카드 ── */
+@media (orientation: landscape){
+  .stage{
+    grid-template-columns:minmax(0,1fr) minmax(0,.82fr);
+    grid-template-rows:auto auto auto auto 1fr auto;
+    grid-template-areas:
+      "head   head"
+      "clock  wmain"
+      "date   wave"
+      "phrase wave"
+      "zone   zone"
+      "hourly cards";
+    column-gap:6rem;
+    padding:4rem 6rem;
+  }
+  .head{padding-bottom:2rem;margin-bottom:2rem}
+  .clock-in{width:max-content}
+  .clock{align-self:end;padding-bottom:3rem}
+  .date{align-self:start}
+  .date-num{font-size:5.4rem}
+  .phrase{align-self:start;margin-top:2.4rem;font-size:3rem;font-weight:400;line-height:1.5;color:var(--text-muted)}
+  .wmain{display:block;align-self:end;padding-bottom:2rem}
+  .w-temp{font-size:11rem}
+  .w-stats{margin-top:2.4rem;gap:1.6rem}
+  .w-stats .card{padding:1.4rem 1.8rem}
+  .w-stats .c-name, .w-stats .c-sub{font-size:2.1rem}
+  .w-stats .c-val{margin-top:.6rem;font-size:4rem}
+  .w-stats .c-sub{padding-top:.6rem}
+  .f-lbl{margin-bottom:1.2rem}
+  /* 가로는 시간별·일별을 둘 다 표시. 오른쪽 칸(약 64단위)에 6일이 들어가도록 예보를 조금 줄임 */
+  body:not(.sb) .wave, body:not(.sb) .hourly{opacity:1 !important}
+  .hourly{grid-area:hourly;align-self:end}
+  .wave{margin-top:2rem}
+  .wt b{font-size:3.6rem}
+  .wave-plot{height:7rem;margin-top:1.2rem}
+  .node{width:4.6rem;height:4.6rem}
+  .node .ico{width:2.6rem;height:2.6rem}
+  .hl{font-size:2rem}
+  .ht .ico{width:2.6rem;height:2.6rem}
+  .ht b{font-size:2.8rem}
+  .h-plot{height:4.4rem;margin-top:1rem}
+  .h-bars{margin-top:.8rem}
+  .bar{height:2rem}
+  .hb span{font-size:1.7rem}
+  .cards{margin-top:0;align-self:end}
+  .sun-times{font-size:2rem}
+  .sun-times b{font-size:2.4rem}
+  .sun-arc{margin-top:.6rem}
+}
