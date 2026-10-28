@@ -44,12 +44,12 @@ function phApply() {
   if (later) { setTimeout(loadPhotos, 40e3); setTimeout(loadPhotos, 100e3); }
 }
 
-// 설정 '사진' 탭: 작은 그림 격자, 그림마다 지우기
+// 설정 '사진' 탭: 작은 그림 격자 (누르면 크게 보기), 그림마다 지우기
 function phRenderList() {
   const key = S.album + ':' + photos.map(p => p.id).join();
   if (key !== phListKey) {
     phListKey = key;
-    $('ph-list').innerHTML = photos.map(p => `<li><img src="${phUrl(p.id, true)}" alt="" loading="lazy"><button data-del="${p.id}" aria-label="이 사진 지우기">×</button></li>`).join('');
+    $('ph-list').innerHTML = photos.map((p, i) => `<li data-i="${i}"><img src="${phUrl(p.id, true)}" alt="" loading="lazy"><button data-del="${p.id}" aria-label="이 사진 지우기">×</button></li>`).join('');
   }
   if (!phBusy) phMsg(photos.length ? `${photos.length}장 (최대 ${PH_MAX}장) · 사진 액자에서 좌우로 밀면 사진을, 위아래로 밀면 다른 위젯을 봐요`
     : '올린 사진이 사진 액자 위젯에서 한 장씩 돌아가요. 여러 장을 한 번에 골라도 돼요.');
@@ -162,17 +162,55 @@ function phJpeg(img, max, q) {
   return new Promise((ok, no) => c.toBlob(b => b ? ok({ blob: b, w, h }) : no(new Error('사진을 줄이지 못했어요')), 'image/jpeg', q));
 }
 
-$('ph-list').addEventListener('click', async e => {
-  const b = e.target.closest('button[data-del]');
-  if (!b || phBusy || !confirm('이 사진을 지울까요?')) return;
+// 사진 탭 작은 그림: × 는 지우기, 그림을 누르면 크게 보기
+$('ph-list').addEventListener('click', e => {
+  const del = e.target.closest('button[data-del]'), li = e.target.closest('li[data-i]');
+  if (del) phDelete(del.dataset.del);
+  else if (li) phView(Number(li.dataset.i));
+});
+// 지우기 (물어본 뒤). 지웠으면 true
+async function phDelete(id) {
+  if (phBusy || !confirm('이 사진을 지울까요?')) return false;
   phBusy = true;
   phMsg('지우는 중…');
   try {
-    const r = await (await fetch(`${PH_API}?album=${S.album}&id=${b.dataset.del}`, { method: 'DELETE' })).json();
+    const r = await (await fetch(`${PH_API}?album=${S.album}&id=${id}`, { method: 'DELETE' })).json();
     if (r.error) throw new Error(r.error);
     phBusy = false;
-    phChanged(photos.filter(p => p.id !== b.dataset.del));
-  } catch (err) { phBusy = false; phMsg('지우지 못했어요: ' + err.message); }
+    phChanged(photos.filter(p => p.id !== id));
+    return true;
+  } catch (err) { phBusy = false; phMsg('지우지 못했어요: ' + err.message); return false; }
+}
+
+// 크게 보기: 설정 위에 겹쳐 액자에 쓰는 큰 사진(긴 변 1920px)을 화면에 맞춰 보여 줌
+//   좌우로 밀거나 ‹ › 로 넘기기, 삭제(지우면 다음 사진, 다 지우면 닫힘), 닫기·바깥 누르기로 닫기
+let pvIdx = -1, pvX = null;
+function phView(i) {
+  if (!photos.length) { phViewClose(); return; }
+  pvIdx = (i % photos.length + photos.length) % photos.length;
+  $('ph-view-img').src = phUrl(photos[pvIdx].id);
+  $('ph-view-n').textContent = `${pvIdx + 1} / ${photos.length}`;
+  $('ph-view').hidden = false;
+}
+function phViewClose() {
+  $('ph-view').hidden = true;
+  $('ph-view-img').removeAttribute('src');
+  pvIdx = -1;
+}
+$('ph-view').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-pv]');
+  if (!b) { if (e.target === $('ph-view')) phViewClose(); return; }
+  const a = b.dataset.pv;
+  if (a === 'close') phViewClose();
+  else if (a === 'prev' || a === 'next') phView(pvIdx + (a === 'next' ? 1 : -1));
+  else if (a === 'del' && await phDelete(photos[pvIdx].id)) phView(pvIdx);   // 같은 자리에 다음 사진이 옴
+});
+$('ph-view-img').addEventListener('pointerdown', e => { pvX = e.clientX; });
+$('ph-view-img').addEventListener('pointerup', e => {
+  if (pvX == null) return;
+  const dx = e.clientX - pvX;
+  pvX = null;
+  if (Math.abs(dx) > 40) phView(pvIdx + (dx < 0 ? 1 : -1));
 });
 
 // 위젯에 보일 때(showPanel): 자동 넘김·밀기마다 다음 사진(이전으로 밀면 이전 사진), 설정만 바뀌어 다시 그릴 때(dir 없음)는 그대로
