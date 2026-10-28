@@ -31,7 +31,7 @@ function phSet(list) {
 }
 
 // 설정 반영 때(applySettings): 위젯 표시, 설정 목록, 앨범이 바뀌었거나 폰에서 사진을 바꿨으면 목록 새로 받기
-// (KV 목록은 반영이 1분쯤 늦기도 해서 1분 반 뒤 한 번 더)
+// (KV 목록은 반영이 30초~1분쯤 늦기도 해서 40초·100초 뒤 한 번씩 더)
 function phApply() {
   document.body.classList.toggle('has-photo', photos.length > 0);
   phRenderList();
@@ -40,7 +40,7 @@ function phApply() {
   const later = phSeen !== '';
   phSeen = k;
   loadPhotos();
-  if (later) setTimeout(loadPhotos, 90e3);
+  if (later) { setTimeout(loadPhotos, 40e3); setTimeout(loadPhotos, 100e3); }
 }
 
 // 설정 '사진' 탭: 작은 그림 격자, 그림마다 지우기

@@ -82,10 +82,9 @@ function fitClock() {
     else if (portrait && S.half) h /= 2;   // 반반: 위 절반
     else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
     h -= parseFloat(getComputedStyle($('clock')).paddingBottom);
-    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
-    const w = portrait ? $('clock').clientWidth
-      : stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
-        - (solo ? 0 : parseFloat(st.columnGap) + 54 * rem);
+    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 오른쪽 날짜 칸을 뺌
+    const sw = stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight), cg = parseFloat(st.columnGap);
+    const w = portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem;
     const gap = parseFloat(getComputedStyle(inner).columnGap);
     const lbl = $('lbl-h').offsetWidth + gap;
     const side = dateBelow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;

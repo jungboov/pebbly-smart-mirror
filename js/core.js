@@ -31,13 +31,13 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게)
 // addr: 위치를 도로명 주소까지 (켰을 때만 약 10m 단위 좌표로 조회) / alert: 비·미세먼지 알림 띠 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
-// half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
+// half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게) / halfL: 가로 화면을 왼쪽 시계 / 오른쪽 위젯 반반으로 (끄면 위젯 자리만 남기고 시계를 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarms: 알람 [{ h, m, on, days: 'all' 매일 · 'wk' 평일(공휴일 빼고) · 'we' 주말 }]
 // album: 사진 액자 앨범 번호(처음 올릴 때 만듦) / photoAt: 사진을 마지막으로 올리거나 지운 시각 (폰에서 바꾸면 미러가 목록을 새로 받는 신호)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }] },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );

@@ -18,7 +18,7 @@ async function syncSend() {
 function syncPush() {   // +/− 버튼을 누르고 있을 때처럼 연달아 바뀌면 다 끝난 뒤 한 번만
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => syncSend()
-    .then(() => { if (REMOTE) syncMsg('미러로 보냈어요. 몇 초 안에 반영돼요.'); })
+    .then(() => { if (REMOTE) syncMsg('미러로 보냈어요. 1분쯤 안에 반영돼요.'); })
     .catch(e => syncMsg('보내지 못했어요: ' + e.message)), 800);
 }
 async function syncPull() {
