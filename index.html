@@ -16,16 +16,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 음악 → 교통 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=3">
-<link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/clock.css?v=3">
-<link rel="stylesheet" href="css/weather.css?v=3">
-<link rel="stylesheet" href="css/detail.css?v=3">
-<link rel="stylesheet" href="css/standby.css?v=3">
-<link rel="stylesheet" href="css/music.css?v=3">
-<link rel="stylesheet" href="css/transit.css?v=3">
-<link rel="stylesheet" href="css/standby-widgets.css?v=3">
-<link rel="stylesheet" href="css/settings.css?v=3">
+<link rel="stylesheet" href="css/theme.css?v=4">
+<link rel="stylesheet" href="css/base.css?v=4">
+<link rel="stylesheet" href="css/clock.css?v=4">
+<link rel="stylesheet" href="css/weather.css?v=4">
+<link rel="stylesheet" href="css/detail.css?v=4">
+<link rel="stylesheet" href="css/standby.css?v=4">
+<link rel="stylesheet" href="css/music.css?v=4">
+<link rel="stylesheet" href="css/transit.css?v=4">
+<link rel="stylesheet" href="css/standby-widgets.css?v=4">
+<link rel="stylesheet" href="css/settings.css?v=4">
 </head>
 <body class="idle" data-panel="now">
 <main id="stage" class="stage">
@@ -104,6 +104,11 @@
       <div class="c-name">초미세먼지</div>
       <div id="pm25-v" class="c-val">-</div>
       <div id="pm25" class="c-sub">-</div>
+    </div>
+    <!-- 큰 달 카드: 가로 시계 강조 화면의 공기 위젯 가운데 (다른 화면은 해·달 카드 안의 작은 달) -->
+    <div class="card moon-card">
+      <svg class="moon-big" viewBox="-11 -11 22 22" aria-hidden="true"><circle class="moon-bg" r="10"/><path id="moon-lit-big" class="moon-lit"/></svg>
+      <div class="moon-txt"><b id="moon-name-big"></b><span id="moon-next"></span></div>
     </div>
     <div class="card sun-card">
       <div class="sun-times">
@@ -288,15 +293,15 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=3"></script>
-<script src="js/sync.js?v=3"></script>
-<script src="js/clock.js?v=3"></script>
-<script src="js/weather.js?v=3"></script>
-<script src="js/screen.js?v=3"></script>
-<script src="js/clock-modes.js?v=3"></script>
-<script src="js/settings.js?v=3"></script>
-<script src="js/transit.js?v=3"></script>
-<script src="js/music.js?v=3"></script>
-<script src="js/main.js?v=3"></script>
+<script src="js/core.js?v=4"></script>
+<script src="js/sync.js?v=4"></script>
+<script src="js/clock.js?v=4"></script>
+<script src="js/weather.js?v=4"></script>
+<script src="js/screen.js?v=4"></script>
+<script src="js/clock-modes.js?v=4"></script>
+<script src="js/settings.js?v=4"></script>
+<script src="js/transit.js?v=4"></script>
+<script src="js/music.js?v=4"></script>
+<script src="js/main.js?v=4"></script>
 </body>
 </html>

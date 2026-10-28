@@ -21,9 +21,6 @@ body.sb .w-stats .c-sub{grid-area:sub;margin:0;padding-top:.6rem;font-size:3rem}
 /* 위젯 칸이 좁을 때(태블릿 가로 등): 기온·설명을 줄이고 정보 카드는 이름 / 값 / 보조 세로형으로 */
 body.sb .wmain, body.sb .wave{container-type:inline-size}
 @container (max-width: 64rem){
-  body.sb .wd{font-size:2.8rem}
-  body.sb .wt b{font-size:3.4rem}
-  body.sb .wp{font-size:2.5rem}
   body.sb .w-hero{gap:2.4rem}
   body.sb .w-temp{font-size:15rem}
   body.sb .w-desc{padding-left:2.4rem}
@@ -38,6 +35,11 @@ body.sb .ht{gap:1.4rem}
 body.sb .hl{font-size:3.2rem}
 body.sb .ht .ico{width:5rem;height:5rem}
 body.sb .ht b{font-size:4.8rem}
+/* 시간별 위젯 칸이 좁으면(가로에서 시계가 커졌을 때) 기온 숫자를 줄여 '11°11°'처럼 붙지 않게 */
+body.sb .hourly{container-type:inline-size}
+@container (max-width: 64rem){
+  body.sb .ht b{font-size:4rem}
+}
 body.sb .h-plot{height:12rem;margin-top:2.4rem}
 body.sb .h-dot{width:1.3rem;height:1.3rem}
 body.sb .h-dot.now{width:2.4rem;height:2.4rem}
@@ -51,8 +53,13 @@ body.sb .wt b{margin-top:1rem;font-size:4.2rem}
 body.sb .wave-plot{height:14rem;margin-top:2.4rem}
 body.sb .node{width:6.6rem;height:6.6rem}
 body.sb .node .ico{width:3.8rem;height:3.8rem}
-body.sb .wave-dot{width:2.4rem;height:2.4rem}
 body.sb .wp{margin-top:1.4rem;font-size:3rem}
+/* 일별 위젯 칸이 좁으면(가로에서 시계가 커졌을 때) 날짜·기온 글자를 줄여 6칸에 맞춤 (위 기본 크기보다 뒤에 와야 적용됨) */
+@container (max-width: 64rem){
+  body.sb .wd{font-size:2.6rem}
+  body.sb .wt b{font-size:3rem}
+  body.sb .wp{font-size:2.2rem}
+}
 
 body.sb .cards{grid-template-columns:1fr 1fr;gap:2.4rem}
 body.sb .cards .card{padding:2.6rem 3rem;border-radius:3.2rem}
@@ -120,17 +127,31 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
-   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 해·달 카드는 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
+   (공기 위젯은 미세먼지 카드를 세로 조금 긴 정도까지만 제목 아래에, 가운데 큰 달, 해·달 카드는 맨 아래. 음악은 플레이어를 남은 칸 가운데) */
 @media (orientation: landscape){
   body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit, body.sb .music{align-self:stretch}
   body.sb .wmain, body.sb .hourly, body.sb .wave{display:flex;flex-direction:column}
   body.sb .w-hero{flex-grow:1}
   body.sb .h-plot, body.sb .wave-plot{flex-grow:1}
-  body.sb .cards{grid-template-rows:auto 1fr auto}
-  body.sb .cards .card:not(.sun-card){align-self:start;aspect-ratio:5 / 6}
+  body.sb .cards{grid-template-rows:auto auto 1fr auto}
+  body.sb .cards .card:not(.sun-card):not(.moon-card){align-self:start;aspect-ratio:5 / 6;max-height:36rem}
+  /* 가운데 큰 달: 남는 높이만큼 (최대 30rem), 이름 / 밝기·다음 위상까지 며칠. 해·달 카드 안 작은 달은 숨김 */
+  body.sb .moon-card{grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4rem;min-height:0}
+  body.sb .moon-big{flex:1 1 0;min-height:0;width:100%;max-height:30rem}
+  body.sb .moon-txt{text-align:center}
+  body.sb .moon-txt b{display:block;font-size:4.4rem;font-weight:700;line-height:1.2}
+  body.sb .moon-txt span{display:block;margin-top:.8rem;font-size:3rem;color:var(--text-muted)}
+  body.sb .sun-card .moon{display:none}
+  /* 폰처럼 아주 넓은 칸: 큰 달은 숨기고 해·달 카드 안 작은 달, 해 반원은 너무 커지지 않게 */
+  body.sb .cards{container-type:inline-size}
+  body.sb .sun-arc{max-height:18rem}
   body.sb .cards .card:not(.sun-card) .c-val{margin:auto 0}
   body.sb .music{justify-content:flex-start}
   body.sb .mu-main{flex:1;min-height:0;justify-content:center}
+}
+@container (min-width: 80rem){
+  body.sb .moon-card{display:none}
+  body.sb .sun-card .moon{display:flex}
 }
 
 /* 위젯을 모두 끄면(설정 > 위젯) 시계만 화면 가운데에 꽉 차게. 크기는 fitClock

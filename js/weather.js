@@ -219,6 +219,19 @@ function tempColor(t) {
   return `rgb(${s[s.length - 1][1]})`;
 }
 
+// 기온 → 그래프 높이 (viewBox 100 기준, pad는 위아래 여백, plot은 그래프 칸)
+// 화면에 보이는 숫자(반올림)로 그리고 가운데 기준. 1°당 높이는 최고·최저 차이가 작아도 최소 8°가 칸 높이 전체가 되게,
+// 칸이 아주 높아도(위젯이 화면 높이를 채울 때) 1°당 2.5rem까지만 → 몇 도 차이가 화면 가득 출렁이지 않게
+// (가장 낮은 값·높은 값을 맨 아래·맨 위에 맞추면 11.2°·11.4°처럼 같은 11°도 크게 오르내려 보임)
+const MIN_SPAN = 8, DEG_REM = 2.5;
+function tempYs(temps, pad, plot) {
+  const t = temps.map(Math.round), lo = Math.min(...t), hi = Math.max(...t), mid = (hi + lo) / 2;
+  let per = (100 - 2 * pad) / Math.max(hi - lo, MIN_SPAN);
+  const h = plot.clientHeight, rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  if (h) per = Math.min(per, DEG_REM * rem / h * 100);
+  return t.map(v => 50 + (mid - v) * per);
+}
+
 // 점들을 지나는 부드러운 곡선 (Catmull-Rom → 베지어)
 function smoothPath(p) {
   const f = v => v.toFixed(1);
@@ -289,9 +302,8 @@ function renderWave(w) {
   const days = waveDays(w), n = days.length;
   if (!n) return;
   const temps = days.map(([, i]) => d.temperature_2m_max[i]);
-  const lo = Math.min(...temps), hi = Math.max(...temps);
   const PAD = 25;   // 동그란 점이 위아래로 잘리지 않도록 남기는 여백 (viewBox 100 기준)
-  const pts = temps.map((t, k) => [(k + .5) / n * 600, hi === lo ? 50 : PAD + (hi - t) / (hi - lo) * (100 - 2 * PAD)]);
+  const pts = tempYs(temps, PAD, document.querySelector('.wave-plot')).map((y, k) => [(k + .5) / n * 600, y]);
   $('wave-path').setAttribute('d', smoothPath([[0, pts[0][1]], ...pts, [600, pts[n - 1][1]]]));
   $('wave').style.setProperty('--n', n);
 
@@ -303,9 +315,8 @@ function renderWave(w) {
     top += `<div class="wt ${cls}"><span class="wd">${dayLabel(iso)}</span>`
          + `<b${color}>${max}°<small>${Math.round(d.temperature_2m_min[i])}°</small></b></div>`;
     const x = (pts[k][0] / 6).toFixed(2), y = pts[k][1].toFixed(2);
-    nodes += cls === 'today'
-      ? `<i class="wave-line" style="left:${x}%;height:calc(${y}% + 1.2rem)"></i><i class="wave-dot" style="left:${x}%;top:${y}%"></i>`
-      : `<span class="node ${cls}" style="left:${x}%;top:${y}%">${icon(wmo(d.weather_code[i])[1])}</span>`;
+    if (cls === 'today') nodes += `<i class="wave-line" style="left:${x}%;height:calc(${y}% + 1.2rem)"></i>`;
+    nodes += `<span class="node ${cls}" style="left:${x}%;top:${y}%">${icon(wmo(d.weather_code[i])[1])}</span>`;   // 오늘도 아이콘 (밝은 테두리·점선으로 구분)
     const p = d.precipitation_probability_max[i];
     pop += `<span class="wp">${p >= 30 ? '☂ ' + p + '%' : ''}</span>`;
   });
@@ -325,9 +336,8 @@ function renderHourly(w) {
   const idx = range(Math.min(count, h.time.length - i0), k => i0 + k);
   const n = idx.length;
   const temps = idx.map((i, k) => k === 0 ? w.current.temperature_2m : h.temperature_2m[i]);
-  const lo = Math.min(...temps), hi = Math.max(...temps);
   const PAD = 15;
-  const pts = temps.map((t, k) => [(k + .5) / n * 600, hi === lo ? 50 : PAD + (hi - t) / (hi - lo) * (100 - 2 * PAD)]);
+  const pts = tempYs(temps, PAD, document.querySelector('.h-plot')).map((y, k) => [(k + .5) / n * 600, y]);
   const line = smoothPath([[0, pts[0][1]], ...pts, [600, pts[n - 1][1]]]);
   $('h-line').setAttribute('d', line);
   $('h-area').setAttribute('d', line + ' L600,100 L0,100 Z');
@@ -363,11 +373,20 @@ function moonPath(p, r = 10) {
   return `M0 ${-r}A${r} ${r} 0 0 ${waxing ? 1 : 0} 0 ${r}`
        + `A${(Math.abs(c) * r).toFixed(2)} ${r} 0 0 ${(c > 0) === waxing ? 0 : 1} 0 ${-r}Z`;
 }
+// 다음 주요 위상 (지금 위상과 반나절 안쪽이면 그다음 것)
+const MOON_NEXT = [[.25, '상현달'], [.5, '보름달'], [.75, '하현달'], [1, '삭'], [1.25, '상현달']];
 function renderMoon() {
-  const p = moonPhase(Date.now());
+  const p = moonPhase(Date.now()), name = MOON_NAMES.find(([lim]) => p < lim)[1];
+  const pct = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100) + '%';
   $('moon-lit').setAttribute('d', moonPath(p));
-  $('moon-name').textContent = MOON_NAMES.find(([lim]) => p < lim)[1];
-  $('moon-pct').textContent = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100) + '%';
+  $('moon-name').textContent = name;
+  $('moon-pct').textContent = pct;
+  // 큰 달 카드 (가로 시계 강조 화면의 공기 위젯)
+  const [lim, next] = MOON_NEXT.find(([l]) => p < l - .02);
+  const days = Math.round((lim - p) * 29.53);
+  $('moon-lit-big').setAttribute('d', moonPath(p));
+  $('moon-name-big').textContent = name;
+  $('moon-next').textContent = `밝기 ${pct} · ${days < 1 ? '곧 ' + next : next + '까지 ' + days + '일'}`;
 }
 
 // 일출~일몰 반원 위에 현재 해 위치 표시 (달 모양도 함께)

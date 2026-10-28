@@ -45,6 +45,8 @@ function scheduleReload() {
     fitClock();
   });
   window.addEventListener('resize', fitClock);
+  let reflow = 0;   // 크기가 바뀌면 그래프 칸 높이도 바뀌어서 다시 그림 (1°당 높이 상한)
+  window.addEventListener('resize', () => { clearTimeout(reflow); reflow = setTimeout(renderWeather, 300); });
   portraitMQ.addEventListener('change', applySettings);   // 가로·세로 위젯 설정이 따로라 돌리면 다시 그림
   phoneMQ.addEventListener('change', applyMode);
   // 인터넷이 끊겼다 돌아오면 바로 새로 받음. 화면 파일·글꼴은 서비스 워커(sw.js)가 기기에 저장해 둬서 끊긴 채로 켜도 뜸
