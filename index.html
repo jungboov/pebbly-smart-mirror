@@ -621,6 +621,10 @@ body.night.night-red::after{background:#ff3b30}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
 .seg button{padding:1.4rem 2.8rem}
 .seg button.on{background:#fff;color:#000;font-weight:700}
+/* 따로 켜고 끄는 칩 여러 개 (표시: 초 / 날짜 / 상세 주소) */
+.chips{display:flex;gap:1rem}
+.set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}
+.set-card .chips button.on{background:#fff;color:#000;font-weight:700;border-color:#fff}
 .step{display:flex;align-items:center;gap:2rem;color:var(--text);font-variant-numeric:tabular-nums}
 .step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .step span{min-width:9rem;text-align:center}
@@ -869,11 +873,8 @@ body.remote .set-card .set-sync{display:none}
       <div class="set-row">시계 형식
         <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
       </div>
-      <div class="set-row">초 표시
-        <div class="seg" data-key="secs"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
-      </div>
-      <div class="set-row">날짜 표시
-        <div class="seg" data-key="date"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
+      <div class="set-row">표시
+        <div class="chips"><button data-chip="secs">초</button><button data-chip="date">날짜</button><button data-chip="addr">상세 주소</button></div>
       </div>
       <div class="set-row">시계 강조
         <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
@@ -976,7 +977,8 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
-// hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게) / alert: 비·미세먼지 알림 띠 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
+// hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게)
+// addr: 위치를 도로명 주소까지 (켰을 때만 약 10m 단위 좌표로 조회) / alert: 비·미세먼지 알림 띠 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
@@ -984,7 +986,7 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, secs: true, date: true, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }], music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -1408,22 +1410,40 @@ async function placeName(lat, lon) {
   return [district, dong].filter(Boolean).join(' ') || FALLBACK_NAME;
 }
 
+// 상세 주소(설정 > 화면 > 표시): 도로명 주소. 예: 부천시 원미구 길주로 210, 서울 강남구 테헤란로 152
+// 건물 번호가 없으면 도로 이름까지, 도로도 없으면 null (그땐 구·동 이름을 씀)
+async function roadAddress(lat, lon) {
+  const r = await getJSON('https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({
+    format: 'jsonv2', lat, lon, zoom: 18, 'accept-language': 'ko'
+  }));
+  const a = r.address || {};
+  if (!a.road) return null;
+  const city = (a.city || a.county || '').replace(/(특별시|광역시|특별자치시)$/, '');
+  const gu = a.borough || (a.city_district && /구$/.test(a.city_district) ? a.city_district : '');
+  return [city, gu, a.road, a.house_number].filter(Boolean).join(' ');
+}
+
 function locate() {
   if (MANUAL_LOC || !navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(async pos => {
     const { latitude, longitude } = pos.coords;
-    const fine = [round(latitude, 3), round(longitude, 3)];
-    const prev = savedLoc();
-    if (prev && String(prev.fine) === String(fine) && prev.name !== FALLBACK_NAME) return;
-    let name = FALLBACK_NAME;
-    try { name = await placeName(...fine); } catch (e) { console.warn('지역 이름 확인 실패', e); }
-    const loc = { lat: round(latitude, 2), lon: round(longitude, 2), fine, name };
+    const fine = [round(latitude, 3), round(longitude, 3)], exact = [round(latitude, 4), round(longitude, 4)];
+    const prev = savedLoc() || {};
+    const needName = String(prev.fine) !== String(fine) || !prev.name || prev.name === FALLBACK_NAME;
+    const needAddr = S.addr && (String(prev.exact) !== String(exact) || !prev.addr);
+    if (!needName && !needAddr) return;
+    const loc = { lat: round(latitude, 2), lon: round(longitude, 2), fine, name: needName ? FALLBACK_NAME : prev.name };
+    if (needName) try { loc.name = await placeName(...fine); } catch (e) { console.warn('지역 이름 확인 실패', e); }
+    if (S.addr) {
+      loc.exact = exact; loc.addr = needAddr ? null : prev.addr;
+      if (needAddr) try { loc.addr = await roadAddress(...exact); } catch (e) { console.warn('주소 확인 실패', e); }
+    }
     try { localStorage.setItem(LOC_KEY, JSON.stringify(loc)); } catch (e) {}
     const moved = !sameLoc(loc);
     useLoc(loc);
     if (moved) { loadWeather(); loadAir(); }
     else renderFoot();
-  }, err => console.warn('위치 확인 실패', err.message), { timeout: 20000, maximumAge: 6 * 3600e3 });
+  }, err => console.warn('위치 확인 실패', err.message), { enableHighAccuracy: !!S.addr, timeout: 20000, maximumAge: S.addr ? 600e3 : 6 * 3600e3 });
 }
 
 // ===== 렌더링 =====
@@ -1653,15 +1673,17 @@ function renderAir() {
   PANELS[3].dataset.src = a.station ? `${a.station} 측정소` : '예측값';   // 시계 강조 'air' 위젯 제목
 }
 
+// 위치 이름: 상세 주소를 켰고 알면 도로명 주소, 아니면 구·동
+const placeLabel = () => (S.addr && !MANUAL_LOC && (savedLoc() || {}).addr) || CONFIG.name;
 function renderFoot() {
-  let s = CONFIG.name;
+  let s = placeLabel();
   if (state.weatherAt) {
     const d = new Date(state.weatherAt);
     s += ` · ${pad(d.getHours())}:${pad(d.getMinutes())} 갱신`;
   }
   if (state.weatherErr || state.airErr) s += ' · 연결 확인 중';
   $('foot').textContent = s;
-  PANELS[0].dataset.loc = CONFIG.name;   // 시계 강조 화면은 상단 바가 없어서 'now' 위젯 제목에 위치 표시
+  PANELS[0].dataset.loc = placeLabel();   // 시계 강조 화면은 상단 바가 없어서 'now' 위젯 제목에 위치 표시
 }
 
 // ===== 알림 띠 (시계 강조 화면) =====
@@ -1784,6 +1806,12 @@ function applySettings() {
   fitClock();
   showPanel(panel);   // 바뀐 주기로 다시 시작
   showCm(S.focus ? cm : 0);   // 스톱워치·타이머·알람은 시계 강조 화면에서만
+  document.querySelectorAll('[data-chip]').forEach(b => b.classList.toggle('on', !!S[b.dataset.chip]));
+  // 상세 주소: 켜면 주소를 아직 모를 때 위치 확인, 끄면 저장해 둔 주소·정밀 좌표를 지움 (폰에서 미러 설정 중엔 폰 위치는 안 건드림)
+  const sl = REMOTE ? null : savedLoc();
+  if (!REMOTE && S.addr && !(sl && sl.addr)) locate();
+  else if (sl && !S.addr && sl.addr) { delete sl.addr; delete sl.exact; try { localStorage.setItem(LOC_KEY, JSON.stringify(sl)); } catch (e) {} }
+  renderFoot();
   document.querySelectorAll('.seg[data-key]').forEach(seg => {
     const k = seg.dataset.key, v = k === 'night' ? nightStyle() : String(+S[k]);
     seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
@@ -2095,6 +2123,7 @@ $('settings').addEventListener('click', e => {
     return;
   }
   if (b && b.parentNode.dataset.key) S[b.parentNode.dataset.key] = { 1: true, 0: false }[b.dataset.v] ?? b.dataset.v;
+  else if (b && b.dataset.chip) S[b.dataset.chip] = !S[b.dataset.chip];
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
   else {
