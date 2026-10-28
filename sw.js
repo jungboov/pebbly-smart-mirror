@@ -9,8 +9,11 @@ const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png',
   ...CSS.map(n => `/css/${n}.css`), ...JS.map(n => `/js/${n}.js`)];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
 
+// 미리 저장: 파일마다 따로 담고 하나가 실패해도 설치는 계속 (한꺼번에 담는 addAll은 하나만 실패해도 설치가 취소됨)
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE)
+    .then(c => Promise.all(SHELL.map(u => fetch(u, { cache: 'no-cache' }).then(res => res.ok && c.put(u, res)).catch(() => {}))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
