@@ -368,6 +368,8 @@ body.sb .wmain, body.sb .hourly, body.sb .wave, body.sb .cards, body.sb .transit
 body.sb[data-panel="now"] .wmain, body.sb[data-panel="hourly"] .hourly,
 body.sb[data-panel="daily"] .wave, body.sb[data-panel="air"] .cards,
 body.sb[data-panel="transit"] .transit, body.sb[data-panel="music"] .music{opacity:1;visibility:visible;pointer-events:auto}
+/* 설정에서 끈 위젯: 자리도 빼서 세로 화면이면 그만큼 시계가 커짐 (fitClock이 위젯 높이를 봄) */
+body.sb .wg-off{display:none !important}
 
 /* 음악 위젯: 유튜브 플레이어(16:9, 유튜브 규정상 화면에 보여야 함. 음원 곡은 앨범아트가 나옴) / 곡 정보 / 진행 바 / 버튼
    칸이 좁으면(가로 화면 오른쪽 칸) 위아래로, 넓으면(세로 화면·폰 가로) 왼쪽 앨범아트 | 오른쪽 곡 정보·버튼 */
@@ -570,14 +572,14 @@ body.night.night-red::after{background:#ff3b30}
 .settings[hidden]{display:none}
 .set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:#111}
 .set-title{font-size:4.6rem;font-weight:700}
-/* 설정 탭: 화면 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
+/* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
 .set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
 .set-tabs{display:flex;gap:1rem}
-.set-card .set-tabs button{padding:1.2rem 2.6rem;border:1px solid var(--card-bd);border-radius:999px}
-.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="night"] [data-tab="night"],
+.set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
+.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
 .set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="music"] [data-tab="music"]{background:#fff;color:#000;font-weight:700;border-color:#fff}
 .set-page{display:none;flex-direction:column;gap:3rem}
-.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="night"] [data-page="night"],
+.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
 .set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="music"] [data-page="music"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
@@ -602,6 +604,17 @@ body.night.night-red::after{background:#ff3b30}
 .tr-bar{display:flex;gap:1.2rem}
 .tr-bar input{flex:1;min-width:0;padding:1.4rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;background:#000;color:var(--text);font:inherit;font-size:3.2rem;user-select:text}
 .tr-msg{font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
+/* 위젯 탭: 이름 | 위로·아래로 | 켜짐·꺼짐 */
+.wg-list{list-style:none;display:flex;flex-direction:column;gap:1.4rem}
+.wg-list li{display:flex;align-items:center;gap:1.4rem;font-size:3.4rem;color:var(--text)}
+.wg-list li span{flex:1;min-width:0}
+.wg-list li.wait span{color:var(--text-dim)}
+.wg-list small{display:block;margin-top:.4rem;font-size:2.4rem;color:var(--text-dim)}
+.set-card .wg-list button{width:6.4rem;height:6.4rem;display:grid;place-items:center;flex:none;padding:0;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
+.set-card .wg-list button:disabled{opacity:.2;cursor:default}
+.set-card .wg-list .wg-tog{width:11rem;border-radius:2.2rem;color:var(--text-muted)}
+.set-card .wg-list .wg-tog.on{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.wg-list svg{width:3rem;height:3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tr-msg:empty{display:none}
 .g-policy{align-self:flex-start;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
 .set-card .tr-save{padding:1.6rem;border-radius:2rem;background:#fff;color:#000;font-weight:700}
@@ -786,9 +799,9 @@ body.night.night-red::after{background:#ff3b30}
 
 <div id="settings" class="settings" hidden>
   <div class="set-card" data-tab="screen">
-    <!-- 탭: 화면 / 야간 / 교통 / 음악. 고른 탭의 내용만 보임 -->
+    <!-- 탭: 화면 / 위젯 / 야간 / 교통 / 음악. 고른 탭의 내용만 보임 -->
     <div class="set-head"><div class="set-title">설정</div>
-      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="music">음악</button></div>
+      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="music">음악</button></div>
     </div>
     <div class="set-page" data-page="screen">
       <div class="set-row">시계 형식
@@ -806,6 +819,11 @@ body.night.night-red::after{background:#ff3b30}
       <div class="set-row">날씨 자동 넘김
         <div class="step"><button data-d="-5" aria-label="5초 줄이기">−</button><span id="set-rotate"></span><button data-d="5" aria-label="5초 늘리기">+</button></div>
       </div>
+    </div>
+    <div class="set-page" data-page="widgets">
+      <p class="tr-msg">켠 위젯이 이 순서대로 넘어가요. 시계 강조 화면에만 적용돼요.</p>
+      <ul id="wg-list" class="wg-list"></ul>
+      <p id="wg-msg" class="tr-msg"></p>
     </div>
     <div class="set-page" data-page="night">
       <div class="set-row">야간 모드
@@ -880,13 +898,14 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
 // hour12: 12시간제 / secs: 초 표시(끄면 시·분만 크게) / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
+// wgOrder·wgOff: 시계 강조 화면 위젯 순서와 끈 위젯 (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarm: 알람 시각
 // music: 고른 유튜브 재생목록 { id, title }, muShuffle·muRepeat: 셔플·반복
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, secs: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, secs: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgOrder: null, wgOff: [], night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarm: { on: false, h: 7, m: 0 }, music: null, muShuffle: false, muRepeat: false },
   (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
@@ -1532,6 +1551,9 @@ function applySettings() {
   document.body.classList.toggle('has-music', !!gSaved());
   trRenderList();
   renderMusicSettings();
+  wgRender();
+  const shown = panelList();
+  PANELS.forEach((el, i) => el.classList.toggle('wg-off', S.focus && !shown.includes(PANEL_NAMES[i])));
   renderBoard();
   setupH1();
   renderClock(new Date());
@@ -1583,14 +1605,16 @@ async function loadHolidays(y) {
 }
 
 // ===== 날씨 위젯 넘기기 =====
-// 시계 강조: 날씨 위젯 4개 + (교통 등록 시) 교통 + (Google 로그인 시) 음악을 차례로 / 상세 세로: 시간별 ↔ 일별
+// 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장 등록, 음악은 Google 로그인 해야 나옴) / 상세 세로: 시간별 ↔ 일별
 // S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김. 음악 재생 중엔 자동 넘김 멈춤
 let panel = 0, panelName = 'now', panelTimer;
+const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', music: '음악' };
+const wgOrder = () => [...new Set([...(S.wgOrder || []).filter(n => PANEL_NAMES.includes(n)), ...PANEL_NAMES])];   // 새 위젯은 뒤에
+const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'music' ? !!gSaved() : true;
 function panelList() {
-  const list = PANEL_NAMES.slice(0, 4);
-  if (S.focus && S.transit.length) list.push('transit');
-  if (S.focus && gSaved()) list.push('music');
-  return list;
+  if (!S.focus) return PANEL_NAMES.slice(0, 4);
+  const list = wgOrder().filter(n => wgReady(n) && !S.wgOff.includes(n));
+  return list.length ? list : ['now'];
 }
 // dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 미끄러짐
 function showPanel(p, dir, axis) {
@@ -2042,6 +2066,35 @@ async function ytAll(path, params, max = 200) {
 
 // 설정 화면
 const gMsg = t => { $('g-msg').textContent = t; };
+// 위젯 탭: 순서대로 이름 / 위로·아래로 / 켜짐·꺼짐. 하나는 켜 두어야 함
+const CHEV = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+function wgRender() {
+  const order = wgOrder();
+  $('wg-list').innerHTML = order.map((n, i) => {
+    const on = !S.wgOff.includes(n), ready = wgReady(n);
+    const note = ready ? '' : `<small>${n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '음악 탭에서 로그인하면 나와요'}</small>`;
+    return `<li data-wg="${n}"${ready ? '' : ' class="wait"'}><span>${WG_NAMES[n]}${note}</span>`
+      + `<button data-mv="-1" aria-label="위로"${i ? '' : ' disabled'}>${CHEV('M6 15l6-6 6 6')}</button>`
+      + `<button data-mv="1" aria-label="아래로"${i < order.length - 1 ? '' : ' disabled'}>${CHEV('M6 9l6 6 6-6')}</button>`
+      + `<button class="wg-tog${on ? ' on' : ''}">${on ? '켜짐' : '꺼짐'}</button></li>`;
+  }).join('');
+}
+$('wg-list').addEventListener('click', e => {
+  const b = e.target.closest('button'), li = b && b.closest('li');
+  if (!li || b.disabled) return;
+  const n = li.dataset.wg;
+  $('wg-msg').textContent = '';
+  if (b.dataset.mv) {
+    const order = wgOrder(), i = order.indexOf(n), j = i + Number(b.dataset.mv);
+    [order[i], order[j]] = [order[j], order[i]];
+    S.wgOrder = order;
+  } else if (S.wgOff.includes(n)) S.wgOff = S.wgOff.filter(x => x !== n);
+  else if (panelList().filter(x => x !== n).length === 0) { $('wg-msg').textContent = '위젯을 하나는 켜 두어야 해요.'; return; }
+  else S.wgOff = [...S.wgOff, n];
+  saveSettings();
+  applySettings();
+});
+
 function renderMusicSettings() {
   const on = !!gSaved();
   $('g-login').hidden = on;
