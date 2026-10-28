@@ -16,16 +16,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=14">
-<link rel="stylesheet" href="css/base.css?v=14">
-<link rel="stylesheet" href="css/clock.css?v=14">
-<link rel="stylesheet" href="css/weather.css?v=14">
-<link rel="stylesheet" href="css/detail.css?v=14">
-<link rel="stylesheet" href="css/standby.css?v=14">
-<link rel="stylesheet" href="css/transit.css?v=14">
-<link rel="stylesheet" href="css/photo.css?v=14">
-<link rel="stylesheet" href="css/standby-widgets.css?v=14">
-<link rel="stylesheet" href="css/settings.css?v=14">
+<link rel="stylesheet" href="css/theme.css?v=15">
+<link rel="stylesheet" href="css/base.css?v=15">
+<link rel="stylesheet" href="css/clock.css?v=15">
+<link rel="stylesheet" href="css/weather.css?v=15">
+<link rel="stylesheet" href="css/detail.css?v=15">
+<link rel="stylesheet" href="css/standby.css?v=15">
+<link rel="stylesheet" href="css/transit.css?v=15">
+<link rel="stylesheet" href="css/photo.css?v=15">
+<link rel="stylesheet" href="css/standby-widgets.css?v=15">
+<link rel="stylesheet" href="css/settings.css?v=15">
 </head>
 <body class="idle" data-panel="now">
 <main id="stage" class="stage">
@@ -264,6 +264,10 @@
         <div class="set-row">액자 사진
           <div class="tr-add"><label class="ph-add" for="ph-file">+ 사진 올리기</label><input id="ph-file" type="file" accept="image/*" multiple hidden></div>
         </div>
+        <!-- 위젯이 돌다가 사진 액자 차례가 오면 이만큼 보여 주고 다음 위젯으로 (다음 차례엔 이어서) -->
+        <div class="set-row">한 번에 볼 사진
+          <div class="seg" data-key="phPer"><button data-v="1">1장</button><button data-v="3">3장</button><button data-v="5">5장</button><button data-v="0">모두</button></div>
+        </div>
         <p id="ph-msg" class="tr-msg"></p>
         <ul id="ph-list" class="ph-list"></ul>
       </div>
@@ -284,15 +288,15 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=14"></script>
-<script src="js/sync.js?v=14"></script>
-<script src="js/clock.js?v=14"></script>
-<script src="js/weather.js?v=14"></script>
-<script src="js/screen.js?v=14"></script>
-<script src="js/clock-modes.js?v=14"></script>
-<script src="js/settings.js?v=14"></script>
-<script src="js/transit.js?v=14"></script>
-<script src="js/photo.js?v=14"></script>
-<script src="js/main.js?v=14"></script>
+<script src="js/core.js?v=15"></script>
+<script src="js/sync.js?v=15"></script>
+<script src="js/clock.js?v=15"></script>
+<script src="js/weather.js?v=15"></script>
+<script src="js/screen.js?v=15"></script>
+<script src="js/clock-modes.js?v=15"></script>
+<script src="js/settings.js?v=15"></script>
+<script src="js/transit.js?v=15"></script>
+<script src="js/photo.js?v=15"></script>
+<script src="js/main.js?v=15"></script>
 </body>
 </html>

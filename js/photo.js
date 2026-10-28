@@ -5,6 +5,7 @@
 // 폰에서 올리거나 지우면 S.photoAt을 바꿔 미러로 보내고, 미러는 설정을 받을 때 그걸 보고 목록을 새로 받음 (그 밖엔 10분마다)
 const PH_API = '/api/photos', PH_KEY = 'mirror_photos', PH_MAX = 200;
 let photos = [], phIdx = -1, phLayer = 0, phBusy = false, phSeen = '', phListKey = null;
+let phVisit = 0;   // 이번 차례에 사진 액자에서 보여 준 장수 (autoNext)
 // 인터넷이 끊겨도 마지막 목록으로 (사진 자체는 브라우저가 보관)
 try { const c = JSON.parse(localStorage.getItem(PH_KEY)); if (c && c.album === S.album) photos = c.photos; } catch (e) {}
 const phUrl = (id, thumb) => `${PH_API}?album=${S.album}&id=${id}${thumb ? '&thumb=1' : ''}`;
@@ -50,7 +51,19 @@ function phRenderList() {
     phListKey = key;
     $('ph-list').innerHTML = photos.map(p => `<li><img src="${phUrl(p.id, true)}" alt="" loading="lazy"><button data-del="${p.id}" aria-label="이 사진 지우기">×</button></li>`).join('');
   }
-  if (!phBusy) phMsg(photos.length ? `${photos.length}장 (최대 ${PH_MAX}장) · 사진 액자 위젯에서 한 장씩 돌아가요` : '올린 사진이 사진 액자 위젯에서 한 장씩 돌아가요. 여러 장을 한 번에 골라도 돼요.');
+  if (!phBusy) phMsg(photos.length ? `${photos.length}장 (최대 ${PH_MAX}장) · 사진 액자에서 좌우로 밀면 사진을, 위아래로 밀면 다른 위젯을 봐요`
+    : '올린 사진이 사진 액자 위젯에서 한 장씩 돌아가요. 여러 장을 한 번에 골라도 돼요.');
+}
+
+// 자동 넘김 때 이번 차례에 사진을 더 보여 줄지: 사진만 켰으면 계속, 아니면 설정한 장수(phPer, 0 = 모두)까지
+function phMore() {
+  const n = photos.length, per = +S.phPer || n;
+  return n > 1 && (panelList().length === 1 || phVisit < Math.min(per, n));
+}
+// 사진 액자에서 좌우로 밀기: 이전·다음 사진, 자동 넘김 시간은 처음부터
+function phSwipe(dir) {
+  phShow(dir);
+  schedulePanel();
 }
 
 // 올리거나 지운 뒤: 목록을 바로 바꾸고, 바뀐 시각을 설정에 넣어 알림 (폰이면 '폰으로 설정'으로 미러에)

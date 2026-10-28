@@ -116,16 +116,19 @@ function showPanel(p, dir, axis) {
   document.body.classList.toggle('alt', panel % 2 === 1);
   $('sb-dots').innerHTML = list.map((_, i) => `<i${i === panel ? ' class="on"' : ''}></i>`).join('');
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
-  if (panelName === 'photo') phShow(dir);
+  if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
   if (dir && S.focus && old !== panelName) slide(panelEl(old), panelEl(panelName), dir, axis);
   schedulePanel();
 }
-// 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
 function schedulePanel() {
   clearTimeout(panelTimer);
-  if (S.rotate > 0) {
-    panelTimer = setTimeout(() => showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x'), S.rotate * 1000);
-  }
+  if (S.rotate > 0) panelTimer = setTimeout(autoNext, S.rotate * 1000);
+}
+// 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
+// 사진 액자는 한 번 올 때 정한 장수(설정 > 사진)만큼 사진을 넘긴 뒤 다음 위젯으로, 다음 차례엔 이어서
+function autoNext() {
+  if (panelName === 'photo' && phMore()) { phShow(1); phVisit++; schedulePanel(); return; }
+  showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x');
 }
 
 // 미끄러지기: 나가는 쪽은 민 방향으로 빠지며 사라지고, 들어오는 쪽은 반대편에서 들어옴
@@ -143,7 +146,7 @@ function slide(outEl, inEl, dir, axis = 'x') {
 
 // ===== 터치 =====
 // 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전
-//   시계 쪽에서 밀면 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면), 나머지는 날씨 위젯
+//   시계 쪽에서 밀면 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면), 나머지는 날씨 위젯 (사진 액자에서 좌우로 밀면 사진)
 // 두 번 탭(더블클릭): 설정 열기. 버튼을 누를 때는 둘 다 안 함
 let touchStart = null, lastTap = 0;
 document.addEventListener('pointerdown', e => {
@@ -161,6 +164,7 @@ document.addEventListener('pointerup', e => {
     const dir = (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? 1 : -1;
     const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     if (s.clock) showCm(cm + dir, dir, axis);
+    else if (panelName === 'photo' && axis === 'x' && photos.length > 1) phSwipe(dir);   // 사진 액자: 좌우는 사진, 위아래는 위젯
     else showPanel(panel + dir, dir, axis);
     lastTap = 0;
   } else if (e.timeStamp - lastTap < 400) {
