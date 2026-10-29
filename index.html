@@ -16,16 +16,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=25">
-<link rel="stylesheet" href="css/base.css?v=25">
-<link rel="stylesheet" href="css/clock.css?v=25">
-<link rel="stylesheet" href="css/weather.css?v=25">
-<link rel="stylesheet" href="css/detail.css?v=25">
-<link rel="stylesheet" href="css/standby.css?v=25">
-<link rel="stylesheet" href="css/transit.css?v=25">
-<link rel="stylesheet" href="css/photo.css?v=25">
-<link rel="stylesheet" href="css/standby-widgets.css?v=25">
-<link rel="stylesheet" href="css/settings.css?v=25">
+<link rel="stylesheet" href="css/theme.css?v=26">
+<link rel="stylesheet" href="css/base.css?v=26">
+<link rel="stylesheet" href="css/clock.css?v=26">
+<link rel="stylesheet" href="css/weather.css?v=26">
+<link rel="stylesheet" href="css/detail.css?v=26">
+<link rel="stylesheet" href="css/standby.css?v=26">
+<link rel="stylesheet" href="css/transit.css?v=26">
+<link rel="stylesheet" href="css/photo.css?v=26">
+<link rel="stylesheet" href="css/standby-widgets.css?v=26">
+<link rel="stylesheet" href="css/settings.css?v=26">
 </head>
 <body class="idle" data-panel="now">
 <main id="stage" class="stage">
@@ -50,7 +50,7 @@
       <div id="mm"><span class="roll" id="m1"></span><span class="roll" id="m2"></span></div>
       <div id="sgroup" class="sgroup"><span class="colon">:</span><span class="roll peek" id="s"></span></div>
       <!-- 시계 강조 화면용 날짜: 시계 오른쪽에 눕혀서 '2026년 10월 27일 … 화요일' -->
-      <div class="ds"><span id="ds-date" class="ds-date"></span><span id="ds-wd" class="ds-wd"></span><span id="ds-hol" class="ds-hol"></span></div>
+      <div class="ds"><span id="ds-date" class="ds-date"></span><span id="ds-wd" class="ds-wd"></span><span id="ds-hol" class="ds-hol"></span><span id="ds-ap" class="ds-ap"></span></div>
     </div>
     <!-- 시계 쪽을 밀면 나오는 기능 (시계 강조 화면): 스톱워치 / 타이머 / 알람 -->
     <div id="cm-sw" class="cm">
@@ -302,15 +302,15 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=25"></script>
-<script src="js/sync.js?v=25"></script>
-<script src="js/clock.js?v=25"></script>
-<script src="js/weather.js?v=25"></script>
-<script src="js/screen.js?v=25"></script>
-<script src="js/clock-modes.js?v=25"></script>
-<script src="js/settings.js?v=25"></script>
-<script src="js/transit.js?v=25"></script>
-<script src="js/photo.js?v=25"></script>
-<script src="js/main.js?v=25"></script>
+<script src="js/core.js?v=26"></script>
+<script src="js/sync.js?v=26"></script>
+<script src="js/clock.js?v=26"></script>
+<script src="js/weather.js?v=26"></script>
+<script src="js/screen.js?v=26"></script>
+<script src="js/clock-modes.js?v=26"></script>
+<script src="js/settings.js?v=26"></script>
+<script src="js/transit.js?v=26"></script>
+<script src="js/photo.js?v=26"></script>
+<script src="js/main.js?v=26"></script>
 </body>
 </html>

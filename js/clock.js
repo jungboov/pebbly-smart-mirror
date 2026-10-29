@@ -86,8 +86,10 @@ function fitClock() {
     // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌
     const sw = stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight), cg = parseFloat(st.columnGap);
     const w = portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem;
-    const gap = parseFloat(getComputedStyle(inner).columnGap);
-    const lbl = $('lbl-h').offsetWidth + gap;
+    // 칸 사이(2rem)·눕힌 라벨(2.6rem)은 CSS 값 그대로 (세로 반반 한 줄 배치에선 라벨을 숨기고 칸 사이를 0으로 해서 재지 않음)
+    const gap = 2 * rem, lbl = 2.6 * rem + gap;
+    // 눕힌 날짜 두께 (한 줄 배치에선 날짜가 가로라 첫 줄 높이)
+    const dsThick = getComputedStyle(ds).writingMode === 'horizontal-tb' ? $('ds-date').offsetHeight : ds.offsetWidth;
     const secEm = secBeside ? $('sgroup').offsetWidth / fs + gap / fs : 0;   // 분 옆 초 칸 + 간격 (지금 글자 크기 기준)
     const span = 2 * wmax + .02 + secEm;
     const rows = S.secs && !secBeside ? 2.25 : 1.68;
@@ -110,8 +112,31 @@ function fitClock() {
     else if (portrait && S.half) h /= 2;   // 반반: 위 절반
     else if (portrait) h -= Math.max(...PANELS.map(el => el.offsetHeight)) + 4 * rem;   // 아래 위젯 자리
     h -= pb;
-    const side = dateRow || !S.date ? 0 : ds.offsetWidth + gap + 3 * rem;
+    const side = dateRow || !S.date ? 0 : (portrait ? dsThick : ds.offsetWidth) + gap + 3 * rem;
     size = fit(side, h, dateRow);
+    // 세로 반반: 시:분 한 줄(폭에 맞춤)이 세 줄 크기의 80% 이상이면 한 줄로 — 위아래로 늘려(--sy) 위 절반을 채우고 아래 줄에 날짜·초
+    // (폭이 좁은 폰은 한 줄이면 많이 작아져서 세 줄 그대로). .33em = 가운데 콜론 + 양옆 여백
+    const lineSize = w * .99 / (4 * wmax + .33);
+    const oneLine = portrait && S.half && !solo && lineSize >= .8 * size;
+    if (document.body.classList.contains('oneline') !== oneLine) {
+      document.body.classList.toggle('oneline', oneLine);
+      return fitClock();   // 바뀐 배치로 날짜 높이 등을 다시 재서 맞춤 (그다음엔 안 바뀌어서 한 번뿐)
+    }
+    let sy = 1;
+    if (oneLine) {
+      size = lineSize;
+      // 날짜가 초 옆 자리보다 길면 줄임 (첫 줄 날짜, 둘째 줄 요일·공휴일·오전/오후)
+      const secW = S.secs ? size * wmax : 0;   // 초 두 자리 (.5em × 2)
+      const line2 = [...ds.children].slice(1).filter(c => c.offsetWidth).reduce((s, c) => s + c.offsetWidth + 2 * rem, -2 * rem);
+      const dz = Math.min(1, (w - secW - 3 * rem) / Math.max($('ds-date').offsetWidth, line2));
+      if (dz < .99) ds.style.zoom = dz;
+      const dsH = S.date ? ds.getBoundingClientRect().height + 3 * rem : 0;
+      // 시:분(.82em × sy) + 아래 줄(날짜, 또는 같이 늘어나는 초 .41em + 위 여백 .15em) ≤ 위 절반
+      sy = (h - dsH) / (.82 * size);
+      if (S.secs) sy = Math.min(sy, h / (1.38 * size));
+      sy = Math.max(1, Math.min(2.4, sy));
+    }
+    inner.style.setProperty('--sy', sy.toFixed(3));
     // 가로: 날짜가 옆인데 폭에 막혀 시계가 칸보다 낮으면, 남는 높이를 시·분·초 줄 사이에 나눠 위·아래 끝을 위젯 칸에 맞춤
     // (날짜가 위면 남는 높이는 CSS의 날짜 아래 1fr 줄이 받음. 글자는 size의 .99)
     const spare = !portrait && !solo && !dateRow ? h - .99 * size * (rows - top) : 0;
@@ -119,11 +144,11 @@ function fitClock() {
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
-    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤)
+    // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤. 한 줄 배치는 위에서)
     const items = [...ds.children].filter(c => c.offsetHeight);
     const dateLen = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
     const z = dateLen ? Math.min(1, (dateRow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
-    ds.style.zoom = z < .99 ? z : '';
+    if (!oneLine) ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
     $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
     if (moved) return fitClock();   // 날짜 자리를 옮겼으면 옮긴 모양으로 한 번 더 맞춤 (그다음엔 안 옮겨서 한 번뿐)
@@ -155,6 +180,8 @@ function renderClock(d) {
   setS(pad(d.getSeconds()));
   const lbl = S.hour12 ? `hours · ${h < 12 ? 'am' : 'pm'}` : 'hours';
   if ($('lbl-h').textContent !== lbl) $('lbl-h').textContent = lbl;
+  const ap = S.hour12 ? (h < 12 ? '오전' : '오후') : '';   // 세로 반반 한 줄 배치는 라벨 대신 날짜 둘째 줄에
+  if ($('ds-ap').textContent !== ap) $('ds-ap').textContent = ap;
   renderDate(d);
 }
 

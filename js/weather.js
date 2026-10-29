@@ -546,8 +546,8 @@ function renderAlert() {
 // 화면을 돌리는 등으로 자리·크기가 바뀌면 다시 잼 (fitClock에서 부름)
 const AL_SPEED = 7;
 function fitAlert() {
-  const al = $('alert'), win = al.firstElementChild, run = win && win.firstElementChild;
-  if (!run || al.hidden || !al.offsetWidth) return;
+  const al = $('alert'), win = al.querySelector('.al-win'), run = win && win.firstElementChild;
+  if (!run || al.hidden || !al.offsetWidth || al.dataset.html == null) return;
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   if (al.classList.contains('run')) {
     if (+al.dataset.rem === rem && +al.dataset.w > win.clientWidth + 1) return;   // 그대로 흐름

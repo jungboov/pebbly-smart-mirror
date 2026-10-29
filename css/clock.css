@@ -52,5 +52,6 @@ body[data-day="sun"] #date-wd{color:var(--sun)}
 .ds .ds-wd{margin-inline-start:auto;font-size:5rem;font-weight:700;line-height:1}
 .ds .ds-hol{font-size:3.2rem;font-weight:600;line-height:1;color:var(--sun)}
 .ds .ds-hol:empty{display:none}
+.ds .ds-ap{display:none;font-size:5rem;font-weight:700;line-height:1;color:var(--text-muted)}   /* 오전·오후: 세로 반반 한 줄 배치에서만 (라벨 대신) */
 body[data-day="sat"] .ds-wd{color:var(--sat)}
 body[data-day="sun"] .ds-wd{color:var(--sun)}

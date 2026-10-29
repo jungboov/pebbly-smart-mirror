@@ -138,6 +138,17 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
   body.sb.half .clock{align-self:center}
   body.sb.half .transit{max-height:100%}
+  /* 세로 반반 + 한 줄(.oneline — fitClock이 정함, 폭이 넓은 세로 화면): 시:분을 한 줄로 폭에 맞추고 위아래로 늘려(--sy) 위 절반을 채움
+     아래 줄은 왼쪽 날짜(첫 줄 날짜, 둘째 줄 요일·공휴일·오전/오후), 오른쪽 초(같이 늘림). 라벨은 숨김 */
+  body.sb.oneline .clock-in{grid-template-columns:auto auto auto;grid-template-areas:"hh colon mm" "ds ds ss";justify-content:space-between;column-gap:0;row-gap:0}
+  body.sb.oneline .clock-in .lbl{display:none}
+  body.sb.oneline #colon{display:block;grid-area:colon}
+  body.sb.oneline #hh, body.sb.oneline #colon, body.sb.oneline #mm{transform:scaleY(var(--sy, 1));transform-origin:top;margin-bottom:calc(.82em * (var(--sy, 1) - 1))}
+  body.sb.oneline .sgroup{grid-area:ss;justify-self:end;align-self:start;margin:calc(.3em * var(--sy, 1)) 0 calc(.82em * (var(--sy, 1) - 1));transform:scaleY(var(--sy, 1));transform-origin:top}
+  body.sb.oneline .ds{grid-area:ds;writing-mode:horizontal-tb;transform:none;justify-self:start;align-self:start;margin:3rem 0 0;flex-wrap:wrap;align-items:baseline;column-gap:2rem;row-gap:1.6rem;contain:inline-size}
+  body.sb.oneline .ds .ds-date{flex-basis:100%}
+  body.sb.oneline .ds .ds-wd{margin:0}
+  body.sb.oneline .ds .ds-ap:not(:empty){display:block}
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움
