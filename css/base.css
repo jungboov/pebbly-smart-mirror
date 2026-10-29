@@ -29,7 +29,7 @@ body{
   position:fixed;inset:0;
   display:grid;
   grid-template-columns:auto minmax(0,1fr);
-  grid-template-rows:auto auto auto auto auto 1fr auto auto;
+  grid-template-rows:auto auto auto auto auto 1fr auto;
   grid-template-areas:
     "head   head"
     "clock  clock"
@@ -37,8 +37,7 @@ body{
     "wstats wstats"
     "cards  cards"
     "zone   zone"
-    "wave   wave"
-    "phrase phrase";
+    "wave   wave";
   column-gap:4rem;
   padding:5rem 6.5rem;
   /* 레퍼런스의 타일 격자. 거울 너머로는 거의 안 보일 만큼 어둡게 */

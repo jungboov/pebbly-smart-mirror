@@ -34,7 +34,6 @@ const CONFIG = {
   name: params.get('name') || '부천',
   weatherEvery: 15 * 60 * 1000,   // 날씨 갱신 주기
   airEvery: 30 * 60 * 1000,       // 미세먼지 갱신 주기
-  phraseEvery: 30 * 1000,         // 문구 교체 주기
   hourlyCount: 12,                // 시간별 예보 칸 수 (지금부터 1시간 간격)
   standbyHours: 6,                // 시계 강조 화면은 칸이 커서 6시간만
   cursorIdle: 3 * 1000,           // 마우스가 이만큼 멈춰 있으면 커서 숨김

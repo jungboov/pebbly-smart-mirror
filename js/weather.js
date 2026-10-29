@@ -1,4 +1,4 @@
-// Pebbly Mirror — 날씨: 아이콘, 데이터 받기, 위치·주소, 그리기, 달, 알림 띠, 문구
+// Pebbly Mirror — 날씨: 아이콘, 데이터 받기, 위치·주소, 그리기, 달, 알림 띠
 // ===== 아이콘 =====
 const CLOUD_BASE = '<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>';
 const ICONS = {
@@ -501,7 +501,7 @@ function renderFoot() {
   PANELS[0].dataset.loc = placeLabel();   // 시계 강조 화면은 상단 바가 없어서 'now' 위젯 제목에 위치 표시
 }
 
-// ===== 알림 띠 (시계 강조 화면) =====
+// ===== 알림 띠 (헤더 가운데) =====
 // 지금 비·눈이 오면 그 얘기, 아니면 오늘 안에 강수확률 60% 이상인 첫 시각, 그리고 미세먼지 나쁨 이상
 // 인터넷이 끊겼으면(꺼져 있거나 날씨를 30분 넘게 못 받음) 마지막으로 받은 시각도 — 이건 알림 띠를 꺼도 보임
 const WIFI_OFF = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5.2 12.3a10 10 0 0 1 13.6 0M8.6 15.7a5 5 0 0 1 6.8 0M12 19.5h.01M3 3l18 18"/></svg>';
@@ -534,62 +534,4 @@ function renderAlert() {
     $('alert').hidden = !out.length;
     fitClock();   // 띠가 나타나거나 사라지면 시계 위 여백을 다시 맞춤
   }
-}
-
-// ===== 문구 =====
-const PHRASES = {
-  dawn: ['고요한 새벽이에요. 푹 자는 것도 실력이에요.', '아직 깜깜해요. 조금 더 쉬어도 괜찮아요.'],
-  morning: ['좋은 아침이에요!', '물 한 잔으로 하루를 시작해 볼까요?', '오늘도 멋진 하루 보내세요.',
-            '오늘 거울 속 모습, 꽤 괜찮은데요?', '천천히, 그래도 꾸준히.'],
-  afternoon: ['점심은 맛있게 드셨나요?', '잠깐 일어나서 기지개 한 번 켜요.',
-              '오후도 힘내요. 거의 다 왔어요.', '물 마실 시간이에요.'],
-  evening: ['오늘 하루도 수고 많았어요.', '저녁 맛있게 드세요.',
-            '오늘 잘한 일 하나만 떠올려 봐요.', '이제 좀 쉬어도 돼요.'],
-  night: ['오늘도 잘 해냈어요. 푹 쉬어요.', '내일은 더 좋은 날이 될 거예요.', '휴대폰 내려놓고 일찍 자기, 도전!']
-};
-const timeSlot = h => h < 5 ? 'dawn' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : h < 22 ? 'evening' : 'night';
-
-// 날씨·미세먼지·요일에 맞춘 문구
-function contextual(now) {
-  const out = [];
-  const h = now.getHours(), wd = now.getDay();
-  const w = state.weather;
-  if (w) {
-    const today = upcomingDays(w)[0];
-    const nowKind = wmo(w.current.weather_code)[1];
-    if (nowKind === 'rain' || nowKind === 'drizzle' || nowKind === 'thunder') out.push('지금 비가 오고 있어요. 우산 꼭 챙기세요.');
-    else if (nowKind === 'snow') out.push('눈이 오고 있어요. 길 미끄러우니 조심하세요.');
-    if (today && h < 20) {
-      const i = today[1], d = w.daily;
-      const kind = wmo(d.weather_code[i])[1];
-      if (d.precipitation_probability_max[i] >= 60 && nowKind !== 'rain') {
-        out.push(kind === 'snow' ? '오늘 눈 소식이 있어요. 따뜻하게 챙겨 입어요.' : '오늘 비 소식이 있어요. 우산 챙기세요.');
-      }
-      if (d.temperature_2m_min[i] <= 0) out.push('많이 추워요. 따뜻하게 입고 나가세요.');
-      if (d.temperature_2m_max[i] >= 30) out.push('더운 날이에요. 물 자주 마셔요.');
-      if (d.temperature_2m_max[i] - d.temperature_2m_min[i] >= 10) out.push('일교차가 커요. 겉옷 하나 챙기세요.');
-    }
-  }
-  const a = state.air;
-  if (a && a.pm10 != null && a.pm25 != null) {
-    const g = Math.max(gradePm10(a.pm10), gradePm25(a.pm25));
-    if (g >= 2) out.push('미세먼지가 나빠요. 마스크 챙기세요.');
-    else if (g === 0 && h >= 8 && h < 18) out.push('공기가 맑아요. 환기하기 좋은 날이에요.');
-  }
-  if (wd === 1 && h < 12) out.push('한 주의 시작, 이번 주도 화이팅!');
-  if (wd === 5 && h >= 17) out.push('불금이에요! 이번 주도 고생했어요.');
-  if ((wd === 0 || wd === 6) && h >= 8 && h < 20) out.push('즐거운 주말 보내세요.');
-  return out;
-}
-
-let phraseIdx = Math.floor(Math.random() * 100);
-function nextPhrase(first) {
-  const now = new Date();
-  const list = [...contextual(now), ...PHRASES[timeSlot(now.getHours())]];
-  const text = list[phraseIdx++ % list.length];
-  const el = $('phrase');
-  if (first) { el.textContent = text; return; }
-  if (el.textContent === text) return;
-  el.classList.add('fade');
-  setTimeout(() => { el.textContent = text; el.classList.remove('fade'); }, 1200);
 }

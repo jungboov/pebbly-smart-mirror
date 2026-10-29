@@ -76,13 +76,10 @@ function fitClock() {
     // 위젯을 모두 끄면(solo) 시계만: 세로는 날짜를 시계 아래 가로 줄로(그만큼 넓게), 가로는 초를 분 옆에(시·분 2줄 높이)
     const portrait = innerHeight > innerWidth, solo = document.body.classList.contains('no-panel');
     const secBeside = !portrait && solo && S.secs;
-    // 알림 띠가 보이면 시계·위젯을 띠 아래로 내림 (띠 높이는 글자 크기 설정 따라 달라서 직접 잼)
-    // 가로는 시 숫자 윗끝이 위 여백 쪽으로 조금 올라오고(.1em 뺌) 띠가 시계 칸에 걸쳐서 더 띄움
-    const al = $('alert');
-    if (!al.hidden && al.offsetHeight) {
-      const need = al.offsetTop + al.offsetHeight + (portrait ? 1 : 3) * rem;
-      if (need > parseFloat(st.paddingTop)) stage.style.paddingTop = need + 'px';
-    }
+    // 헤더(로고 · 알림 띠 · 위치)는 위 여백에 떠 있음 → 시계·위젯을 헤더 아래로 내림 (높이는 띠 유무·글자 크기 설정 따라 달라서 직접 잼)
+    // 가로는 시 숫자 윗끝이 위 여백 쪽으로 조금 올라와서(.1em 뺌) 더 띄움
+    const hd = document.querySelector('.head');
+    if (hd.offsetHeight) stage.style.paddingTop = hd.offsetTop + hd.offsetHeight + (portrait ? 1.6 : 2.6) * rem + 'px';
     const ds = document.querySelector('.ds');
     ds.style.zoom = '';
     // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌

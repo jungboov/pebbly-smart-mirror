@@ -37,7 +37,6 @@ function scheduleReload() {
   renderMoon();
   renderFoot();
   tickClock();
-  nextPhrase(true);
   fitClock();
   document.fonts.ready.then(() => {
     measureDigits();
@@ -63,7 +62,6 @@ function scheduleReload() {
   else { syncPull(); setInterval(syncPull, 10e3); }
   setInterval(loadWeather, CONFIG.weatherEvery);
   setInterval(loadAir, CONFIG.airEvery);
-  setInterval(nextPhrase, CONFIG.phraseEvery);
   keepAwake();
   scheduleReload();
 })();

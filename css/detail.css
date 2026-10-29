@@ -3,12 +3,11 @@
 @media (orientation: landscape){
   .stage{
     grid-template-columns:minmax(0,1fr) minmax(0,.82fr);
-    grid-template-rows:auto auto auto auto 1fr auto;
+    grid-template-rows:auto auto auto 1fr auto;
     grid-template-areas:
       "head   head"
       "clock  wmain"
       "date   wave"
-      "phrase wave"
       "zone   zone"
       "hourly cards";
     column-gap:6rem;
@@ -19,7 +18,6 @@
   .clock{align-self:end;padding-bottom:3rem}
   .date{align-self:start}
   .date-num{font-size:5.4rem}
-  .phrase{align-self:start;margin-top:2.4rem;font-size:3rem;font-weight:400;line-height:1.5;color:var(--text-muted)}
   .wmain{display:block;align-self:end;padding-bottom:2rem}
   .w-temp{font-size:11rem}
   .w-stats{margin-top:2.4rem;gap:1.6rem}
