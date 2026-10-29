@@ -68,6 +68,7 @@ function fitClock() {
   const wmax = digitW ? Math.max(...Object.values(digitW)) : .834;
   let size, cmSize = 0;
   $('stage').style.paddingTop = '';
+  fitAlert();   // 화면 폭이 바뀌었으면 알림 띠가 흐를지 다시 정함
   if (document.body.classList.contains('sb')) {
     // 시계 강조: 시 / 분 / 초 3줄. 칸 폭(라벨 + 두 자리)과 남는 높이 중 작은 쪽에 맞춤
     // 높이(em) = 시 .82 + 분 .82 + 초 .41 + 줄 간격 .04×2 + 초 위 여백 .12, 초를 끄면 시 .82 + 분 .82 + 줄 간격 .04

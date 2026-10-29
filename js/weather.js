@@ -529,9 +529,37 @@ function renderAlert() {
     const g = Math.max(gradePm10(a.pm10), gradePm25(a.pm25));
     if (g >= 2) out.push([`<i class="pm${g >= 3 ? ' worst' : ''}"></i>`, `미세먼지 ${g >= 3 ? '매우 나쁨' : '나쁨'} · 마스크 챙기세요`]);
   }
-  $('alert').innerHTML = out.map(([ico, text]) => `<span>${ico}${text}</span>`).join('<b>·</b>');
-  if ($('alert').hidden !== !out.length) {
-    $('alert').hidden = !out.length;
-    fitClock();   // 띠가 나타나거나 사라지면 시계 위 여백을 다시 맞춤
+  const al = $('alert'), html = out.map(([ico, text]) => `<span>${ico}${text}</span>`).join('<b>·</b>');
+  if (al.dataset.html !== html) {   // 내용이 같으면 그대로 둠 (흐르던 글자가 처음으로 튀지 않게)
+    al.dataset.html = html;
+    al.innerHTML = `<div class="al-win"><div class="al-run">${html}</div></div>`;
+    al.classList.remove('run');
   }
+  if (al.hidden !== !out.length) {
+    al.hidden = !out.length;
+    fitClock();   // 띠가 나타나거나 사라지면 시계 위 여백을 다시 맞춤 (fitClock이 fitAlert도 부름)
+  } else fitAlert();
+}
+
+// 알림 띠가 자리에 다 안 들어가면 전광판처럼 오른쪽에서 왼쪽으로 흐름 (다 들어가면 가만히)
+// 같은 내용을 두 번 이어 붙여 끊김 없이 돌고, 속도는 화면 크기와 상관없이 초당 AL_SPEED rem
+// 화면을 돌리는 등으로 자리·크기가 바뀌면 다시 잼 (fitClock에서 부름)
+const AL_SPEED = 7;
+function fitAlert() {
+  const al = $('alert'), win = al.firstElementChild, run = win && win.firstElementChild;
+  if (!run || al.hidden || !al.offsetWidth) return;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  if (al.classList.contains('run')) {
+    if (+al.dataset.rem === rem && +al.dataset.w > win.clientWidth + 1) return;   // 그대로 흐름
+    run.innerHTML = al.dataset.html;   // 한 벌로 되돌려 다시 잼
+    al.classList.remove('run');
+  }
+  const w = run.offsetWidth, n = run.children.length;
+  if (w <= win.clientWidth + 1) return;
+  run.innerHTML = `${al.dataset.html}<i class="al-gap"></i>${al.dataset.html}`;
+  const d = run.children[n + 1].offsetLeft - run.children[0].offsetLeft;   // 둘째 벌 시작까지 = 한 바퀴
+  Object.assign(al.dataset, { w, rem });
+  al.style.setProperty('--d', d + 'px');
+  al.style.setProperty('--t', (d / (AL_SPEED * rem)).toFixed(1) + 's');
+  al.classList.add('run');
 }
