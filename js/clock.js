@@ -144,6 +144,18 @@ function fitClock() {
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
+    if (oneLine) {
+      // 한 줄 배치: 스톱워치·타이머·알람도 시계와 같은 크기 한 줄, 위아래 배율은 화면마다 (아래 줄 높이가 달라서)
+      // 숫자(.82em × 배율) + (+·− 버튼 줄) + 이름·버튼 줄, 스톱워치는 1/100초(.41em × 배율)도 아래 줄에
+      cmSize = size;
+      for (const el of document.querySelectorAll('.cm')) {
+        const pm = el.querySelector('.cm-pm'), foot = el.querySelector('.cm-foot'), d3 = el.querySelector('.cm-d3');
+        const above = (pm ? pm.offsetHeight : 0) + 4 * rem;   // 줄 사이 2rem × 2 (버튼 줄이 없어도 빈 줄 사이가 있음)
+        let k = (h - above - foot.offsetHeight) / (.82 * size);
+        if (d3) k = Math.min(k, (h - above) / (1.23 * size));
+        el.style.setProperty('--sy', Math.max(1, Math.min(2.4, k)).toFixed(3));
+      }
+    }
     // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤. 한 줄 배치는 위에서)
     const items = [...ds.children].filter(c => c.offsetHeight);
     const dateLen = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
