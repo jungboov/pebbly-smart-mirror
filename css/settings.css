@@ -15,6 +15,15 @@
 .set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="photo"] [data-page="photo"], .set-card[data-tab="sync"] [data-page="sync"],
 .set-card[data-tab="remotes"] [data-page="remotes"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
+/* 위치: 구·동(상세 주소를 켜면 도로명) · 날씨 갱신 시각. 폰에서 미러 설정 중엔 폰 위치라 숨김 */
+.set-place{display:flex;align-items:center;gap:1rem;min-width:0;font-size:3rem;color:var(--text);text-align:right}
+.set-place .ico{flex:none;width:3rem;height:3rem;color:var(--text-muted)}
+body.remote .set-loc{display:none}
+/* 가로 화면은 높이가 빠듯해서 줄 간격을 조금 좁혀 '화면' 탭이 닫기 버튼까지 한눈에 들어오게 */
+@media (orientation: landscape){
+  .set-card{gap:2.4rem;padding:3.6rem 4.4rem}
+  .set-page{gap:1.4rem}
+}
 .seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
 .seg button{padding:1.4rem 2.8rem}

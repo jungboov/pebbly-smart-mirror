@@ -19,16 +19,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&text=0123456789%5B%5D%2F%20ABDEILNPSX&display=block">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=30">
-<link rel="stylesheet" href="css/base.css?v=30">
-<link rel="stylesheet" href="css/clock.css?v=30">
-<link rel="stylesheet" href="css/weather.css?v=30">
-<link rel="stylesheet" href="css/detail.css?v=30">
-<link rel="stylesheet" href="css/standby.css?v=30">
-<link rel="stylesheet" href="css/transit.css?v=30">
-<link rel="stylesheet" href="css/photo.css?v=30">
-<link rel="stylesheet" href="css/standby-widgets.css?v=30">
-<link rel="stylesheet" href="css/settings.css?v=30">
+<link rel="stylesheet" href="css/theme.css?v=31">
+<link rel="stylesheet" href="css/base.css?v=31">
+<link rel="stylesheet" href="css/clock.css?v=31">
+<link rel="stylesheet" href="css/weather.css?v=31">
+<link rel="stylesheet" href="css/detail.css?v=31">
+<link rel="stylesheet" href="css/standby.css?v=31">
+<link rel="stylesheet" href="css/transit.css?v=31">
+<link rel="stylesheet" href="css/photo.css?v=31">
+<link rel="stylesheet" href="css/standby-widgets.css?v=31">
+<link rel="stylesheet" href="css/settings.css?v=31">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
@@ -65,18 +65,14 @@
     </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=30"></script>
+<script src="js/intro.js?v=31"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
       <span class="spine" aria-hidden="true"><i>02</i><b>[ 03 ]</b><i>04</i></span><i class="stitch"></i><span>pebbly labs</span><i class="corner"></i>
     </div>
-    <!-- 알림 띠: 비·눈·미세먼지·인터넷 끊김 (헤더 가운데) -->
+    <!-- 알림 띠: 비·눈·미세먼지·인터넷 끊김 (헤더 가운데). 위치는 설정 › 화면 맨 위로 옮김 -->
     <div id="alert" class="alert" hidden></div>
-    <div class="head-r">
-      <span class="loc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="foot"></span></span>
-      <div class="menu"><i></i><i></i><i></i><i></i></div>
-    </div>
   </header>
 
   <section id="clock" class="clock">
@@ -249,6 +245,10 @@
     <!-- 폰(설정 중): 이 미러 이름 정하기(처음 열 때), 기억한 다른 미러로 바로 바꾸기 (sync.js renderRemotes) -->
     <div id="remote-bar" class="remote-bar"></div>
     <div class="set-page" data-page="screen">
+      <!-- 위치(+ 날씨 갱신 시각): 헤더에서 옮겨 옴 (weather.js renderFoot). 폰에서 미러 설정 중엔 폰 위치라 숨김 -->
+      <div class="set-row set-loc">위치
+        <span class="set-place"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="foot"></span></span>
+      </div>
       <div class="set-row">시계 형식
         <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
       </div>
@@ -339,15 +339,15 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=30"></script>
-<script src="js/sync.js?v=30"></script>
-<script src="js/clock.js?v=30"></script>
-<script src="js/weather.js?v=30"></script>
-<script src="js/screen.js?v=30"></script>
-<script src="js/clock-modes.js?v=30"></script>
-<script src="js/settings.js?v=30"></script>
-<script src="js/transit.js?v=30"></script>
-<script src="js/photo.js?v=30"></script>
-<script src="js/main.js?v=30"></script>
+<script src="js/core.js?v=31"></script>
+<script src="js/sync.js?v=31"></script>
+<script src="js/clock.js?v=31"></script>
+<script src="js/weather.js?v=31"></script>
+<script src="js/screen.js?v=31"></script>
+<script src="js/clock-modes.js?v=31"></script>
+<script src="js/settings.js?v=31"></script>
+<script src="js/transit.js?v=31"></script>
+<script src="js/photo.js?v=31"></script>
+<script src="js/main.js?v=31"></script>
 </body>
 </html>
