@@ -1,6 +1,6 @@
 {
   "name": "Pebbly Mirror",
-  "short_name": "Pebbly",
+  "short_name": "Pebbly Mirror",
   "description": "시계·날씨·미세먼지 스마트 미러 대시보드",
   "lang": "ko",
   "start_url": "./",
