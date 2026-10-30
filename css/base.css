@@ -60,23 +60,24 @@ body.night.night-dim .stage{opacity:.45}
 .ico .dots{stroke-width:2.6}
 
 /* ── 시작 인트로 (#39 로고, intro.js) ── */
-/* SVG 안 크기는 viewBox(360×120) 단위. 화면 폭의 84%까지, 세로가 짧으면 그에 맞춰 */
-.intro{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--bg);color:var(--text);
-  transition:opacity .6s;animation:intro-bail .5s 7s forwards}
-.intro svg{width:min(84vw, 110vh, 100rem);overflow:visible}
-.intro path{fill:none;stroke:currentColor}
+/* 화면 전체 SVG (1 = 1px). 로고 부분은 360×120 단위로 JS가 크기를 맞춤. 첫 장면 [ 03 ] 상자는 JS 없이도 가운데에 보임 */
+.intro{position:fixed;inset:0;z-index:30;background:var(--bg);color:var(--text);
+  transition:opacity .6s;animation:intro-bail .5s 8s forwards}
+.intro > svg{display:block;width:100%;height:100%}
+.intro path,#in-box{fill:none;stroke:currentColor}
 .intro text{fill:currentColor;text-anchor:middle;font-family:var(--mono)}
 .intro .in-mid{font-weight:800;font-size:12.5px}
 .intro .in-dim{font-size:11px;opacity:.45}
 .intro .in-name{font-family:var(--brand);font-weight:700;font-size:27px;letter-spacing:2.5px}
 .intro .in-sub{font-size:9.5px;letter-spacing:3.5px;opacity:.8}
-.in-fade{opacity:0;transition:opacity 1.3s}
-.in-word{transition-duration:1.5s}
-.intro.on .in-fade{opacity:1}
+/* 펼쳐지는 동안 JS가 차례로 나타나게 함. 다 펼쳐지면(landed) 굴러가는 릴로 바꿔 끼움 */
+.in-bars,.in-late,.in-word,.in-slot,.in-side{opacity:0}
+.in-side{transition:opacity .5s}
+.intro.landed .in-slot,.intro.landed .in-side{opacity:1}
+.intro.landed #in-03{display:none}
 .in-reel{transition:transform 1.7s cubic-bezier(.12,.62,.22,1)}
-.intro.still *{transition:none}
 .intro.out{opacity:0;pointer-events:none}
 @keyframes intro-bail{to{opacity:0;visibility:hidden}}
 /* 밤에 켜면 미러처럼 어둡게·붉게 */
-body.night.night-dim .intro svg{opacity:.45}
+body.night.night-dim .intro > svg{opacity:.45}
 body.night.night-red .intro{color:var(--night-tint)}

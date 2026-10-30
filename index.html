@@ -19,43 +19,53 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&text=0123456789%5B%5D%2F%20ABDEILNPSX&display=block">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=29">
-<link rel="stylesheet" href="css/base.css?v=29">
-<link rel="stylesheet" href="css/clock.css?v=29">
-<link rel="stylesheet" href="css/weather.css?v=29">
-<link rel="stylesheet" href="css/detail.css?v=29">
-<link rel="stylesheet" href="css/standby.css?v=29">
-<link rel="stylesheet" href="css/transit.css?v=29">
-<link rel="stylesheet" href="css/photo.css?v=29">
-<link rel="stylesheet" href="css/standby-widgets.css?v=29">
-<link rel="stylesheet" href="css/settings.css?v=29">
+<link rel="stylesheet" href="css/theme.css?v=30">
+<link rel="stylesheet" href="css/base.css?v=30">
+<link rel="stylesheet" href="css/clock.css?v=30">
+<link rel="stylesheet" href="css/weather.css?v=30">
+<link rel="stylesheet" href="css/detail.css?v=30">
+<link rel="stylesheet" href="css/standby.css?v=30">
+<link rel="stylesheet" href="css/transit.css?v=30">
+<link rel="stylesheet" href="css/photo.css?v=30">
+<link rel="stylesheet" href="css/standby-widgets.css?v=30">
+<link rel="stylesheet" href="css/settings.css?v=30">
 </head>
 <body class="idle" data-panel="now">
-<!-- 시작 인트로(#39 로고): 숫자 릴이 굴러 [ 03 ]에 멈춘 뒤 사라짐. 그동안 뒤에서 미러가 뜸. 누르면 바로 넘어감 (intro.js) -->
+<!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
+     숫자가 한 바퀴 돌아 03에 멈춘 뒤 사라짐. 그동안 뒤에서 미러가 뜸. 누르면 바로 넘어감 (intro.js) -->
 <div id="intro" class="intro" aria-hidden="true">
-  <svg viewBox="0 0 360 120">
+  <svg>
     <defs>
-      <!-- 릴: 가운데 칸은 굵고 밝게, 위아래 칸은 흐리게 + 끝으로 갈수록 사라지게 -->
+      <!-- 릴: 가운데 칸은 굵고 밝게, 위아래 칸은 흐리게 + 끝으로 갈수록 사라지게 (로고 단위) -->
       <clipPath id="in-cd"><rect x="20" y="22" width="56" height="30"/><rect x="20" y="69" width="56" height="29"/></clipPath>
       <clipPath id="in-cm"><rect x="20" y="52" width="56" height="17"/></clipPath>
       <linearGradient id="in-g" x1="0" y1="20" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000"/><stop offset=".2" stop-color="#fff"/><stop offset=".8" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
       <mask id="in-m"><rect x="20" y="20" width="56" height="80" fill="url(#in-g)"/></mask>
     </defs>
-    <path d="M20 18H76M20 102H76" stroke-width="2.8"/>
-    <path d="M326 18H340V32M326 102H340V88" stroke-width="2"/>
-    <path d="M92 18V102" stroke-width="1.25" stroke-dasharray="4 4"/>
-    <text x="48" y="64" class="in-mid" xml:space="preserve">[    ]</text>
-    <g class="in-fade">
-      <g clip-path="url(#in-cd)" mask="url(#in-m)"><g class="in-reel in-dim"></g></g>
-      <g clip-path="url(#in-cm)"><g class="in-reel in-mid"></g></g>
-    </g>
-    <g class="in-fade in-word">
-      <text x="216" y="64" class="in-name">pebbly labs</text>
-      <text x="216" y="86" class="in-sub">SPINE INDEX // LABS</text>
-    </g>
+    <!-- 화면 가운데가 (0, 0), 1 = 1px -->
+    <svg x="50%" y="50%" overflow="visible">
+      <!-- 로고 (360×120 단위): JS가 화면 폭에 맞춰 가운데에 놓음 -->
+      <g id="in-lock">
+        <path class="in-bars" d="M20 18H76M20 102H76" stroke-width="2.8"/>
+        <path class="in-late" d="M326 18H340V32M326 102H340V88" stroke-width="2"/>
+        <path class="in-late" d="M92 18V102" stroke-width="1.25" stroke-dasharray="4 4"/>
+        <g class="in-slot">
+          <text x="48" y="64" class="in-mid" xml:space="preserve">[    ]</text>
+          <g class="in-side"><g clip-path="url(#in-cd)" mask="url(#in-m)"><g class="in-reel in-dim"></g></g></g>
+          <g clip-path="url(#in-cm)"><g class="in-reel in-mid"></g></g>
+        </g>
+        <g class="in-word">
+          <text x="216" y="64" class="in-name">pebbly labs</text>
+          <text x="216" y="86" class="in-sub">SPINE INDEX // LABS</text>
+        </g>
+      </g>
+      <!-- 첫 장면: 안드로이드 시작 화면과 같은 [ 03 ] 상자 (icon-maskable.png를 160px로 띄운 크기: 상자 100px) -->
+      <rect id="in-box" x="-50" y="-50" width="100" height="100" rx="22.5" stroke-width="5"/>
+      <text id="in-03" x="0" y="9" class="in-mid" style="font-size:25.5px;letter-spacing:-1px" xml:space="preserve">[ 03 ]</text>
+    </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=29"></script>
+<script src="js/intro.js?v=30"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -329,15 +339,15 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=29"></script>
-<script src="js/sync.js?v=29"></script>
-<script src="js/clock.js?v=29"></script>
-<script src="js/weather.js?v=29"></script>
-<script src="js/screen.js?v=29"></script>
-<script src="js/clock-modes.js?v=29"></script>
-<script src="js/settings.js?v=29"></script>
-<script src="js/transit.js?v=29"></script>
-<script src="js/photo.js?v=29"></script>
-<script src="js/main.js?v=29"></script>
+<script src="js/core.js?v=30"></script>
+<script src="js/sync.js?v=30"></script>
+<script src="js/clock.js?v=30"></script>
+<script src="js/weather.js?v=30"></script>
+<script src="js/screen.js?v=30"></script>
+<script src="js/clock-modes.js?v=30"></script>
+<script src="js/settings.js?v=30"></script>
+<script src="js/transit.js?v=30"></script>
+<script src="js/photo.js?v=30"></script>
+<script src="js/main.js?v=30"></script>
 </body>
 </html>
