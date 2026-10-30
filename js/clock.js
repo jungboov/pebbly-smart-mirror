@@ -54,9 +54,9 @@ const setM1 = roller($('m1'), range(6), true);
 const setM2 = roller($('m2'), range(10), true);
 const setS = roller($('s'), range(60, pad));
 
-// 날씨 위젯 4개 + 교통·사진 액자 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
-const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'photo'];
-const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#photo'].map(s => document.querySelector(s));
+// 날씨 위젯 4개 + 교통·사진 액자·달력 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
+const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'photo', 'cal'];
+const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#photo', '#cal'].map(s => document.querySelector(s));
 const panelEl = name => PANELS[PANEL_NAMES.indexOf(name)];
 
 // 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)
@@ -198,7 +198,7 @@ function renderClock(d) {
 }
 
 // 날짜: 상세 화면은 10.27 / 2026 · 화요일, 시계 강조 화면은 눕혀서 2026년 10월 27일 … 화요일
-// 토요일 하늘색, 일요일·공휴일 핑크 (공휴일이면 이름도)
+// 토요일 하늘색, 일요일·공휴일 핑크 (공휴일이면 이름도). 날짜가 바뀌거나 공휴일 목록을 받으면 달력 위젯도
 function renderDate(d) {
   const iso = ymd(d);
   if ($('date').dataset.iso === iso) return;
@@ -211,6 +211,7 @@ function renderDate(d) {
   $('ds-wd').textContent = wd;
   $('ds-hol').textContent = hol;
   document.body.dataset.day = hol || d.getDay() === 0 ? 'sun' : d.getDay() === 6 ? 'sat' : '';
+  renderCal(d);   // 달력 위젯: 오늘 표시·공휴일
 }
 
 function tickClock() {

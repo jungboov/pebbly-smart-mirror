@@ -1,0 +1,38 @@
+/* Pebbly Mirror — 달력 위젯 */
+/* 이번 달 7칸 × 4~6주 (시계 강조 화면). 칸 크기는 다른 위젯과 화면이 정하고 달력은 그 칸을 채움
+   container-type:size — 달력 높이가 위젯 칸 높이(세로 화면에선 그만큼 시계가 작아짐, fitClock)를 늘리지 않게, 글자는 칸 크기에 맞춤 */
+.cal{display:none}
+body.sb .cal{display:flex;flex-direction:column;container-type:size}
+#cal-m{color:var(--text-dim)}
+/* 요일 줄 + 주 줄(남는 높이를 나눠 가짐). 숫자 크기: 줄 높이·칸 폭에 맞추되(두 자리 숫자끼리 붙지 않게) 5.6rem까지 */
+.cal-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:auto repeat(var(--w, 5),minmax(0,1fr));
+  place-items:center;--cn:min(5.6rem, calc((100cqh - 17rem) / var(--w, 5) / 1.7), calc(100cqw / 7 / 2.3))}
+.cal-grid > b{padding-bottom:1.4rem;font-size:2.6rem;font-weight:600;color:var(--text-muted)}
+.cal-grid span{position:relative;min-width:0}
+/* 날짜 숫자: 오늘 표시(알약 모양) 자리를 늘 잡아 둬서 오늘 칸만 커지지 않게. 두 자리 숫자가 꽉 끼지 않게 옆으로 조금 긴 알약 */
+.cal-grid i{width:1.9em;height:1.6em;display:grid;place-items:center;border-radius:.8em;
+  font-family:var(--num);font-style:normal;font-weight:700;font-size:var(--cn);line-height:1}
+.cal-grid .sun{color:var(--sun)} .cal-grid .sat{color:var(--sat)}
+.cal-grid .today i{background:var(--accent);color:var(--on-accent)}
+.cal-grid .past{opacity:.4}
+.cal-grid .out{opacity:.18}
+/* 공휴일 이름: 칸이 클 때만(가로 화면 등) 숫자 아래에 — 숫자 줄이 어긋나지 않게 띄워 놓음. 긴 이름(부처님 오신 날)은 칸 폭에 맞춰 작게 */
+.cal-grid small{display:none;position:absolute;top:calc(100% - .4rem);left:50%;transform:translateX(-50%);
+  font-size:min(2.2rem, calc(100cqw / 7 * .92 / var(--n)));font-weight:600;line-height:1.1;white-space:nowrap}
+@container (min-height: 60rem){
+  .cal-grid small{display:block}
+}
+/* 아래 줄: 다음 공휴일 성탄절 12월 25일 금요일 ……… D-55 */
+.cal-foot{display:flex;align-items:baseline;gap:1.6rem;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--line);
+  font-size:3rem;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.cal-foot:empty{display:none}
+.cal-foot > span:first-child{font-weight:400;color:var(--text-dim)}
+.cal-foot b{font-weight:700}
+.cal-foot b.sun{color:var(--sun)}
+.cal-foot i{font-family:var(--num);font-style:normal;font-weight:700}
+.cal-foot em{margin-left:auto;font-family:var(--num);font-style:normal;font-weight:700;color:var(--text)}
+/* 세로: 위젯 칸이 낮아서 아래 줄을 조금 작게. '시계 크게'에서 다른 위젯이 다 꺼져도 달력 칸이 이만큼은 있게 */
+@media (orientation: portrait){
+  body.sb .cal{min-height:40rem}
+  .cal-foot{margin-top:1.4rem;padding-top:1.4rem;font-size:2.6rem}
+}

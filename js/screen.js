@@ -58,8 +58,8 @@ const HOLIDAY_URL = y => `https://cdn.jsdelivr.net/gh/hyunbinseo/holidays-kr@mai
 const FIXED_HOLIDAYS = { '01-01': '신정', '03-01': '삼일절', '05-05': '어린이날', '06-06': '현충일',
   '08-15': '광복절', '10-03': '개천절', '10-09': '한글날', '12-25': '성탄절' };
 const holidays = {}, holidayYears = new Set();
-// '대체공휴일(3ㆍ1절)' → '대체공휴일', '1월 1일' → '신정'
-const shortHoliday = n => n === '1월 1일' ? '신정' : n.replace(/\(.*\)/, '').trim();
+// '대체공휴일(3ㆍ1절)' → '대체공휴일', '1월 1일' → '신정', '기독탄신일' → '성탄절' (목록을 못 받았을 때 이름과 같게)
+const shortHoliday = n => ({ '1월 1일': '신정', '기독탄신일': '성탄절' })[n] || n.replace(/\(.*\)/, '').trim();
 
 function holidayName(iso) {
   const y = iso.slice(0, 4);
@@ -88,7 +88,7 @@ async function loadHolidays(y) {
 // 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장을 등록해야, 사진 액자는 사진을 올려야 나옴) / 상세 세로: 시간별 ↔ 일별
 // S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김. 사진 액자는 넘어올 때마다 다음 사진
 let panel = 0, panelName = 'now', panelTimer;
-const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자' };
+const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자', cal: '달력' };
 // o: 'L' 가로·'P' 세로 (없으면 지금 화면 방향)
 const portraitMQ = matchMedia('(orientation: portrait)');
 const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
