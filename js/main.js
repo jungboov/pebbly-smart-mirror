@@ -19,7 +19,11 @@ function scheduleReload() {
   const now = new Date(), next = new Date(now);
   next.setHours(CONFIG.reloadHour, 0, 0, 0);
   if (next <= now) next.setDate(next.getDate() + 1);
-  setTimeout(() => location.reload(), next - now);
+  // 새벽 새로고침 뒤엔 인트로 없이 바로 (intro.js)
+  setTimeout(() => {
+    try { sessionStorage.setItem('quietStart', '1'); } catch (e) {}
+    location.reload();
+  }, next - now);
 }
 
 // ===== 시작 =====
