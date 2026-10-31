@@ -48,6 +48,22 @@ function foldCheck() {
 addEventListener('resize', foldCheck);
 document.addEventListener('visibilitychange', foldCheck);
 
+// ===== 아이폰 홈 화면 앱 =====
+// 가로로 처음 켜면 화면 가장자리(카메라 쪽·아래)까지 넓히는 설정(viewport-fit=cover)을 놓쳐 화면이 꽉 안 찰 때가 있음
+// (세로로 돌렸다 오면 바로잡힘). 켤 때 그 설정을 뺐다 다시 넣어 화면 크기를 새로 잡게 함
+// 그래도 기기 화면 크기와 다르면 조금 뒤에 한 번 더. 인트로가 덮고 있는 동안이라 바뀌는 게 안 보임
+if (navigator.standalone) {
+  const vp = document.querySelector('meta[name=viewport]'), full = vp.content;
+  const fits = () => Math.max(innerWidth, innerHeight) === Math.max(screen.width, screen.height)
+    && Math.min(innerWidth, innerHeight) === Math.min(screen.width, screen.height);
+  const refit = () => {
+    vp.content = full.replace('viewport-fit=cover', 'viewport-fit=auto');
+    requestAnimationFrame(() => { vp.content = full; });
+  };
+  refit();
+  [400, 1200].forEach(ms => setTimeout(() => fits() || refit(), ms));
+}
+
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
 function applySettings() {
   document.body.classList.toggle('sb', S.focus);
