@@ -13,10 +13,8 @@ html{font-size:min(1vw, .625vh)}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden}
-/* 아이폰 홈 화면 앱: 화면 높이를 짧게 잡는 iOS 버그 → 페이지 높이는 기기 화면 높이로, 1rem은 실제 무대 높이로 (screen.js '아이폰 홈 화면 앱') */
+/* 아이폰 홈 화면 앱: 켤 때 화면 높이를 짧게 잡는 iOS 버그 → 페이지 높이를 기기 화면 높이로 (screen.js '아이폰 홈 화면 앱') */
 html.ios-app, html.ios-app body{height:var(--app-h)}
-html.ios-app{font-size:min(1vw, calc(var(--app-fh, 100vh) * .00625))}
-@media (orientation: landscape){ html.ios-app{font-size:min(.625vw, calc(var(--app-fh, 100vh) * .01))} }
 /* 터치는 JS가 직접 처리(밀어서 위젯 넘기기·두 번 탭 설정) — 확대·당겨서 새로고침 막음 */
 html,body{touch-action:none;overscroll-behavior:none}
 /* 마우스가 멈춰 있으면 커서를 숨김 (거울 너머로 화살표가 비치지 않게). 움직이면 다시 보임 */

@@ -49,26 +49,30 @@ addEventListener('resize', foldCheck);
 document.addEventListener('visibilitychange', foldCheck);
 
 // ===== 아이폰 홈 화면 앱 =====
-// iOS 26 홈 화면 앱은 화면 높이를 상태 표시줄 높이(12 mini는 50pt)만큼 짧게 잡아 아래에 빈 띠가 생김
-// (세로는 늘, 가로는 처음 켤 때만 — 세로로 돌렸다 오면 바로잡힘). 페이지가 화면보다 짧을 때만 그래서
-// 페이지 높이를 기기 화면 높이로 정해 두면 끝까지 그려짐 (base.css html.ios-app)
+// 켤 때 아이폰(iOS 18에서 확인)이 '화면 끝까지 쓰기'(viewport-fit=cover)를 아직 안 쓴 채 화면 높이를 상태 표시줄(12 mini는 50pt)만큼
+// 짧게 잡아 아래에 빈 띠가 생김. 화면을 돌리는 등 아이폰이 화면 크기를 다시 재면 바로잡히는데, 페이지가 화면보다 짧으면
+// 고정 요소(무대)는 페이지 높이에 묶여 그대로 짧음 → 페이지 높이를 기기 화면 높이로 정해 둠 (base.css html.ios-app)
+// 그리고 아직 짧으면 페이지를 1px 내렸다 올려 아이폰이 화면 크기를 다시 재게 함. 돌릴 땐 크기가 늦게 바뀌어서 조금 뒤에도 다시
 // 화면 폭이 기기 화면 폭과 같을 때만 (아이패드 창 모드처럼 화면 일부만 쓰면 그대로)
 if (navigator.standalone) {
   const root = document.documentElement, stage = $('stage');
+  const events = [], log = t => events.push(`${t}@${(performance.now() / 1000).toFixed(1)}`);   // 임시 진단용
   const fitIos = () => {
     const land = innerWidth > innerHeight, long = Math.max(screen.width, screen.height), short = Math.min(screen.width, screen.height);
-    root.classList.toggle('ios-app', innerWidth === (land ? long : short));
-    root.style.setProperty('--app-h', (land ? short : long) + 'px');
+    const full = innerWidth === (land ? long : short), h = land ? short : long;
+    root.classList.toggle('ios-app', full);
+    root.style.setProperty('--app-h', h + 'px');
+    if (full && innerHeight < h) { scrollTo(0, 1); requestAnimationFrame(() => scrollTo(0, 0)); log('nudge'); }
   };
-  fitIos();
-  addEventListener('resize', fitIos);
-  // 글자 크기 기준(1rem)은 짧게 잡힌 vh 대신 실제로 그려지는 무대 높이로. 무대 높이가 바로잡히면 시계·그래프도 다시 맞춤
-  new ResizeObserver(() => {
-    const h = stage.offsetHeight + 'px';
-    if (root.style.getPropertyValue('--app-fh') === h) return;
-    root.style.setProperty('--app-fh', h);
-    requestAnimationFrame(() => { fitClock(); renderWeather(); });
-  }).observe(stage);
+  const refit = () => [0, 300, 1000, 2500].forEach(ms => setTimeout(fitIos, ms));
+  refit();
+  addEventListener('resize', refit);
+  // 두 번 눌러 설정을 열 때 아이폰이 화면을 확대하지 않게 (페이지가 화면보다 길면 확대할 수 있는 페이지로 봄). 버튼·설정 안은 그대로
+  let lastEnd = 0;
+  document.addEventListener('touchend', e => {
+    if (e.timeStamp - lastEnd < 400 && !e.target.closest('button, input, select, textarea, a, label, .set-card')) e.preventDefault();
+    lastEnd = e.timeStamp;
+  }, { passive: false });
 
   // 임시: 화면 크기 진단 (아이폰에서 원인을 찾으면 지움). 위 가운데에 켤 때·지금 크기 숫자, 아래 끝(기기 화면 기준 40px)에 색 막대 3개
   // 빨강 A: 문서 안(absolute) / 초록 B: 고정(fixed), 고정 영역 아래 끝 밖으로 / 파랑 C: 고정, 기기 화면 높이 기준
@@ -89,15 +93,19 @@ if (navigator.standalone) {
     visual: visualViewport ? sz(visualViewport.width, visualViewport.height) + '+' + Math.round(visualViewport.offsetTop) + ' x' + visualViewport.scale.toFixed(2) : '-',
     docEl: sz(root.clientWidth, root.clientHeight), 'vh s/l/d': [P.vh, P.svh, P.lvh, P.dvh].map(oh).join('/'), fixed: oh(P.fix),
     'safe TRBL': [P.sT, P.sR, P.sB, P.sL].map(oh).join('/'), 'html/body/stg': [root.offsetHeight, document.body.offsetHeight, stage.offsetHeight].join('/'),
-    'ios-app': (root.classList.contains('ios-app') ? 'y ' : 'n ') + root.style.getPropertyValue('--app-h') + ' ' + root.style.getPropertyValue('--app-fh'),
+    'ios-app': (root.classList.contains('ios-app') ? 'y ' : 'n ') + root.style.getPropertyValue('--app-h'),
   });
   const ios = (navigator.userAgent.match(/OS (\d+)_(\d+)(?:_(\d+))?/) || []).slice(1).filter(Boolean).join('.');
-  let first = null;
+  let first = null, lastFix = 0;
+  addEventListener('resize', () => log('rs' + innerWidth + 'x' + innerHeight));
+  document.addEventListener('pointerdown', () => log('tap'));
   const show = () => {
     const now = snap(), land = innerWidth > innerHeight, H = land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
     if (!first && performance.now() > 1000) first = now;
+    if (now.fixed !== lastFix) { log('fix' + now.fixed); lastFix = now.fixed; }
+    const ev = events.join(' ').match(/.{1,46}(\s|$)/g) || [];   // 사건 기록: 몇 초에 무엇 (줄바꿈)
     diag.textContent = `iOS ${ios}  (tap to close)\n${'item'.padEnd(14)}${'launch'.padEnd(17)}now\n`
-      + Object.keys(now).map(k => k.padEnd(14) + String(first ? first[k] : '').padEnd(17) + now[k]).join('\n');
+      + Object.keys(now).map(k => k.padEnd(14) + String(first ? first[k] : '').padEnd(17) + now[k]).join('\n') + '\n' + ev.slice(-6).join('\n');
     bars[0].style.top = bars[2].style.top = H - 40 + 'px';
     bars[1].style.bottom = '-40px';
   };
