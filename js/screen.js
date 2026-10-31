@@ -132,27 +132,28 @@ function autoNext() {
   showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x');
 }
 
-// 위젯 넘기기 (아이폰 위젯 묶음처럼): 지금 위젯이 민 쪽으로 나가며 조금 작아지고 흐려지고, 다음 위젯이 바로 뒤에 붙어 들어오며
-// 처음엔 흐릿하게 보이다가 다 들어오면 또렷하게. 두 위젯 모두 위젯 칸(+ 2rem) 밖은 잘라서 시계·헤더 위로 넘어가지 않음
+// 위젯 넘기기 (아이폰 위젯 묶음처럼): 지금 위젯이 민 쪽으로 나가며 조금 작아지고 흐려지며 번지고, 다음 위젯이 바로 뒤에 붙어 들어오며
+// 처음엔 흐릿하게 번져 보이다가 다 들어오면 또렷하게 (흰 글자뿐인 화면이라 흐려지기만으론 잘 안 보여서 번짐도). 두 위젯 모두 위젯 칸(+ 2rem) 밖은 잘라서 시계·헤더 위로 넘어가지 않음
 // 손으로 끄는 동안은 손가락을 따라오고(drag), 놓으면 그 속도 그대로 용수철처럼 마저 넘어가거나 제자리로. 자동 넘김도 같은 움직임
 // (CSS의 숨김 상태 위에 잠깐 덮어씌우는 모양이라 끝나면 지워서 원래 상태로)
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
-let pg = null, pgRaf = 0;   // 넘어가는 중인 { out 나가는 위젯, inn 들어오는 위젯, dir, axis, span 한 칸 거리, m 잘라 내는 여유, x 나가는 위젯 이동(px) }
-// 위젯 하나 놓기: t 이동(px), s 크기, o 불투명도. 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 위젯 칸에 고정
-function pgPut(el, t, s, o) {
+let pg = null, pgRaf = 0;   // 넘어가는 중인 { out 나가는 위젯, inn 들어오는 위젯, dir, axis, span 한 칸 거리, m 잘라 내는 여유(2rem), x 나가는 위젯 이동(px) }
+// 위젯 하나 놓기: t 이동(px), s 크기, o 불투명도, b 번짐(rem). 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 위젯 칸에 고정
+function pgPut(el, t, s, o, b) {
   const { axis, m } = pg, w = el.offsetWidth, h = el.offsetHeight, [a, c] = axis === 'y' ? [h, w] : [w, h];
   const lo = a / 2 - (a / 2 + m + t) / s, hi = a / 2 - (a / 2 + m - t) / s, side = c / 2 - (c / 2 + m) / s;
   el.style.clipPath = axis === 'y' ? `inset(${lo}px ${side}px ${hi}px ${side}px)` : `inset(${side}px ${hi}px ${side}px ${lo}px)`;
   el.style.transform = `translate${axis === 'y' ? 'Y' : 'X'}(${t}px) scale(${s})`;
   el.style.opacity = o;
+  el.style.filter = b > .05 ? `blur(${b * m / 2}px)` : '';
   el.style.visibility = 'visible';
 }
 function pgDraw() {
   const { out, inn, dir, span, x } = pg, p = Math.min(1, Math.abs(x) / span);
-  pgPut(out, x, 1 - .06 * p, 1 - .7 * p);
-  if (inn) pgPut(inn, x + dir * span, .94 + .06 * p, Math.min(1, .2 + p));
+  pgPut(out, x, 1 - .08 * p, 1 - .8 * p, .6 * p);
+  if (inn) pgPut(inn, x + dir * span, .92 + .08 * p, .15 + .85 * p, .6 * (1 - p));
 }
-const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.visibility = ''; };
+const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.filter = el.style.visibility = ''; };
 function pgStop() {
   cancelAnimationFrame(pgRaf);
   if (pg) { pgClear(pg.out); if (pg.inn) pgClear(pg.inn); pg = null; }
