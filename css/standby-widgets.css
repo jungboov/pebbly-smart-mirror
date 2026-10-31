@@ -201,6 +201,13 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.ds-top.no-sec .clock-in{grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"ds ds" "lh hh" "lm mm"}
   body.sb.ds-top .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;align-self:start;margin:0 0 3rem;contain:inline-size}
 }
+/* 세로 '시계 크게': 폰처럼 시계가 폭에 막히면 날짜를 시계 위 가로 줄로 (날짜는 왼쪽, 요일은 오른쪽 끝) — 옆 날짜 칸만큼 시계가 커짐 (fitClock이 고름) */
+@media (orientation: portrait){
+  /* 숫자 칸은 가장 넓은 시각(00) 폭으로 고정 — 11처럼 좁은 시각에도 숫자 오른쪽 끝·요일이 날짜 줄 오른쪽 끝에 맞음 */
+  body.sb.ds-top .clock-in{grid-template-columns:auto calc(2 * var(--dw, .834em) + .02em);grid-template-areas:"ds ds" "lh hh" "lm mm" ". ss"}
+  body.sb.ds-top.no-sec .clock-in{grid-template-areas:"ds ds" "lh hh" "lm mm"}
+  body.sb.ds-top .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;margin:0 0 3rem;contain:inline-size}
+}
 @container (min-width: 80rem){
   body.sb .moon-card{display:none}
   body.sb .sun-card .moon{display:flex}

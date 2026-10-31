@@ -86,7 +86,7 @@ if (navigator.standalone) {
   const sz = (w, h) => Math.round(w) + 'x' + Math.round(h), oh = e => e.offsetHeight;
   const snap = () => ({
     inner: sz(innerWidth, innerHeight), outer: sz(outerWidth, outerHeight), screen: sz(screen.width, screen.height),
-    visual: visualViewport ? sz(visualViewport.width, visualViewport.height) + '+' + Math.round(visualViewport.offsetTop) : '-',
+    visual: visualViewport ? sz(visualViewport.width, visualViewport.height) + '+' + Math.round(visualViewport.offsetTop) + ' x' + visualViewport.scale.toFixed(2) : '-',
     docEl: sz(root.clientWidth, root.clientHeight), 'vh s/l/d': [P.vh, P.svh, P.lvh, P.dvh].map(oh).join('/'), fixed: oh(P.fix),
     'safe TRBL': [P.sT, P.sR, P.sB, P.sL].map(oh).join('/'), 'html/body/stg': [root.offsetHeight, document.body.offsetHeight, stage.offsetHeight].join('/'),
     'ios-app': (root.classList.contains('ios-app') ? 'y ' : 'n ') + root.style.getPropertyValue('--app-h') + ' ' + root.style.getPropertyValue('--app-fh'),
