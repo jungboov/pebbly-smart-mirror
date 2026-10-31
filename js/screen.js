@@ -49,19 +49,26 @@ addEventListener('resize', foldCheck);
 document.addEventListener('visibilitychange', foldCheck);
 
 // ===== 아이폰 홈 화면 앱 =====
-// 가로로 처음 켜면 화면 가장자리(카메라 쪽·아래)까지 넓히는 설정(viewport-fit=cover)을 놓쳐 화면이 꽉 안 찰 때가 있음
-// (세로로 돌렸다 오면 바로잡힘). 켤 때 그 설정을 뺐다 다시 넣어 화면 크기를 새로 잡게 함
-// 그래도 기기 화면 크기와 다르면 조금 뒤에 한 번 더. 인트로가 덮고 있는 동안이라 바뀌는 게 안 보임
+// iOS 26 홈 화면 앱은 화면 높이를 상태 표시줄 높이(12 mini는 50pt)만큼 짧게 잡아 아래에 빈 띠가 생김
+// (세로는 늘, 가로는 처음 켤 때만 — 세로로 돌렸다 오면 바로잡힘). 페이지가 화면보다 짧을 때만 그래서
+// 페이지 높이를 기기 화면 높이로 정해 두면 끝까지 그려짐 (base.css html.ios-app)
+// 화면 폭이 기기 화면 폭과 같을 때만 (아이패드 창 모드처럼 화면 일부만 쓰면 그대로)
 if (navigator.standalone) {
-  const vp = document.querySelector('meta[name=viewport]'), full = vp.content;
-  const fits = () => Math.max(innerWidth, innerHeight) === Math.max(screen.width, screen.height)
-    && Math.min(innerWidth, innerHeight) === Math.min(screen.width, screen.height);
-  const refit = () => {
-    vp.content = full.replace('viewport-fit=cover', 'viewport-fit=auto');
-    requestAnimationFrame(() => { vp.content = full; });
+  const root = document.documentElement, stage = $('stage');
+  const fitIos = () => {
+    const land = innerWidth > innerHeight, long = Math.max(screen.width, screen.height), short = Math.min(screen.width, screen.height);
+    root.classList.toggle('ios-app', innerWidth === (land ? long : short));
+    root.style.setProperty('--app-h', (land ? short : long) + 'px');
   };
-  refit();
-  [400, 1200].forEach(ms => setTimeout(() => fits() || refit(), ms));
+  fitIos();
+  addEventListener('resize', fitIos);
+  // 글자 크기 기준(1rem)은 짧게 잡힌 vh 대신 실제로 그려지는 무대 높이로. 무대 높이가 바로잡히면 시계·그래프도 다시 맞춤
+  new ResizeObserver(() => {
+    const h = stage.offsetHeight + 'px';
+    if (root.style.getPropertyValue('--app-fh') === h) return;
+    root.style.setProperty('--app-fh', h);
+    requestAnimationFrame(() => { fitClock(); renderWeather(); });
+  }).observe(stage);
 }
 
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
