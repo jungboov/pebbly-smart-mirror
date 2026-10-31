@@ -33,6 +33,7 @@
 .clock .lbl{margin-bottom:2.4rem;line-height:1.2}
 /* 숫자마다 폭이 달라서('1'은 '0'의 절반) 칸 폭을 숫자에 맞추고 바뀔 때 부드럽게 늘고 줄게 함 */
 .clock .roll{width:.834em;transition:width .6s cubic-bezier(.2,.75,.2,1)}
+.clock.snap .roll{transition:none}   /* 시계 크기가 바뀌는 순간엔 바로 (fitClock) */
 .colon{height:.82em;line-height:.82em;margin:0 .04em;color:var(--text-muted)}
 /* 초: 시·분의 40% 크기. 현재 숫자의 바닥을 시·분 바닥에 맞추고 다음 숫자는 그 아래로 살짝 비침 */
 .sgroup{display:flex;align-items:flex-end;font-size:.4em;margin-bottom:calc(-.35 * .82em)}

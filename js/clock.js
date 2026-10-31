@@ -170,7 +170,13 @@ function fitClock() {
     size = $('clock').clientWidth / widestEm;
   }
   // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
-  $('clock').style.setProperty('--clock', (size / rem * .99) + 'rem');
+  // 크기가 바뀔 땐(화면 돌리기·접었다 펴기) 숫자 칸 폭이 천천히 늘고 줄지 않게 — 옛 크기 폭에서 출발하면 시 두 자리가 잠깐 두 줄로 꺾임
+  const cv = (size / rem * .99) + 'rem', ck = $('clock');
+  if (ck.style.getPropertyValue('--clock') !== cv) {
+    ck.classList.add('snap');
+    requestAnimationFrame(() => requestAnimationFrame(() => ck.classList.remove('snap')));
+  }
+  $('clock').style.setProperty('--clock', cv);
   if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
   else $('clock').style.removeProperty('--cm');
   $('clock').style.setProperty('--dw', wmax + 'em');

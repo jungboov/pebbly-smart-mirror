@@ -1,4 +1,4 @@
-// Pebbly Mirror — 화면: 모드·설정 반영, 공휴일, 위젯 넘기기, 터치
+// Pebbly Mirror — 화면: 모드·설정 반영, 접었다 펴기, 공휴일, 위젯 넘기기, 터치
 // ===== 화면 모드 =====
 // 폰 크기 화면은 시계 강조 화면에 밤 붉은 화면·번인 방지가 더해짐
 const phoneMQ = matchMedia('(max-width: 540px), (max-height: 540px)');
@@ -13,6 +13,40 @@ function shiftPixels(m) {
   $('stage').style.setProperty('--sx', x + 'px');
   $('stage').style.setProperty('--sy', y + 'px');
 }
+
+// ===== 접었다 펴기 (폴더블) =====
+// 화면 넓이가 한 번에 1.4배 넘게 커지면(접힌 바깥 화면 → 펼친 안쪽 화면): 가운데 접히는 자리에 빛나는 세로선이 생겨
+// 둘로 갈라져 양 끝으로 가고, 그 사이로 미러 화면이 번졌다 또렷해지며 펼쳐짐
+// 반대로 작아지면(접어서 바깥 화면): 살짝 번진 채 조금 작게 있다가 또렷하게 자리 잡음
+// 화면 돌리기는 넓이가 거의 같아서 안 함. 화면이 꺼져 있는 동안 바뀌었으면 다시 보일 때
+let foldSize = innerWidth * innerHeight;
+function foldCheck() {
+  if (document.hidden) return;
+  const size = innerWidth * innerHeight, k = size / foldSize;
+  foldSize = size;
+  if (calm.matches || (k < 1.4 && k > 1 / 1.4)) return;
+  const st = $('stage'), cs = getComputedStyle(st);
+  // 밤 '붉게'의 흑백·폰 번인 방지 이동은 그대로 두고 그 위에 번짐·크기만 더함
+  const f = cs.filter === 'none' ? '' : cs.filter, t = cs.transform === 'none' ? '' : cs.transform;
+  const ease = 'cubic-bezier(.3,.7,.1,1)';
+  if (k >= 1.4) {
+    const ms = 1000;
+    st.animate([{ clipPath: 'inset(0 50%)', filter: `${f} blur(1.2rem)`, transform: `${t} scale(1.04)` },
+      { clipPath: 'inset(0 0%)', filter: f || 'none', transform: t || 'none' }], { duration: ms, easing: ease });
+    const seam = document.createElement('div');
+    seam.className = 'seam';
+    seam.innerHTML = '<i></i><i></i>';
+    document.body.append(seam);
+    [...seam.children].map((el, i) => el.animate([{ transform: 'translateX(0)', opacity: 1 }, { transform: `translateX(${i ? 50 : -50}vw)`, opacity: 0 }],
+      { duration: ms, easing: ease }))[1].onfinish = () => seam.remove();
+    setTimeout(() => seam.remove(), ms + 1000);   // 화면이 멈춰 끝 알림을 못 받아도
+  } else {
+    st.animate([{ filter: `${f} blur(1rem)`, transform: `${t} scale(.96)` }, { filter: f || 'none', transform: t || 'none' }], { duration: 700, easing: ease });
+  }
+  requestAnimationFrame(renderWeather);   // 그래프를 새 크기로 바로 (원래는 크기가 바뀌고 0.3초 뒤라 펼치는 중에 바뀜)
+}
+addEventListener('resize', foldCheck);
+document.addEventListener('visibilitychange', foldCheck);
 
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
 function applySettings() {

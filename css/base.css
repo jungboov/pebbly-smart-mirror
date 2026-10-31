@@ -80,4 +80,9 @@ body.night.night-dim .stage{opacity:.45}
 @keyframes intro-bail{to{opacity:0;visibility:hidden}}
 /* 밤에 켜면 미러처럼 어둡게·붉게 */
 body.night.night-dim .intro > svg{opacity:.45}
+
+/* 접었다 펴기: 가운데 접히는 자리의 빛나는 세로선이 둘로 갈라져 양 끝으로 (screen.js foldCheck) */
+.seam{position:fixed;inset:0;pointer-events:none}   /* z-index 없이 맨 뒤에 붙여서 밤 '붉게' 덮개(body::after)에 같이 물듦 */
+.seam i{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--text);box-shadow:0 0 1.6rem .3rem rgba(var(--glow), .45);opacity:0}   /* 보이는 건 움직이는 동안만 */
+body.night.night-dim .seam{opacity:.45}
 body.night.night-red .intro{color:var(--night-tint)}
