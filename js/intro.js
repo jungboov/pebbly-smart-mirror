@@ -33,16 +33,24 @@
     lock.setAttribute('transform', `translate(${-W / 2} ${-W / 6}) scale(${k})`);
   }
   // 상자 → 스파인. 시작 값은 index.html의 첫 장면, 끝 값은 로고의 스파인 테두리·가운데 칸 (로고 가운데 = 180, 60)
-  const A = { x: -60.75, y: -60.75, w: 121.5, h: 121.5, r: 44.5, sw: 6, tx: -2.75, ty: 12.8, fs: 36.25, ls: -5.5 };
+  // 상자는 초타원 |x/a|^n + |y/b|^n = 1: 갤럭시 아이콘 모양(n=2.7)에서 거의 네모(n=16)로. x, y는 상자 가운데
+  const sq = (cx, cy, a, b, n) => {
+    let d = '';
+    for (let i = 0; i < 64; i++) {
+      const t = i / 32 * Math.PI, c = Math.cos(t), s = Math.sin(t);
+      d += (i ? 'L' : 'M') + (cx + a * Math.sign(c) * Math.abs(c) ** (2 / n)).toFixed(1) + ' ' + (cy + b * Math.sign(s) * Math.abs(s) ** (2 / n)).toFixed(1);
+    }
+    return d + 'Z';
+  };
+  const A = { x: 0, y: 0, a: 59.5, b: 59.5, n: 2.7, sw: 7.5, tx: -2.75, ty: 12.53, fs: 35.5, ls: -5.5 };
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const part = (a, b) => Math.max(0, Math.min(1, (p - a) / (b - a)));
   function frame() {
-    const B = { x: (20 - 180) * k, y: (18 - 60) * k, w: 56 * k, h: 84 * k, r: 0, sw: 2.8 * k,
+    const B = { x: (48 - 180) * k, y: 0, a: 28 * k, b: 42 * k, n: 16, sw: 2.8 * k,
                 tx: (48 - 180) * k, ty: (64 - 60) * k, fs: 12.5 * k, ls: 0 };
     const e = ease(Math.min(1, p)), v = key => A[key] + (B[key] - A[key]) * e;
-    box.setAttribute('x', v('x')); box.setAttribute('y', v('y'));
-    box.setAttribute('width', v('w')); box.setAttribute('height', v('h'));
-    box.setAttribute('rx', v('r')); box.setAttribute('stroke-width', v('sw'));
+    box.setAttribute('d', sq(v('x'), v('y'), v('a'), v('b'), v('n')));
+    box.setAttribute('stroke-width', v('sw'));
     box.style.opacity = 1 - part(.6, 1);                                         // 끝 무렵 옆선이 사라지고
     q('.in-bars').style.opacity = part(.55, 1);                                  // 위아래 막대만 남음
     el.querySelectorAll('.in-late').forEach(n => { n.style.opacity = part(.45, 1); });   // 점선·꺾쇠
