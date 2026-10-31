@@ -49,20 +49,19 @@ addEventListener('resize', foldCheck);
 document.addEventListener('visibilitychange', foldCheck);
 
 // ===== 아이폰 홈 화면 앱 =====
-// 켤 때 아이폰(iOS 18에서 확인)이 '화면 끝까지 쓰기'(viewport-fit=cover)를 아직 안 쓴 채 화면 높이를 상태 표시줄(12 mini는 50pt)만큼
-// 짧게 잡아 아래에 빈 띠가 생김. 화면을 돌리는 등 아이폰이 화면 크기를 다시 재면 바로잡히는데, 페이지가 화면보다 짧으면
-// 고정 요소(무대)는 페이지 높이에 묶여 그대로 짧음 → 페이지 높이를 기기 화면 높이로 정해 둠 (base.css html.ios-app)
-// 그리고 아직 짧으면 페이지를 1px 내렸다 올려 아이폰이 화면 크기를 다시 재게 함. 돌릴 땐 크기가 늦게 바뀌어서 조금 뒤에도 다시
-// 화면 폭이 기기 화면 폭과 같을 때만 (아이패드 창 모드처럼 화면 일부만 쓰면 그대로)
+// 켤 때 아이폰(iOS 18.7에서 확인)이 '화면 끝까지 쓰기'(viewport-fit=cover)를 아직 안 쓴 채 화면 높이를 상태 표시줄(12 mini는 50pt)만큼
+// 짧게 잡아 아래에 빈 띠가 생김. 아이폰이 화면 크기를 다시 재면(화면 돌리기 등) 바로잡히는데, 페이지가 화면보다 짧으면
+// 고정 요소(무대)는 페이지 높이에 묶여 그대로 짧음 → 페이지 높이를 기기 화면 높이로 정해 두고 (base.css html.ios-app)
+// 아직 짧으면 페이지를 1px 내렸다 올려 아이폰이 화면 크기를 다시 재게 함 (실측: 켜고 1.5초에 다시 재게 하면 1.9초에 바로잡힘, 인트로가 덮는 동안)
+// 돌릴 땐 크기가 늦게 바뀌어서 조금 뒤에도 다시. 화면 폭이 기기 화면 폭과 같을 때만 (아이패드 창 모드처럼 화면 일부만 쓰면 그대로)
 if (navigator.standalone) {
-  const root = document.documentElement, stage = $('stage');
-  const events = [], log = t => events.push(`${t}@${(performance.now() / 1000).toFixed(1)}`);   // 임시 진단용
+  const root = document.documentElement;
   const fitIos = () => {
     const land = innerWidth > innerHeight, long = Math.max(screen.width, screen.height), short = Math.min(screen.width, screen.height);
     const full = innerWidth === (land ? long : short), h = land ? short : long;
     root.classList.toggle('ios-app', full);
     root.style.setProperty('--app-h', h + 'px');
-    if (full && innerHeight < h) { scrollTo(0, 1); requestAnimationFrame(() => scrollTo(0, 0)); log('nudge'); }
+    if (full && innerHeight < h) { scrollTo(0, 1); requestAnimationFrame(() => scrollTo(0, 0)); }
   };
   const refit = () => [0, 300, 1000, 2500].forEach(ms => setTimeout(fitIos, ms));
   refit();
@@ -73,50 +72,6 @@ if (navigator.standalone) {
     if (e.timeStamp - lastEnd < 400 && !e.target.closest('button, input, select, textarea, a, label, .set-card')) e.preventDefault();
     lastEnd = e.timeStamp;
   }, { passive: false });
-
-  // 임시: 화면 크기 진단 (아이폰에서 원인을 찾으면 지움). 위 가운데에 켤 때·지금 크기 숫자, 아래 끝(기기 화면 기준 40px)에 색 막대 3개
-  // 빨강 A: 문서 안(absolute) / 초록 B: 고정(fixed), 고정 영역 아래 끝 밖으로 / 파랑 C: 고정, 기기 화면 높이 기준
-  // → 빈 띠 안에 어떤 색이 보이는지로 어느 방식이 띠까지 그려지는지 앎. 숫자 상자를 누르면 다 사라짐
-  const add = css => { const e = document.createElement('div'); e.style.cssText = css; document.body.append(e); return e; };
-  const probe = css => add('position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;' + css);
-  const P = { vh: probe('height:100vh'), svh: probe('height:100svh'), lvh: probe('height:100lvh'), dvh: probe('height:100dvh'), fix: probe('bottom:0'),
-    sT: probe('height:env(safe-area-inset-top, 0px)'), sR: probe('height:env(safe-area-inset-right, 0px)'),
-    sB: probe('height:env(safe-area-inset-bottom, 0px)'), sL: probe('height:env(safe-area-inset-left, 0px)') };
-  const bars = ['#e00', '#0b0', '#07f'].map((c, i) => add(`position:${i ? 'fixed' : 'absolute'};left:${6 + i * 31}%;width:26%;height:40px;background:${c};z-index:98;`
-    + 'pointer-events:none;display:flex;align-items:center;justify-content:center;color:#fff;font:bold 14px sans-serif'));
-  bars.forEach((b, i) => { b.textContent = 'ABC'[i]; });
-  const diag = add('position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:99;padding:6px 9px;background:rgba(0,0,0,.85);color:#fff;'
-    + 'font:11px/1.35 ui-monospace,Menlo,monospace;white-space:pre;border:1px solid #f80;border-radius:6px');
-  const sz = (w, h) => Math.round(w) + 'x' + Math.round(h), oh = e => e.offsetHeight;
-  const snap = () => ({
-    inner: sz(innerWidth, innerHeight), outer: sz(outerWidth, outerHeight), screen: sz(screen.width, screen.height),
-    visual: visualViewport ? sz(visualViewport.width, visualViewport.height) + '+' + Math.round(visualViewport.offsetTop) + ' x' + visualViewport.scale.toFixed(2) : '-',
-    docEl: sz(root.clientWidth, root.clientHeight), 'vh s/l/d': [P.vh, P.svh, P.lvh, P.dvh].map(oh).join('/'), fixed: oh(P.fix),
-    'safe TRBL': [P.sT, P.sR, P.sB, P.sL].map(oh).join('/'), 'html/body/stg': [root.offsetHeight, document.body.offsetHeight, stage.offsetHeight].join('/'),
-    'ios-app': (root.classList.contains('ios-app') ? 'y ' : 'n ') + root.style.getPropertyValue('--app-h'),
-  });
-  const ios = (navigator.userAgent.match(/OS (\d+)_(\d+)(?:_(\d+))?/) || []).slice(1).filter(Boolean).join('.');
-  let first = null, lastFix = 0;
-  addEventListener('resize', () => log('rs' + innerWidth + 'x' + innerHeight));
-  document.addEventListener('pointerdown', () => log('tap'));
-  const show = () => {
-    const now = snap(), land = innerWidth > innerHeight, H = land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-    if (!first && performance.now() > 1000) first = now;
-    if (now.fixed !== lastFix) { log('fix' + now.fixed); lastFix = now.fixed; }
-    const ev = events.join(' ').match(/.{1,46}(\s|$)/g) || [];   // 사건 기록: 몇 초에 무엇 (줄바꿈)
-    diag.textContent = `iOS ${ios}  (tap to close)\n${'item'.padEnd(14)}${'launch'.padEnd(17)}now\n`
-      + Object.keys(now).map(k => k.padEnd(14) + String(first ? first[k] : '').padEnd(17) + now[k]).join('\n') + '\n' + ev.slice(-6).join('\n');
-    bars[0].style.top = bars[2].style.top = H - 40 + 'px';
-    bars[1].style.bottom = '-40px';
-  };
-  show();
-  const timer = setInterval(show, 500);
-  diag.addEventListener('pointerdown', e => {
-    e.stopPropagation();
-    clearInterval(timer);
-    [diag, ...bars, ...Object.values(P)].forEach(el => el.remove());
-  });
-  diag.addEventListener('pointerup', e => e.stopPropagation());
 }
 
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
