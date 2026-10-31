@@ -33,7 +33,7 @@
     lock.setAttribute('transform', `translate(${-W / 2} ${-W / 6}) scale(${k})`);
   }
   // 상자 → 스파인. 시작 값은 index.html의 첫 장면, 끝 값은 로고의 스파인 테두리·가운데 칸 (로고 가운데 = 180, 60)
-  const A = { x: -56.25, y: -56.25, w: 112.5, h: 112.5, r: 40, sw: 5.5, tx: -1.5, ty: 10.95, fs: 31, ls: -3 };
+  const A = { x: -60.75, y: -60.75, w: 121.5, h: 121.5, r: 44.5, sw: 6, tx: -2.75, ty: 12.8, fs: 36.25, ls: -5.5 };
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const part = (a, b) => Math.max(0, Math.min(1, (p - a) / (b - a)));
   function frame() {
