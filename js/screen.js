@@ -100,8 +100,9 @@ function panelList(o) {
   const h = new Date().getHours();
   return wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n) && (!S.wgTime[n] || inHours(S.wgTime[n], h)));   // 다 끄면 빈 목록 = 시계만
 }
-// dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 미끄러짐
-function showPanel(p, dir, axis) {
+// dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 넘어감, from: 손으로 끌다 놓은 자리·속도에서 이어서
+function showPanel(p, dir, axis, from) {
+  pgStop();   // 넘어가던 중이면 끝 모습으로
   const list = panelList(), old = panelName;
   if (!list.length) {   // 위젯을 모두 끔: 시계만
     panel = 0; panelName = '';
@@ -117,7 +118,7 @@ function showPanel(p, dir, axis) {
   $('sb-dots').innerHTML = list.map((_, i) => `<i${i === panel ? ' class="on"' : ''}></i>`).join('');
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
-  if (dir && S.focus && old !== panelName) slide(panelEl(old), panelEl(panelName), dir, axis);
+  if (dir && S.focus && old !== panelName) page(panelEl(old), panelEl(panelName), dir, axis, from);
   schedulePanel();
 }
 function schedulePanel() {
@@ -131,9 +132,90 @@ function autoNext() {
   showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x');
 }
 
-// 미끄러지기: 나가는 쪽은 민 방향으로 빠지며 사라지고, 들어오는 쪽은 반대편에서 들어옴
-// (CSS의 숨김 상태 위에 잠깐 덮어씌우는 애니메이션이라 끝나면 원래 상태로 돌아감)
+// 위젯 넘기기 (아이폰 위젯 묶음처럼): 지금 위젯이 민 쪽으로 나가며 조금 작아지고 흐려지고, 다음 위젯이 바로 뒤에 붙어 들어오며
+// 처음엔 흐릿하게 보이다가 다 들어오면 또렷하게. 두 위젯 모두 위젯 칸(+ 2rem) 밖은 잘라서 시계·헤더 위로 넘어가지 않음
+// 손으로 끄는 동안은 손가락을 따라오고(drag), 놓으면 그 속도 그대로 용수철처럼 마저 넘어가거나 제자리로. 자동 넘김도 같은 움직임
+// (CSS의 숨김 상태 위에 잠깐 덮어씌우는 모양이라 끝나면 지워서 원래 상태로)
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
+let pg = null, pgRaf = 0;   // 넘어가는 중인 { out 나가는 위젯, inn 들어오는 위젯, dir, axis, span 한 칸 거리, m 잘라 내는 여유, x 나가는 위젯 이동(px) }
+// 위젯 하나 놓기: t 이동(px), s 크기, o 불투명도. 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 위젯 칸에 고정
+function pgPut(el, t, s, o) {
+  const { axis, m } = pg, w = el.offsetWidth, h = el.offsetHeight, [a, c] = axis === 'y' ? [h, w] : [w, h];
+  const lo = a / 2 - (a / 2 + m + t) / s, hi = a / 2 - (a / 2 + m - t) / s, side = c / 2 - (c / 2 + m) / s;
+  el.style.clipPath = axis === 'y' ? `inset(${lo}px ${side}px ${hi}px ${side}px)` : `inset(${side}px ${hi}px ${side}px ${lo}px)`;
+  el.style.transform = `translate${axis === 'y' ? 'Y' : 'X'}(${t}px) scale(${s})`;
+  el.style.opacity = o;
+  el.style.visibility = 'visible';
+}
+function pgDraw() {
+  const { out, inn, dir, span, x } = pg, p = Math.min(1, Math.abs(x) / span);
+  pgPut(out, x, 1 - .06 * p, 1 - .7 * p);
+  if (inn) pgPut(inn, x + dir * span, .94 + .06 * p, Math.min(1, .2 + p));
+}
+const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.visibility = ''; };
+function pgStop() {
+  cancelAnimationFrame(pgRaf);
+  if (pg) { pgClear(pg.out); if (pg.inn) pgClear(pg.inn); pg = null; }
+}
+function pgStart(out, inn, dir, axis, x) {
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  pg = { out, inn, dir, axis, x, m: 2 * rem, span: (axis === 'y' ? out.offsetHeight : out.offsetWidth) + 6 * rem };
+  pgDraw();
+}
+// 용수철(임계 감쇠: 튕기지 않고 멈춤)로 x를 to까지. v 시작 속도(px/ms), w 빠르기(클수록 빨리 멈춤)
+function pgSpring(to, v, w, done) {
+  cancelAnimationFrame(pgRaf);
+  const t0 = performance.now(), A = pg.x - to;
+  if (v * A < 0 && Math.abs(v) > w * Math.abs(A)) v = -w * A;   // 너무 세게 던져도 지나쳤다 돌아오지 않게
+  const B = v + w * A;
+  const step = now => {
+    if (!pg) return;
+    const t = Math.max(0, now - t0), e = Math.exp(-w * t);
+    pg.x = to + (A + B * t) * e;
+    if (Math.abs(pg.x - to) < 1 && Math.abs((B - w * (A + B * t)) * e) < .02) { pg.x = to; pgDraw(); done(); return; }
+    pgDraw();
+    pgRaf = requestAnimationFrame(step);
+  };
+  pgRaf = requestAnimationFrame(step);
+}
+// 이미 바뀐 위젯(showPanel)으로 넘어가는 모습: 처음부터(자동·버튼) 또는 손으로 끌다 놓은 자리에서(from)
+function page(outEl, inEl, dir, axis = 'x', from) {
+  if (calm.matches || !outEl || !inEl) return;
+  pgStart(outEl, inEl, dir, axis, from ? from.x : 0);
+  pgSpring(-dir * pg.span, from ? from.v : 0, from ? .012 : .009, pgStop);
+}
+
+// 손으로 끌기: 위젯 쪽을 누른 채 움직이면 지금 위젯이 손가락을 따라오고, 그 방향 다음(이전) 위젯이 뒤따라 흐릿하게 보임
+// 놓을 때 화면의 8% 넘게 끌었거나 그쪽으로 튕기듯 놓으면 넘어가고, 아니면 제자리로. 위젯이 하나뿐이면 조금만 끌려 왔다 돌아감
+let drag = null;   // { axis, pts: 최근 [시각, 끈 거리] }
+function dragMove(d) {
+  const list = panelList(), n = list.length, out = panelEl(panelName);
+  if (!n || !out) return;
+  const dir = d < 0 ? 1 : -1, inn = n > 1 ? panelEl(list[((panel + dir) % n + n) % n]) : null;
+  if (pg && (pg.out !== out || pg.inn !== inn)) pgStop();   // 끄는 방향이 바뀌면 반대쪽 위젯으로
+  if (!pg) pgStart(out, inn, dir, drag.axis, 0);
+  pg.x = inn ? d : d * .25;
+  cancelAnimationFrame(pgRaf);
+  pgRaf = requestAnimationFrame(pgDraw);
+}
+function dragEnd(d, t) {
+  const { pts } = drag;
+  drag = null;
+  pts.push([t, d]);
+  const last = pts[pts.length - 1], first = pts.find(q => last[0] - q[0] <= 100) || last;   // 놓기 직전 0.1초 속도
+  const v = last[0] > first[0] ? (last[1] - first[1]) / (last[0] - first[0]) : 0;
+  if (!pg) { schedulePanel(); return; }
+  pg.x = pg.inn ? d : d * .25;
+  const far = Math.abs(d) >= Math.min(innerWidth, innerHeight) * .08;
+  if (pg.inn && (Math.abs(v) > .3 ? v * d > 0 : far)) { showPanel(panel + pg.dir, pg.dir, pg.axis, { x: pg.x, v }); return; }
+  dragBack(pg.inn ? v : v * .25);
+}
+// 제자리로: 놓은 속도로 돌아가고, 자동 넘김은 처음부터
+function dragBack(v) {
+  pgSpring(0, v, .012, () => { pgStop(); schedulePanel(); });
+}
+
+// 시계 쪽(스톱워치·타이머·알람) 미끄러지기: 나가는 쪽은 민 방향으로 빠지며 사라지고, 들어오는 쪽은 반대편에서 들어옴
 function slide(outEl, inEl, dir, axis = 'x') {
   if (calm.matches || !outEl || !inEl) return;
   const t = v => `translate${axis === 'y' ? 'Y' : 'X'}(${v}rem)`;
@@ -145,7 +227,7 @@ function slide(outEl, inEl, dir, axis = 'x') {
 }
 
 // ===== 터치 =====
-// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전
+// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전 (위젯 쪽은 손가락을 따라 끌림, 위 dragMove)
 //   시계 쪽에서 밀면 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면), 나머지는 날씨 위젯 (사진 액자에서 좌우로 밀면 사진)
 // 두 번 탭(더블클릭): 설정 열기. 버튼을 누를 때는 둘 다 안 함
 let touchStart = null, lastTap = 0;
@@ -153,11 +235,36 @@ document.addEventListener('pointerdown', e => {
   if (e.target.closest('button') || !$('ring').hidden) { touchStart = null; return; }
   const r = $('clock').getBoundingClientRect();
   const inClock = S.focus && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-  touchStart = { x: e.clientX, y: e.clientY, clock: inClock };
+  touchStart = { x: e.clientX, y: e.clientY, clock: inClock, id: e.pointerId };
+});
+// 위젯 쪽을 누른 채 12px 넘게 움직이면 끌기 시작 (그 전엔 탭으로 봄). 사진 액자 좌우는 사진 넘기기라 끌지 않음
+document.addEventListener('pointermove', e => {
+  const s = touchStart;
+  if (!s || s.clock || e.pointerId !== s.id || !S.focus || !panelName || !$('settings').hidden) return;
+  const dx = e.clientX - s.x, dy = e.clientY - s.y;
+  if (!drag) {
+    if (Math.hypot(dx, dy) < 12) return;
+    const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (panelName === 'photo' && axis === 'x' && photos.length > 1) return;
+    pgStop();   // 넘어가던 중이면 끝 모습에서 잡음
+    clearTimeout(panelTimer);   // 끄는 동안 자동 넘김 멈춤
+    drag = { axis, pts: [] };
+  }
+  const d = drag.axis === 'x' ? dx : dy;
+  drag.pts.push([e.timeStamp, d]);
+  if (drag.pts.length > 8) drag.pts.shift();
+  dragMove(d);
+});
+document.addEventListener('pointercancel', () => {
+  touchStart = null;
+  if (!drag) return;
+  drag = null;
+  if (pg) dragBack(0); else schedulePanel();
 });
 document.addEventListener('pointerup', e => {
   const s = touchStart;
   touchStart = null;
+  if (drag) { dragEnd(drag.axis === 'x' ? e.clientX - s.x : e.clientY - s.y, e.timeStamp); lastTap = 0; return; }
   if (!s || !$('settings').hidden) return;
   const dx = e.clientX - s.x, dy = e.clientY - s.y;
   if (Math.hypot(dx, dy) >= Math.min(innerWidth, innerHeight) * .08) {
