@@ -120,11 +120,14 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .ph-list li{position:relative;aspect-ratio:1;border-radius:1.6rem;overflow:hidden;background:var(--panel-2)}
 .ph-list img{display:block;width:100%;height:100%;object-fit:cover}
 .ph-list li{cursor:pointer}
+/* 동영상: 작은 그림(첫 장면) 왼쪽 아래에 ▶ 길이 */
+.ph-list .ph-vtag{position:absolute;left:.6rem;bottom:.6rem;padding:.4rem 1rem;border-radius:1.6rem;background:var(--scrim);color:var(--text);font-size:2.4rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 /* 사진 크게 보기: 설정 위(개인정보처리방침 아래) 검은 바탕, 사진은 잘리지 않게 화면에 맞춤, 아래 줄에 순번 · ‹ › · 삭제 · 닫기
    폰에선 rem이 작아서 버튼은 손가락 크기(44px) 이상 */
 .ph-view{position:fixed;inset:0;z-index:12;display:flex;flex-direction:column;background:var(--bg)}
 .ph-view[hidden]{display:none}
-.ph-view img{flex:1;min-height:0;width:100%;object-fit:contain;touch-action:none;user-select:none}
+.ph-view img, .ph-view video{flex:1;min-height:0;width:100%;object-fit:contain;touch-action:none;user-select:none}
+.ph-view [hidden]{display:none}
 .ph-view-bar{display:flex;align-items:center;gap:12px;padding:16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))}
 #ph-view-n{flex:1;font-size:max(2.8rem, 15px);color:var(--text-muted);font-variant-numeric:tabular-nums}
 .ph-view-bar button{min-width:48px;min-height:48px;padding:0 18px;border:1px solid var(--card-bd);border-radius:24px;background:none;color:var(--text);font:inherit;font-size:max(3rem, 16px);cursor:pointer}

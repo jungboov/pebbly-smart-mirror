@@ -140,6 +140,7 @@ function showPanel(p, dir, axis, from) {
   const list = panelList(), old = panelName;
   if (!list.length) {   // 위젯을 모두 끔: 시계만
     panel = 0; panelName = '';
+    if (old === 'photo') phLeave();
     document.body.dataset.panel = '';
     $('sb-dots').innerHTML = '';
     clearTimeout(panelTimer);
@@ -152,6 +153,7 @@ function showPanel(p, dir, axis, from) {
   $('sb-dots').innerHTML = list.map((_, i) => `<i${i === panel ? ' class="on"' : ''}></i>`).join('');
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
+  else if (old === 'photo') phLeave();   // 동영상 멈춤
   if (dir && S.focus && old !== panelName) page(panelEl(old), panelEl(panelName), dir, axis, from);
   schedulePanel();
 }
@@ -161,7 +163,9 @@ function schedulePanel() {
 }
 // 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
 // 사진 액자는 한 번 올 때 정한 장수(설정 > 사진)만큼 사진을 넘긴 뒤 다음 위젯으로, 다음 차례엔 이어서
-function autoNext() {
+// 동영상은 끝까지 본 뒤에 (phHold: 끝나면 autoNext(true))
+function autoNext(held) {
+  if (panelName === 'photo' && !held && phHold()) return;
   if (panelName === 'photo' && phMore()) { phShow(1); phVisit++; schedulePanel(); return; }
   showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x');
 }
@@ -283,6 +287,7 @@ document.addEventListener('pointermove', e => {
     if (panelName === 'photo' && axis === 'x' && photos.length > 1) return;
     pgStop();   // 넘어가던 중이면 끝 모습에서 잡음
     clearTimeout(panelTimer);   // 끄는 동안 자동 넘김 멈춤
+    phWaitOff();
     drag = { axis, pts: [] };
   }
   const d = drag.axis === 'x' ? dx : dy;
