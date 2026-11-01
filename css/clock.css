@@ -65,9 +65,10 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 
 /* ── 아날로그 시계 (설정 › 시계 모양 › 아날로그, 시계 강조 화면에서만): 레코드판 ──
    5장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands) / 초침(dl-sec)
-   200×200 단위로 그렸고 크기 --dial은 fitClock(fitDial)이 정함. 배치는 standby-widgets.css '아날로그 시계 배치'
-   테마(설정 › 화면 › 아날로그 테마): 블랙(기본, 아래 색) / 실버(맨 아래). --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
-.dial{display:none;position:relative;width:var(--dial, 60rem);height:var(--dial, 60rem);--dl-sheen:.42;--dl-label:var(--vinyl-label)}
+   200×200 단위로 그렸고 크기 --dial(폭)은 fitClock(fitDial)이 정함. 높이는 폭 × --dial-r(세로/가로, 레코드판은 정사각 1). 배치는 standby-widgets.css '아날로그 시계 배치'
+   테마(설정 › 테마): 레코드 블랙(기본, 아래 색) / 레코드 실버 / 다이아 브라운(맨 아래, 따로 그린 직사각 시계판 .dc — 레코드판 .dl은 숨김).
+   --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
+.dial{display:none;position:relative;width:var(--dial, 60rem);height:calc(var(--dial, 60rem) * var(--dial-r, 1));--dl-sheen:.42;--dl-label:var(--vinyl-label)}
 .dial > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 .dl-case{fill:url(#dl-case);stroke:url(#dl-edge);stroke-width:1.2}
 .dl-bevel{fill:none;stroke:#000;stroke-opacity:.55}
@@ -114,7 +115,7 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .sc{stroke:var(--dl-label);stroke-width:1.1;stroke-linecap:round}
 .sc-tail{fill:none;stroke:var(--dl-label);stroke-width:1.5}
 .sc-cap{fill:var(--dl-label);stroke:#000;stroke-opacity:.5;stroke-width:.6}
-body.no-sec .dl-sec{display:none}
+body.no-sec .dl-sec, body.no-sec .dc-sec{display:none}
 
 /* 실버 테마: 사진의 은색 시계 — 밝은 은색 케이스·나사·용두(광택 테두리는 흰색 ↔ 짙은 회색), 레코드판 빛은 더 밝게, 진한 빨강 라벨.
    눈금 테는 블랙과 같은 검은 테에 흰 눈금 */
@@ -124,3 +125,39 @@ body.no-sec .dl-sec{display:none}
 .dial[data-theme="silver"] .dl-bevel{stroke-opacity:.22}
 .dial[data-theme="silver"] .dl-slot{stroke:rgba(0,0,0,.55)}
 .dial[data-theme="silver"] .dl-crown-grip{stroke:rgba(0,0,0,.3)}
+
+/* 다이아 브라운: 세로로 긴 네모 드레스 워치 — 밝은 은색 케이스 양옆에 다이아 한 줄씩(사이사이 작은 발), 올림 테,
+   브라운 선레이 판(가운데가 밝고 모서리로 어두워짐, 왼쪽 위·아래로 빛 띠, 가는 방사 결), 은테 두른 흰 숫자·막대 눈금, 흰 야광 바늘 */
+.dial[data-theme="brown"]{--dial-r:1.17}
+.dial:not([data-theme="brown"]) .dc, .dial[data-theme="brown"] .dl{display:none}
+.dc-case{fill:url(#dc-steel);stroke:#7b8086;stroke-width:.8}
+.dc-chan{fill:#aab0b6;stroke:rgba(0,0,0,.28);stroke-width:.5}
+.dc-facet{fill:none;stroke:rgba(255,255,255,.8);stroke-width:.04}
+.dc-prong{fill:#f2f3f5;stroke:#80868c;stroke-width:.3}
+.dc-glint{fill:#fff}
+.dc-frame{fill:url(#dc-frame);stroke:#6f747a;stroke-width:.7}
+.dc-groove{fill:none;stroke:rgba(0,0,0,.32);stroke-width:.8}
+.dc-open{fill:#120d0a;stroke:rgba(0,0,0,.6);stroke-width:1}
+.dial .dc-face{left:15%;top:9.4%;width:70%;height:81.2%;border-radius:2.4% / 1.8%;
+  background:radial-gradient(ellipse 80% 70% at 50% 52%, transparent 35%, rgba(0,0,0,.55) 100%),
+    conic-gradient(from 335deg, rgba(255,240,222,.3), rgba(255,240,222,.1) 30deg, transparent 60deg, rgba(0,0,0,.12) 95deg, transparent 130deg,
+      rgba(255,240,222,.12) 160deg, rgba(255,240,222,.32) 190deg, rgba(255,240,222,.1) 220deg, transparent 250deg, rgba(0,0,0,.14) 280deg, rgba(255,240,222,.1) 320deg, rgba(255,240,222,.3) 360deg),
+    repeating-conic-gradient(rgba(255,255,255,.022) 0 .6deg, rgba(0,0,0,.035) .6deg 1.2deg),
+    radial-gradient(ellipse at 50% 52%, #85725f, #5a493b 48%, #30251e 100%)}
+.dc-ix{fill:url(#dc-applied);stroke:#7d838a;stroke-width:.45;stroke-linejoin:round}
+.dc-ix-in{fill:#fbfbfa}
+.dc-num{font-family:Graduate,var(--num);font-size:33px;text-anchor:middle;fill:#fbfbfa;stroke:#9ba1a7;stroke-width:2.2;stroke-linejoin:round;paint-order:stroke}
+.dc-face text:not(.dc-num){fill:#efebe5;text-anchor:middle;font-family:Marcellus,var(--brand)}
+.dc-brand{font-size:9.6px;letter-spacing:.03em}
+.dc-city{font-size:6.2px;letter-spacing:.1em}
+.dc-made{font-size:4.4px;letter-spacing:.14em}
+/* 바늘: 은테에 흰 야광, 가운데는 은색 고리·볼록한 핀. 그림자는 바늘 묶음 밖에서 걸어서 바늘이 돌아도 늘 오른쪽 아래 */
+.dc-hd{fill:url(#dc-frame);stroke:#71767c;stroke-width:.45}
+.dc-lume{fill:#fbfbfa}
+.dc-hub{fill:url(#dc-frame);stroke:#6b7076;stroke-width:.5}
+.dc-hub-in{fill:#a7acb1}
+.dc-pin{fill:#eceef0;stroke:#80868c;stroke-width:.4}
+.dial .dc-sec{will-change:transform}
+.dc-sc{stroke:#eceef0;stroke-width:.9;stroke-linecap:round}
+.dc-sc-sh{stroke:#000;stroke-opacity:.45;stroke-width:2;stroke-linecap:round}
+.dc-sc-tail, .dc-sc-cap{fill:#eceef0;stroke:#6b7076;stroke-width:.4}
