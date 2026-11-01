@@ -192,26 +192,24 @@ function cmLine(h, size, rem) {
   return size;
 }
 
-// 아날로그 시계판: 칸 폭·높이 중 막히는 쪽에 맞춤 (높이 = 폭 × R, 레코드판은 정사각 R 1·클래식 브라운은 세로로 긴 1.33 — clock.css --dial-r)
-// 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
+// 아날로그 시계판: 정사각이라 칸 폭·높이 중 작은 쪽. 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
 // 스톱워치·타이머·알람은 시계판 자리(시계판 + 날짜) 안에 들어가는 크기로 (돌려줌)
 // 세로 반반은 시계 칸이 위 절반을 채워서(CSS) 스톱워치 등을 디지털 시계와 똑같이 — 디지털이 한 줄이었을 화면이면 한 줄(cm-line)
 function fitDial(w, h, portrait, solo, rem, wmax) {
   const ds = document.querySelector('.ds'), gap = 2 * rem;
-  const R = parseFloat(getComputedStyle($('dial')).getPropertyValue('--dial-r')) || 1;
   document.body.classList.remove('oneline');
   $('clock-in').style.rowGap = '';
   const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;   // 날짜 줄 두께 (놓인 방향과 상관없이 같음)
   const row = t + 3 * rem, side = t + gap + 3 * rem;   // 시계판과 날짜 사이 3rem (옆이면 칸 사이 2rem도)
-  const top = Math.min(w, (h - row) / R), beside = Math.min(w - side, h / R);   // 시계판 폭
+  const top = Math.min(w, h - row), beside = Math.min(w - side, h);
   const dateRow = S.date && (solo ? portrait : top > beside);
   document.body.classList.toggle('ds-top', dateRow && !solo);
-  const D = Math.floor(!S.date ? Math.min(w, h / R) : dateRow ? top : beside);
+  const D = Math.floor(!S.date ? Math.min(w, h) : dateRow ? top : beside);
   $('clock').style.setProperty('--dial', D + 'px');
   // 날짜가 시계판보다 길면 줄임 (눕힌 날짜는 시계판 높이, 가로 줄은 시계판 폭에 맞춤)
   const items = [...ds.children].filter(c => c.offsetHeight);
   const len = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-  const z = len ? Math.min(1, (dateRow ? D : D * R) / len) : 1;
+  const z = len ? Math.min(1, D / len) : 1;
   ds.style.zoom = z < .99 ? z : '';
   const cw = D + (S.date && !dateRow ? side : 0);
   $('clock').style.width = portrait ? '' : cw + 'px';
@@ -221,7 +219,7 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   document.body.classList.toggle('cm-line', line);
   if (line) return cmLine(h, oneLineSize(w, wmax), rem);
   if (half) return Math.min((w - lbl - (S.date ? side : 9.4 * rem + gap)) / span, h / 2.25);
-  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D * R + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
+  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
 }
 
 // ===== 아날로그 시계 (레코드판, 설정 › 시계 모양) =====
@@ -240,42 +238,20 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   let g = '';
   for (let r = 25.5, k = 0; r < 72; r += 1.5, k++) g += `<circle class="${k % 2 ? 'g-d' : 'g-l'}" r="${r}"/>`;
   $('dl-grooves').innerHTML = g + '<circle class="g-gap" r="41"/><circle class="g-gap" r="56"/><circle class="g-in" r="72.6"/>';
-  drawRect();
 })();
-// 클래식 브라운 (판은 140×190, 가운데 70,95 / 바늘은 가운데가 0,0)
-// 눈금: 정시 방향 선이 판 가장자리(5.5 안쪽)에 닿는 곳에서 가운데를 향한 막대 — 모서리 쪽(1·5·7·11시)은 길게, 12·6시는 숫자
-// 바늘: 가운데서 가는 목(11) 뒤로 양 끝이 둥근 막대(은테 + 흰 야광)
-function drawRect() {
-  let ix = '';
-  for (let h = 1; h < 12; h++) {
-    if (h === 6) continue;
-    const a = h * Math.PI / 6, m = 5.5, L = [1, 5, 7, 11].includes(h) ? 21 : 17;
-    const t = Math.min((70 - m) / (Math.abs(Math.sin(a)) || 1e-6), (95 - m) / (Math.abs(Math.cos(a)) || 1e-6));
-    const bar = (wo, wi, r1, r0) => `M${70 - wo} ${95 - r1}H${70 + wo}L${70 + wi} ${95 - r0}H${70 - wi}Z`;
-    ix += `<g transform="rotate(${h * 30} 70 95)"><path class="dc-ix" d="${bar(2.5, 1.7, t, t - L)}"/><path class="dc-ix-in" d="${bar(1.65, 1, t - .9, t - L + .9)}"/></g>`;
-  }
-  $('dc-idx').innerHTML = ix;
-  const hand = (L, w) => `<path class="dc-hd" d="M-1.2 0V-12H1.2V0Z"/><rect class="dc-hd" x="${-w}" y="${-L}" width="${2 * w}" height="${L - 11}" rx="${w}"/>`
-    + `<rect class="dc-lume" x="${1 - w}" y="${1 - L}" width="${2 * w - 2}" height="${L - 13}" rx="${w - 1}"/>`;
-  $('dc-h').innerHTML = hand(40, 3.5);
-  $('dc-m').innerHTML = hand(59, 3);
-}
 // 시침·분침은 초마다(분침은 초만큼 조금씩), 초침과 라벨은 1분에 한 바퀴 부드럽게 계속 돎 — 초 표시를 끄면 초침은 숨고 라벨은 멈춤 (▲가 12시)
 // 초침·라벨은 따로 겹친 그림이라 돌려도 화면을 다시 그리지 않음. 1분마다 실제 초에 다시 맞춤
 let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'dc-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
   const m = d.getMinutes() + d.getSeconds() / 60, h = d.getHours() % 12 + m / 60;
-  const hd = (h * 30).toFixed(2), md = (m * 6).toFixed(2);
-  $('dl-h').setAttribute('transform', `rotate(${hd} 100 100)`);
-  $('dl-m').setAttribute('transform', `rotate(${md} 100 100)`);
-  $('dc-h').setAttribute('transform', `rotate(${hd})`);   // 클래식 브라운 (가운데 0,0)
-  $('dc-m').setAttribute('transform', `rotate(${md})`);
+  $('dl-h').setAttribute('transform', `rotate(${(h * 30).toFixed(2)} 100 100)`);
+  $('dl-m').setAttribute('transform', `rotate(${(m * 6).toFixed(2)} 100 100)`);
 }
 
 // ===== 시계 =====

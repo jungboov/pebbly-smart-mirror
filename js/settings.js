@@ -44,7 +44,7 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.chip) S[b.dataset.chip] = !S[b.dataset.chip];
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
-  else if (b && b.dataset.clockTheme) { const t = b.dataset.clockTheme; S.analog = t !== 'digital'; if (S.analog) S.dialTheme = t; }
+  else if (b && b.dataset.clockTheme) { const t = CLOCK_THEMES.find(x => x.id === b.dataset.clockTheme); S.analog = !!t.dial; if (t.dial) S.dialTheme = t.id; }
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
     return;
@@ -54,17 +54,14 @@ $('settings').addEventListener('click', e => {
 });
 
 // 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
-// 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 클래식 브라운처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (rect)
+// 아날로그 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
   { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'] },
-  { id: 'brown', name: '클래식 브라운', rect: true },
 ];
-// 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초), 클래식 브라운은 rectThumb
+// 작은 그림 (40×40): 디지털은 시·분 두 줄, 아날로그는 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초)
 function thThumb(t) {
-  if (t.rect) return rectThumb();
   if (!t.dial) return '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x=".6" y=".6" width="38.8" height="38.8" rx="6" fill="#000" stroke="var(--card-bd)" stroke-width=".8"/>'
     + '<g fill="#fff" font-weight="900" font-size="13" text-anchor="end" style="font-family:var(--num)"><text x="31" y="19">10</text><text x="31" y="34">08</text></g></svg>';
   const [a, b, c, edge, label] = t.dial, g = 'th-g-' + t.id;
@@ -79,22 +76,6 @@ function thThumb(t) {
     + `<circle cx="20" cy="20" r="14.6" fill="#080808"/><g fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".3">${grooves}</g>`
     + `<circle cx="20" cy="20" r="5" style="fill:${label}"/>${hand(300, 8.5, 1.6, '#fff')}${hand(60, 13, .8, '#fff')}${hand(180, 14, .5, label)}`
     + `<circle cx="20" cy="20" r="1" fill="#ddd"/></svg>`;
-}
-// 클래식 브라운 작은 그림: 실제 시계판(152×202)을 .16배 — 얇은 은색 테·브라운 판·눈금·12·6·흰 바늘(10시 10분)
-function rectThumb() {
-  let ix = '';
-  for (const h of [1, 2, 3, 4, 5, 7, 8, 9, 10, 11]) {
-    const a = h * Math.PI / 6, t = Math.min(10.3 / (Math.abs(Math.sin(a)) || 1e-6), 14.3 / (Math.abs(Math.cos(a)) || 1e-6)), L = [1, 5, 7, 11].includes(h) ? 3.4 : 2.7;
-    ix += `<path d="M20 ${(20 - t).toFixed(2)}v${L}" transform="rotate(${h * 30} 20 20)"/>`;
-  }
-  const hand = (deg, L, w) => `<path d="M20 18.2V${20 - L}" transform="rotate(${deg} 20 20)" stroke-width="${w}"/>`;
-  return '<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="th-g-brown" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#c3c7cb"/><stop offset="1" stop-color="#eef0f2"/></linearGradient>'
-    + '<radialGradient id="th-d-brown" cx=".5" cy=".52"><stop offset="0" stop-color="#9a8672"/><stop offset=".5" stop-color="#5a4939"/><stop offset="1" stop-color="#2c221c"/></radialGradient></defs>'
-    + '<rect x="7.84" y="3.84" width="24.32" height="32.32" rx="1.1" fill="url(#th-g-brown)" stroke="#7b8086" stroke-width=".3"/>'
-    + '<rect x="8.8" y="4.8" width="22.4" height="30.4" rx=".5" fill="url(#th-d-brown)"/>'
-    + `<g stroke="#fff" stroke-width=".8">${ix}</g>`
-    + '<g fill="#fff" font-size="5.3" text-anchor="middle" style="font-family:Graduate,var(--num)"><text x="20" y="10.9">12</text><text x="20" y="33">6</text></g>'
-    + `<g stroke="#fff" stroke-linecap="round">${hand(305, 6.4, 1.1)}${hand(60, 9.4, .95)}</g><circle cx="20" cy="20" r=".9" fill="#d6d9dc"/></svg>`;
 }
 function thRender() {
   const cur = S.analog ? S.dialTheme : 'digital';

@@ -258,6 +258,6 @@ body.sb.analog.ds-top #clock-in{grid-template-columns:var(--dial);grid-template-
   body.sb.analog.no-panel #clock-in{grid-template-columns:var(--dial);grid-template-areas:"dl" "ds"}
   /* 반반: 시계 칸은 위 절반을 채우고 시계판은 그 가운데 — 스톱워치·타이머·알람이 디지털처럼 위 절반을 씀 */
   body.sb.analog.half .clock{align-self:stretch;display:flex;flex-direction:column;justify-content:center}
-  /* 시계 크게: 시계판은 모양이 정해져 있어서(정사각·세로로 긴 네모) 폭에 막히면 위젯 위로 남는 높이가 생김 → 그 가운데에 */
+  /* 시계 크게: 시계판은 정사각이라 폭에 막히면 위젯 위로 남는 높이가 생김 → 그 가운데에 */
   body.sb.analog:not(.half):not(.no-panel) .stage{grid-template-rows:1fr auto 1fr auto;grid-template-areas:"." "clock" "." "panel"}
 }
