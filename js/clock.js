@@ -388,13 +388,13 @@ function modernCal(t, d, hy = 122) {
 
 // ===== 플라워 시계판 (설정 › 테마 › 플라워) =====
 // 보석 꽃 그림(img/flower.webp — 정사각, 가운데 웃는 얼굴이 판 가운데, 꽃잎 12장이 시 자리) 위에 바늘만 그림
-// 검은 금속 시침·분침에 흰 테두리(흰 얼굴·색 꽃잎 어디서나 보이게), 빨간 초침(검은 테두리·뒤쪽 무게추). 200×200 단위·가운데 0,0
+// 흰 시침·분침에 검은 테두리(흰 얼굴·색 꽃잎 어디서나 보이게), 빨간 초침(검은 테두리·뒤쪽 무게추). 200×200 단위·가운데 0,0
 // 시침은 얼굴(반지름 45) 밖 꽃잎 뿌리까지, 분침은 꽃잎 안쪽까지
 function flowerHands() {
   const hand = (L, w) => `<path class="df-hd" d="M${-w * .47} ${L * .19}L${-w} -4L${-w * .7} ${-L + 6}L0 ${-L}L${w * .7} ${-L + 6}L${w} -4L${w * .47} ${L * .19}Z"/>`;
   return {
     hour: hand(52, 3.4), minute: hand(82, 2.7),
-    hub: '<circle class="df-hd" r="5"/><circle r="1.6" fill="#fff"/>',
+    hub: '<circle class="df-hd" r="5"/><circle r="1.6" fill="#111"/>',
     sec: '<path d="M0 16V-88" stroke="#000" stroke-width="2.6" stroke-linecap="round"/><circle cy="11" r="3.2" fill="#000"/>'
       + '<path d="M0 16V-88" stroke="#ff2d55" stroke-width="1.1" stroke-linecap="round"/><circle cy="11" r="2.4" fill="#ff2d55"/>'
       + '<circle r="2.6" fill="#ff2d55" stroke="#000" stroke-width=".8"/><circle r=".8" fill="#000"/>',
