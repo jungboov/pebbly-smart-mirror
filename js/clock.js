@@ -513,8 +513,8 @@ function drawRainbow() {
 }
 
 // ===== LCD 시계판 (설정 › 테마 › LCD) =====
-// 은색 판(모서리를 깎은 네모, 광택 강철 테): 위에 PEBBLY LABS, 가운데 LCD 창에 7세그먼트 시:분(꺼진 칸도 아주 옅게, 글자 그림자),
-// 창 왼쪽 세로 점선·오른쪽 꺾쇠 ┐┘(로고처럼), 아래에 0~31 숫자 네 줄(0~9 / 10~16 / 17~23 / 24~31) — 오늘 날짜는 굵게 [ 1 ]처럼 괄호로
+// 은색 판(모서리를 깎은 네모, 광택 강철 테): 위에 헤더와 같은 로고([ 03 ] 스파인 | 점선 | pebbly labs ┐┘), 가운데 LCD 창에 7세그먼트 시:분(꺼진 칸도 아주 옅게, 글자 그림자),
+// 아래에 0~31 숫자 네 줄(0~9 / 10~16 / 17~23 / 24~31) — 오늘 날짜는 굵게 [ 1 ]처럼 괄호로
 // 판은 200×220 단위(테 포함 214×234 → 세로/가로 1.0935, clock.css), 시각은 분마다·날짜 표시는 날짜가 바뀔 때 다시 그림
 const DC = { win: [22, 52, 156, 80], rows: [[0, 9, 14.6, 149], [10, 16, 20, 164.5], [17, 23, 20, 180], [24, 31, 20, 195.5]], fs: 9.6 };
 // 7세그먼트 한 칸(폭 30·높이 64, 두께 7): a 위 / b 오른쪽 위 / c 오른쪽 아래 / d 아래 / e 왼쪽 아래 / f 왼쪽 위 / g 가운데 — 끝은 비스듬히
@@ -553,6 +553,17 @@ function lcdDay(day) {
   return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="#111" stroke="#e6e7e9" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${day}</text>`
     + `<path d="${br(-1)}${br(1)}" fill="none" stroke="#e6e7e9" stroke-width="3.2"/><path d="${br(-1)}${br(1)}" fill="none" stroke="#111" stroke-width="1.2"/>`;
 }
+// 맨 위 로고: 헤더 로고(clock.css .brand)와 같은 짜임 — 스파인(위아래 막대, 02 / [ 03 ] / 04) | 점선 | pebbly labs | 꺾쇠 ┐┘
+// 자리·크기는 헤더 로고를 글자 크기(em) 기준으로 잰 값. 글자 크기 10 단위, 판 가운데 위(y 33)에
+function lcdLogo() {
+  const E = 10, W = 10.7339, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2), ink = '#2f3033';
+  const mono = (t, y, fs, op) => `<text x="${X(1.0036)}" y="${Y(y)}" font-size="${(fs * E).toFixed(2)}"${op ? ` opacity="${op}"` : ''} text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:${op ? 400 : 800};white-space:pre">${t}</text>`;
+  return `<g fill="${ink}"><rect x="${X(0)}" y="${Y(0)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/><rect x="${X(0)}" y="${(y0 + H * E - .7).toFixed(2)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/>`
+    + mono('02', .278, .3654, .45) + mono('[ 03 ]', .7114, .4615) + mono('04', 1.1449, .3654, .45)
+    + `<text x="${X(3.2091)}" y="${Y(.7111)}" font-size="${E}" textLength="${(6.32 * E).toFixed(2)}" lengthAdjust="spacing" dominant-baseline="central" style="font-family:var(--brand);font-weight:700;letter-spacing:.09em">pebbly labs</text></g>`
+    + `<path d="M${X(2.6081)} ${Y(0)}V${Y(H)}" stroke="${ink}" stroke-width=".46" stroke-dasharray="1.4 1"/>`
+    + `<path d="M${X(10.4267)} ${Y(.0385)}H${X(10.6954)}V${Y(.3457)}M${X(10.6954)} ${Y(H - .3457)}V${Y(H - .0385)}H${X(10.4267)}" fill="none" stroke="${ink}" stroke-width=".77"/>`;
+}
 function lcdParts(pre) {
   const id = n => `url(#${pre}${n})`, [wx, wy, ww, wh] = DC.win;
   const defs = `<linearGradient id="${pre}g-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfd"/><stop offset=".35" stop-color="#b9bdc2"/><stop offset=".6" stop-color="#8c9197"/><stop offset="1" stop-color="#f1f2f4"/></linearGradient>`
@@ -566,12 +577,9 @@ function lcdParts(pre) {
   const face = `<path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="${id('g-steel')}"/><path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="none" stroke="#6f747a" stroke-width=".6"/>`
     + `<path d="${dcPoly(dcOct(-1.2, -1.2, 202.4, 222.4, 24.5), 8.5)}" fill="#7b8086"/>`
     + `<path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-face')}"/><path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-brush')}"/>`
-    + `<text x="100" y="33.5" font-size="11" fill="#4a4c50" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:2.2px">PEBBLY LABS</text>`
+    + lcdLogo()
     + `<rect x="${wx - .8}" y="${wy - .8}" width="${ww + 1.6}" height="${wh + 1.6}" rx="3.6" fill="#a6a9a5"/><rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="3" fill="${id('g-lcd')}"/>`
     + `<g fill="#000" opacity=".035">${ghost}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`
-    // 창 양옆은 로고처럼: 왼쪽 세로 점선, 오른쪽 꺾쇠 ┐┘ (창 위·아래 끝에 맞춤)
-    + `<path d="M11 ${wy}V${wy + wh}" stroke="#2a2b2e" stroke-width="1" stroke-dasharray="3 2.4"/>`
-    + `<path d="M180 ${wy + .8}H189.2V${wy + 9.8}M189.2 ${wy + wh - 9.8}V${wy + wh - .8}H180" fill="none" stroke="#2a2b2e" stroke-width="1.6"/>`
     + `<g font-size="${DC.fs}" fill="#3a3b3e" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${nums}</g>`;
   return { defs, face };
 }
