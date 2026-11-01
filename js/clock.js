@@ -266,13 +266,14 @@ function renderDial(d) {
     $('dr-sl').setAttribute('transform', `translate(${DR.sub[0][0]} ${DR.sub[0][1]}) rotate(${hd})`);
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
+  if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
   if (S.dialTheme === 'lcd') {   // LCD: 처음 고를 때 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
     if (!dcDrawn) drawLcd();
     const hm = pad(S.hour12 ? d.getHours() % 12 || 12 : d.getHours()) + pad(d.getMinutes());
     if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm); }
     if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay); }
   }
-  for (const k of ['de', 'dm', 'df', 'dr']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
+  for (const k of ['de', 'dm', 'df', 'dr', 'dq']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
   }
@@ -348,7 +349,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', lcd: 'lcd' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -435,9 +436,9 @@ function flowerHands(pre) {
 const DR = { sub: [[-36, 0], [36, 0], [0, 36]], date: [52, 30] };
 // 12시부터 시계방향 a(도)·거리 r 자리
 const drPt = (a, r) => [r * Math.sin(a * Math.PI / 180), -r * Math.cos(a * Math.PI / 180)];
-function rainbowParts(pre) {
-  const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2), rg = id('rg');
-  const defs = `<linearGradient id="${pre}rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7cfb0"/><stop offset=".5" stop-color="#d4946f"/><stop offset="1" stop-color="#eab494"/></linearGradient>`
+// 블랙 타일 두 테마(블랙 타일·타일 캘린더)가 같이 쓰는 조각: 로즈골드 그라데이션·가장자리 그림자·빛·바늘 그림자·타일 무늬
+function drDefs(pre) {
+  return `<linearGradient id="${pre}rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7cfb0"/><stop offset=".5" stop-color="#d4946f"/><stop offset="1" stop-color="#eab494"/></linearGradient>`
     + `<linearGradient id="${pre}rgh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffe2cb"/><stop offset=".5" stop-color="#e2a582"/><stop offset=".51" stop-color="#b47452"/><stop offset="1" stop-color="#d69a77"/></linearGradient>`
     + `<radialGradient id="${pre}vig"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>`
     + `<radialGradient id="${pre}sheen" cx=".3" cy=".22" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
@@ -446,24 +447,36 @@ function rainbowParts(pre) {
     + `<pattern id="${pre}tile" width="10.5" height="10.5" patternUnits="userSpaceOnUse" x="-5.25" y="-5.25"><rect width="10.5" height="10.5" fill="#040405"/>`
     + '<path d="M.7 .7H9.8L7.2 3.3H3.3Z" fill="#55555c"/><path d="M.7 .7L3.3 3.3V7.2L.7 9.8Z" fill="#34343a"/>'
     + '<path d="M9.8 .7V9.8L7.2 7.2V3.3Z" fill="#141416"/><path d="M.7 9.8L3.3 7.2H7.2L9.8 9.8Z" fill="#0b0b0d"/><rect x="3.3" y="3.3" width="3.9" height="3.9" fill="#1f1f23"/></pattern>';
+}
+// 시 눈금: 로즈골드 막대(+ 야광), 그림자는 바깥 기준으로 오른쪽 아래. spec = [[시, 안쪽 r, 바깥 r, 야광, 두 개], ...]
+function drMarks(pre, spec) {
+  const f = v => v.toFixed(2), bar = (a, r1, r2, w, dx) => `<g transform="rotate(${a})"><rect x="${f(dx - w / 2)}" y="${-r2}" width="${w}" height="${r2 - r1}" rx=".8"/></g>`;
+  let mk = '', sh = '';
+  for (const [h, r1, r2, lume, two] of spec) {
+    const w = two ? 3.6 : 4.2;
+    for (const dx of two ? [-2.7, 2.7] : [0]) {
+      sh += bar(h * 30, r1, r2, w, dx);
+      mk += `<g transform="rotate(${h * 30})"><rect x="${f(dx - w / 2)}" y="${-r2}" width="${w}" height="${r2 - r1}" rx=".8" fill="url(#${pre}rgh)" stroke="#7d4b33" stroke-width=".35"/>`
+        + (lume ? `<rect x="${f(dx - w / 2 + 1)}" y="${-r2 + 1.3}" width="${w - 2}" height="${r2 - r1 - 2.6}" rx=".5" fill="#f5f1e8"/>` : '') + '</g>';
+    }
+  }
+  return `<g transform="translate(.5 .8)" fill="#000" opacity=".7">${sh}</g>${mk}`;
+}
+// 로즈골드 야광 시침·분침(가운데 선으로 밝은 면·어두운 면)·가운데 덮개
+function drHands(pre) {
+  const g = `url(#${pre}rgh)`, hand = (L, w) => `<path d="M${-w * .85} 9L${-w} ${-L + 6}L0 ${-L}L${w} ${-L + 6}L${w * .85} 9Z" fill="${g}" stroke="#6b3e2a" stroke-width=".4"/>`
+    + `<path d="M${-w * .45} -9L${-w * .5} ${-L + 7}L0 ${-L + 3.4}L${w * .5} ${-L + 7}L${w * .45} -9Z" fill="#f6f3ec"/>`;
+  return { hour: hand(46, 2.9), minute: hand(67, 2.3), hub: `<circle r="3.8" fill="${g}" stroke="#6b3e2a" stroke-width=".4"/><circle r="1.2" fill="#7d4b33"/>` };
+}
+function rainbowParts(pre) {
+  const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2), rg = id('rg'), defs = drDefs(pre);
   // 다이얼: 검은 바탕 → 타일 → 분 눈금 → 가장자리 어둡게·왼쪽 위 빛
   let face = `<circle r="74.6" fill="#070708"/><circle r="66.2" fill="${id('tile')}"/>`;
   let ticks = '';
   for (let k = 0; k < 60; k++) { const [x1, y1] = drPt(k * 6, 68), [x2, y2] = drPt(k * 6, 71.6); ticks += `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}"/>`; }
   face += `<g stroke="#e2a888" stroke-width="${.6}">${ticks}</g><circle r="74.6" fill="${id('vig')}"/>`;
-  // 시 눈금: 로즈골드 막대 + 야광, 그림자는 바깥 기준으로 오른쪽 아래
-  const bar = (a, r1, r2, w, dx = 0) => `<g transform="rotate(${a})"><rect x="${f(dx - w / 2)}" y="${-r2}" width="${w}" height="${r2 - r1}" rx=".8"/>`;
-  let mk = '', sh = '';
-  for (let h = 0; h < 12; h++) {
-    if (h === 4) continue;
-    const short = h % 3 === 0 && h, [r1, r2] = short ? [61.5, 66] : [46, 64], xs = h ? [0] : [-2.7, 2.7], w = h ? 4.2 : 3.6;
-    for (const dx of xs) {
-      sh += bar(h * 30, r1, r2, w, dx) + '</g>';
-      mk += `<g transform="rotate(${h * 30})"><rect x="${f(dx - w / 2)}" y="${-r2}" width="${w}" height="${r2 - r1}" rx=".8" fill="${id('rgh')}" stroke="#7d4b33" stroke-width=".35"/>`
-        + (short ? '' : `<rect x="${f(dx - w / 2 + 1)}" y="${-r2 + 1.3}" width="${w - 2}" height="${r2 - r1 - 2.6}" rx=".5" fill="#f5f1e8"/>`) + '</g>';
-    }
-  }
-  face += `<g transform="translate(.5 .8)" fill="#000" opacity=".7">${sh}</g>${mk}`;
+  // 시 눈금: 12시 두 개, 3·6·9는 작은 다이얼 바깥에 짧게(야광 없이), 4시는 날짜 창
+  face += drMarks(pre, [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11].map(h => h % 3 === 0 && h ? [h, 61.5, 66] : [h, 46, 64, true, !h]));
   // 작은 다이얼: 그림자 테 → 바탕 → 동심원 무늬 → 로즈골드 테 → 눈금·숫자
   const num = (x, y, t, fs) => `<text x="${f(x)}" y="${f(y)}" font-size="${fs}" fill="#e7ad8b" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${t}</text>`;
   DR.sub.forEach(([cx, cy2], si) => {
@@ -492,14 +505,11 @@ function rainbowParts(pre) {
     + `<text y="-31" font-size="8" fill="${id('rgh')}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
     + `<g font-size="3.3" fill="#ececec" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:.35px"><text x="-3.6" y="63.8" text-anchor="end">PEBBLY</text><text x="3.6" y="63.8">LABS</text></g>`
     + `<circle r="74.6" fill="${id('sheen')}"/>`;
-  // 바늘: 로즈골드(가운데 선으로 밝은 면·어두운 면) + 야광. 작은 다이얼 바늘은 가운데 둥근 판
-  const hand = (L, w) => `<path d="M${-w * .85} 9L${-w} ${-L + 6}L0 ${-L}L${w} ${-L + 6}L${w * .85} 9Z" fill="${id('rgh')}" stroke="#6b3e2a" stroke-width=".4"/>`
-    + `<path d="M${-w * .45} -9L${-w * .5} ${-L + 7}L0 ${-L + 3.4}L${w * .5} ${-L + 7}L${w * .45} -9Z" fill="#f6f3ec"/>`;
+  // 작은 다이얼 바늘: 가운데 둥근 판
   const sub = '<path d="M0 4V-19" stroke="#e7ad8b" stroke-width="1.3" stroke-linecap="round"/>'
     + `<circle r="2.7" fill="${rg}" stroke="#7d4b33" stroke-width=".35"/><circle r=".8" fill="#7d4b33"/>`;
   return {
-    defs, face, sub, hour: hand(46, 2.9), minute: hand(67, 2.3),
-    hub: `<circle r="3.8" fill="${id('rgh')}" stroke="#6b3e2a" stroke-width=".4"/><circle r="1.2" fill="#7d4b33"/>`,
+    defs, face, sub, ...drHands(pre),
     sec: '<path d="M0 15V-69" stroke="#e7ad8b" stroke-width=".8" stroke-linecap="round"/><circle r="1.9" fill="#e7ad8b" stroke="#7d4b33" stroke-width=".3"/>',
   };
 }
@@ -510,6 +520,95 @@ function drawRainbow() {
   $('dr-h').innerHTML = p.hour; $('dr-m').innerHTML = p.minute; $('dr-hub').innerHTML = p.hub; $('dr-sec').innerHTML = p.sec;
   $('dr-sl').innerHTML = p.sub; $('dr-sr').innerHTML = p.sub; $('dr-ss').innerHTML = p.sub;
   drDrawn = true;
+}
+
+// ===== 타일 캘린더 시계판 (설정 › 테마 › 타일 캘린더 — 블랙 타일의 퍼페추얼 캘린더판) =====
+// 검은 타일 다이얼 둘레에 주 번호 링(1~52주 — 짝수는 숫자, 홀수는 점, 가운데 가는 로즈골드 바늘이 이번 주), 로즈골드 시 눈금
+// 로즈골드 작은 다이얼 4개(동심원 무늬, 검은 글씨·바늘): 12시 월(+ 가운데 윤년 L·1·2·3) / 3시 날짜(1~31, 31은 빨강) / 9시 요일 / 6시 달 모양(파란 하늘 창, [ 03 ])
+// 작은 다이얼·주 바늘·달은 날짜가 바뀔 때 판을 다시 그림, 시침·분침만 초마다. 초침 없음. 200×200 단위에서 다이얼(반지름 75)만 보이게 잘라 씀
+const DQ = { sub: [[0, -33], [33, 0], [-33, 0], [0, 33]], r: 21 };
+const MON_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+// ISO 주 번호(1~53) / 달 나이(일, 0 = 삭 — 2000-01-06 18:14 UTC 삭 기준, 삭망월 29.530589일)
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7);
+}
+const moonAge = d => ((d.getTime() / 864e5 - 10962.76) % 29.530589 + 29.530589) % 29.530589;
+function qpParts(pre, d) {
+  const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2), ink = '#2a1810', R = DQ.r;
+  const defs = drDefs(pre)
+    + `<radialGradient id="${pre}sal" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#f8cdb6"/><stop offset=".6" stop-color="#eaaa8e"/><stop offset="1" stop-color="#d38d71"/></radialGradient>`
+    + `<radialGradient id="${pre}sky" cy=".7" r=".8"><stop offset="0" stop-color="#2d48a8"/><stop offset="1" stop-color="#0c1647"/></radialGradient>`
+    + `<radialGradient id="${pre}moon" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#fff6d6"/><stop offset=".7" stop-color="#ecd08c"/><stop offset="1" stop-color="#c9a45a"/></radialGradient>`
+    // 달 창: 위쪽 반달 모양에서 아래 양쪽 언덕(달이 들어가고 나오는 곳)을 뺀 자리
+    + `<mask id="${pre}mw"><circle r="15.6" fill="#fff"/><rect x="-16" y="2.6" width="32" height="14" fill="#000"/><circle cx="-8.6" cy="3.2" r="8.6" fill="#000"/><circle cx="8.6" cy="3.2" r="8.6" fill="#000"/></mask>`;
+  // 바탕: 검은 다이얼 → 타일 → 주 번호 링 경계
+  let face = `<circle r="74.6" fill="#070708"/><circle r="60.6" fill="${id('tile')}"/><circle r="61" fill="none" stroke="#000" stroke-width=".9"/>`;
+  // 주 번호: 1주가 12시, 짝수 주는 숫자(바로 선 글자), 홀수 주는 점
+  let wk = '';
+  for (let k = 1; k <= 52; k++) {
+    const [x, y] = drPt((k - 1) * 360 / 52, 67.6);
+    wk += k % 2 ? `<circle cx="${f(x)}" cy="${f(y)}" r=".55"/>` : `<text x="${f(x)}" y="${f(y)}">${k}</text>`;
+  }
+  face += `<g fill="#efefef" font-size="4.5" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${wk}</g><circle r="74.6" fill="${id('vig')}"/>`;
+  // 시 눈금: 작은 다이얼 사이는 길게(야광), 12·3·6·9는 다이얼 바깥에 짧게
+  face += drMarks(pre, Array.from({ length: 12 }, (_, h) => h % 3 ? [h, 45, 59, true] : [h, 55.6, 59.4]));
+  // 작은 다이얼: 그림자 테 → 로즈골드 바탕 → 동심원 무늬 → 테
+  const base = `<circle r="${R + .8}" fill="rgba(0,0,0,.6)"/><circle r="${R}" fill="${id('sal')}"/><g fill="none" stroke="#7a4130" stroke-opacity=".09" stroke-width=".4">`
+    + Array.from({ length: 17 }, (_, k) => `<circle r="${f(1.6 + k * 1.15)}"/>`).join('') + `</g><circle r="${R - .3}" fill="none" stroke="${id('rg')}" stroke-width=".8"/>`;
+  // 둘레 글자: 아래쪽 절반은 뒤집어 바로 읽히게
+  const ring = (a, r, t, fs, col = ink, w = 600) => {
+    const flip = a > 95 && a < 265, [x, y] = drPt(a, r);
+    return `<text x="${f(x)}" y="${f(y)}" font-size="${fs}" fill="${col}" text-anchor="middle" dominant-baseline="central" transform="rotate(${f(flip ? a + 180 : a)} ${f(x)} ${f(y)})" style="font-family:var(--brand);font-weight:${w}">${t}</text>`;
+  };
+  const tick = (a, r1, r2, w) => { const [x1, y1] = drPt(a, r1), [x2, y2] = drPt(a, r2); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}" stroke="${ink}" stroke-width="${w}"/>`; };
+  const hand = (a, L) => `<g transform="rotate(${f(a)})"><path d="M0 3V${-L}" stroke="#151515" stroke-width="1.1" stroke-linecap="round"/><path d="M-1 ${2 - L}L0 ${-L - 1.6}L1 ${2 - L}Z" fill="#151515"/></g>`;
+  const cap = '<circle r="1.9" fill="#151515"/><circle r=".6" fill="#e9b39a"/>';
+  const at = ([x, y], s) => `<g transform="translate(${x} ${y})">${s}</g>`;
+  // 12시: 월 — 열두 달 눈금, 홀수 달 이름, 바늘은 이번 달. 가운데 윤년(L·1·2·3, 이번 해를 작은 바늘로)
+  const mA = m => m * 30 - 15;
+  let mo = base;
+  for (let m = 0; m < 12; m++) mo += m % 2 ? tick(mA(m), 17.4, 19.6, .6) : ring(mA(m), 15.2, MON_EN[m], 4.1);
+  const lp = d.getFullYear() % 4;
+  [['L', 0], ['1', 90], ['2', 180], ['3', 270]].forEach(([t, a], k) => { const [x, y] = drPt(a, 5.4); mo += `<text x="${f(x)}" y="${f(y)}" font-size="3" fill="${ink}" opacity="${k === lp ? 1 : .55}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:700">${t}</text>`; });
+  mo += hand(mA(d.getMonth()), 12.6) + `<g transform="rotate(${lp * 90})"><path d="M0 0V-3.4" stroke="#151515" stroke-width=".6"/></g>` + cap;
+  // 3시: 날짜 — 1~31(홀수 숫자, 짝수 점, 31은 빨강), 바늘은 오늘
+  const dA = n => (n - 1) * 360 / 31;
+  let dt = base;
+  for (let n = 1; n <= 31; n++) {
+    if (n % 2) dt += ring(dA(n), 15.8, n, 3.15, n === 31 ? '#c8102e' : ink, 700);
+    else { const [x, y] = drPt(dA(n), 15.8); dt += `<circle cx="${f(x)}" cy="${f(y)}" r=".5" fill="${ink}"/>`; }
+  }
+  dt += hand(dA(d.getDate()), 13.4) + cap;
+  // 9시: 요일 — 일요일부터, 이름 바깥에 작은 눈금, 바늘은 오늘
+  const wA = w => w * 360 / 7 - 25.7;
+  let dw = base;
+  for (let w = 0; w < 7; w++) dw += ring(wA(w), 14.4, WEEK_EN[w], 4.3) + tick(wA(w), 18.4, 20, .6);
+  dw += hand(wA(d.getDay()), 12.4) + cap;
+  // 6시: 달 모양 — 별 뜬 파란 하늘 원판에 달 둘(마주 봄)이 창 아래로 돌며 차고 이움 (보름에 달이 창 한가운데), 아래 [ 03 ]
+  const th = moonAge(d) / 29.530589 * 180 - 90;
+  let stars = '', seed = 5;
+  const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  for (let k = 0; k < 26; k++) { const a = rnd() * 360, r = 3 + rnd() * 12, [x, y] = drPt(a, r); stars += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(.18 + rnd() * .3)}"/>`; }
+  const mn = base + `<g mask="url(#${pre}mw)"><g transform="rotate(${f(th)})"><circle r="15.6" fill="${id('sky')}"/><g fill="#fff" opacity=".85">${stars}</g>`
+    + `<circle cy="-9.4" r="5" fill="${id('moon')}"/><circle cy="9.4" r="5" fill="${id('moon')}"/></g></g>`
+    + `<text y="10" font-size="4.6" fill="${ink}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
+  face += at(DQ.sub[0], mo) + at(DQ.sub[1], dt) + at(DQ.sub[2], dw) + at(DQ.sub[3], mn);
+  // 아래 PEBBLY ▮ LABS (6시 짧은 눈금 양옆)
+  face += `<g font-size="3" fill="#ececec" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:.3px"><text x="-3.4" y="57.5" text-anchor="end">PEBBLY</text><text x="3.4" y="57.5">LABS</text></g>`;
+  // 주 바늘: 가는 로즈골드 + 화살촉, 주 번호 링을 가리킴 (53주는 52주 자리), 맨 위 왼쪽 위 빛
+  const wa = (Math.min(52, isoWeek(d)) - 1) * 360 / 52;
+  face += `<g filter="url(#${pre}sh)" transform="rotate(${f(wa)})"><path d="M0 13V-60" stroke="${id('rg')}" stroke-width=".9" stroke-linecap="round"/><path d="M-1.9 -59L0 -64.6L1.9 -59Z" fill="${id('rgh')}"/><circle r="2.2" fill="${id('rgh')}"/></g>`
+    + `<circle r="74.6" fill="${id('sheen')}"/>`;
+  return { defs, face, ...drHands(pre) };
+}
+let dqDay = '';
+function drawQp(d) {
+  const p = qpParts('dq-', d);
+  $('dq-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
+  if (!$('dq-h').firstChild) { $('dq-h').innerHTML = p.hour; $('dq-m').innerHTML = p.minute; $('dq-hub').innerHTML = p.hub; }
+  dqDay = d.toDateString();
 }
 
 // ===== LCD 시계판 (설정 › 테마 › LCD) =====

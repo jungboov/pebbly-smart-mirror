@@ -157,6 +157,9 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial .dr-ss{left:34.667%;top:58.667%;width:30.667%;height:30.667%}
 .dial .dr-sec, .dial .dr-ss{will-change:transform}
 
+/* 타일 캘린더: 정사각(R 1), 다이얼만 판 가득. 모양·색은 clock.js(qpParts)가 그림에 직접 넣음 */
+.dial:not([data-face="qp"]) .dq{display:none}
+
 /* LCD: 은색 판 + LCD 창 (판 200×220에 강철 테까지 214×234 → 세로/가로 1.0935). 모양·색은 clock.js(lcdParts)가 그림에 직접 넣음 */
 .dial[data-face="lcd"]{--dial-r:1.0935}
 .dial:not([data-face="lcd"]) .dc{display:none}

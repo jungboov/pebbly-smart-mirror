@@ -55,7 +55,7 @@ $('settings').addEventListener('click', e => {
 
 // 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 엣지·모던·플라워·블랙 타일·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·lcd)
+// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
@@ -66,11 +66,16 @@ const CLOCK_THEMES = [
   { id: 'date', name: '데이트', modern: true },
   { id: 'flower', name: '플라워', flower: true },
   { id: 'rainbow', name: '블랙 타일', rainbow: true },
+  { id: 'qp', name: '타일 캘린더', qp: true },
   { id: 'lcd', name: 'LCD', lcd: true },
 ];
 // 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
-// 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·LCD도 실제 그림(clock.js rainbowParts·lcdParts)
+// 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD도 실제 그림(clock.js rainbowParts·qpParts·lcdParts)
 function thThumb(t) {
+  if (t.qp) {
+    const p = qpParts('th-dq-', new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
+    return `<svg viewBox="-76 -76 152 152" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-dq-sh)">${rot(305, p.hour)}${rot(61, p.minute)}${p.hub}</g></svg>`;
+  }
   if (t.lcd) {
     const p = lcdParts('th-dc-');
     return `<svg viewBox="-24 -7 248 234" aria-hidden="true"><defs>${p.defs}</defs>${p.face}${lcdTime('1009')}${lcdDay(new Date().getDate())}</svg>`;
