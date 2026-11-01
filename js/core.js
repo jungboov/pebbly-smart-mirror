@@ -47,7 +47,7 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 
 // ===== 사용자 설정 (설정 화면에서 바꿈, 기기마다 저장) =====
-// hour12: 12시간제 / analog: 아날로그 시계(레코드판, 시계 강조 화면에서만) / secs: 초 표시(끄면 시·분만 크게, 아날로그는 라벨이 멈춤) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게)
+// hour12: 12시간제 / analog: 아날로그 시계(레코드판, 시계 강조 화면에서만) / dialTheme: 아날로그 테마 'black'·'silver' / secs: 초 표시(끄면 시·분만 크게, 아날로그는 초침을 숨기고 라벨이 멈춤) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게)
 // addr: 위치를 도로명 주소까지 (켰을 때만 약 10m 단위 좌표로 조회) / alert: 비·미세먼지 알림 띠 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게) / halfL: 가로 화면을 왼쪽 시계 / 오른쪽 위젯 반반으로 (끄면 위젯 자리만 남기고 시계를 최대한 크게)
@@ -57,7 +57,7 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // phPer: 사진 액자 차례가 오면 몇 장 보여 주고 다음 위젯으로 갈지 (0 = 모두, 설정 버튼은 1을 true로 저장해서 숫자로 바꿔 씀)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, analog: false, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, analog: false, dialTheme: 'black', secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3 },
   // 폰에서 다른 미러 설정 중(REMOTE)이면 이 폰 자기 설정은 섞지 않음: 기본값 위에 그 미러 설정만 (remoteStart)
   //   섞으면 그 미러에 없던 값(사진 앨범 등)이 이 폰 것으로 채워져 '미러에 적용' 때 그 미러로 넘어감

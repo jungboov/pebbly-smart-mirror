@@ -227,15 +227,15 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   for (let r = 25.5, k = 0; r < 72; r += 1.5, k++) g += `<circle class="${k % 2 ? 'g-d' : 'g-l'}" r="${r}"/>`;
   $('dl-grooves').innerHTML = g + '<circle class="g-gap" r="41"/><circle class="g-gap" r="56"/><circle class="g-in" r="72.6"/>';
 })();
-// 시침·분침은 초마다(분침은 초만큼 조금씩), 라벨은 1분에 한 바퀴 계속 돎 — 초 표시를 끄면 멈춤 (▲가 12시)
-// 라벨은 따로 겹친 그림이라 돌려도 화면을 다시 그리지 않음. 1분마다 실제 초에 다시 맞춤
+// 시침·분침은 초마다(분침은 초만큼 조금씩), 초침과 라벨은 1분에 한 바퀴 부드럽게 계속 돎 — 초 표시를 끄면 초침은 숨고 라벨은 멈춤 (▲가 12시)
+// 초침·라벨은 따로 겹친 그림이라 돌려도 화면을 다시 그리지 않음. 1분마다 실제 초에 다시 맞춤
 let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = $('dl-label').animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity });
-    if (!dlSpin.synced || !d.getSeconds()) { dlSpin.currentTime = d.getTime() % 6e4; dlSpin.synced = true; }
-  } else if (dlSpin) { dlSpin.cancel(); dlSpin = null; }
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
+  } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
   const m = d.getMinutes() + d.getSeconds() / 60, h = d.getHours() % 12 + m / 60;
   $('dl-h').setAttribute('transform', `rotate(${(h * 30).toFixed(2)} 100 100)`);

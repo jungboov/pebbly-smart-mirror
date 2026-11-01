@@ -80,6 +80,7 @@ function applySettings() {
   document.body.classList.toggle('half', S.half);
   document.body.classList.toggle('half-l', S.halfL);
   document.body.classList.toggle('analog', S.analog);
+  $('dial').dataset.theme = S.dialTheme;
   document.body.classList.toggle('no-sec', !S.secs);
   document.body.classList.toggle('no-date', !S.date);
   renderAlert();
@@ -104,13 +105,14 @@ function applySettings() {
   else if (sl && !S.addr && sl.addr) { delete sl.addr; delete sl.exact; try { localStorage.setItem(LOC_KEY, JSON.stringify(sl)); } catch (e) {} }
   renderFoot();
   document.querySelectorAll('.seg[data-key]').forEach(seg => {
-    const k = seg.dataset.key, v = k === 'night' ? nightStyle() : String(+S[k]);
+    const k = seg.dataset.key, v = k === 'night' ? nightStyle() : typeof S[k] === 'string' ? S[k] : String(+S[k]);
     seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   });
   $('set-rotate').textContent = S.rotate ? S.rotate + '초' : '끔';
   $('set-ns').textContent = hourName(S.nightStart);
   $('set-ne').textContent = hourName(S.nightEnd);
   document.querySelectorAll('.nt-row').forEach(r => { r.style.display = nightStyle() === 'off' ? 'none' : ''; });
+  document.querySelectorAll('.an-row').forEach(r => { r.style.display = S.analog ? '' : 'none'; });   // 아날로그 테마는 아날로그일 때만
 }
 
 // ===== 공휴일 =====

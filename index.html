@@ -21,17 +21,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&text=enjoytim%20&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=45">
-<link rel="stylesheet" href="css/base.css?v=45">
-<link rel="stylesheet" href="css/clock.css?v=45">
-<link rel="stylesheet" href="css/weather.css?v=45">
-<link rel="stylesheet" href="css/detail.css?v=45">
-<link rel="stylesheet" href="css/standby.css?v=45">
-<link rel="stylesheet" href="css/transit.css?v=45">
-<link rel="stylesheet" href="css/photo.css?v=45">
-<link rel="stylesheet" href="css/calendar.css?v=45">
-<link rel="stylesheet" href="css/standby-widgets.css?v=45">
-<link rel="stylesheet" href="css/settings.css?v=45">
+<link rel="stylesheet" href="css/theme.css?v=46">
+<link rel="stylesheet" href="css/base.css?v=46">
+<link rel="stylesheet" href="css/clock.css?v=46">
+<link rel="stylesheet" href="css/weather.css?v=46">
+<link rel="stylesheet" href="css/detail.css?v=46">
+<link rel="stylesheet" href="css/standby.css?v=46">
+<link rel="stylesheet" href="css/transit.css?v=46">
+<link rel="stylesheet" href="css/photo.css?v=46">
+<link rel="stylesheet" href="css/calendar.css?v=46">
+<link rel="stylesheet" href="css/standby-widgets.css?v=46">
+<link rel="stylesheet" href="css/settings.css?v=46">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
@@ -69,7 +69,7 @@
     </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=45"></script>
+<script src="js/intro.js?v=46"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -87,13 +87,16 @@
       <div id="mm"><span class="roll" id="m1"></span><span class="roll" id="m2"></span></div>
       <div id="sgroup" class="sgroup"><span class="colon">:</span><span class="roll peek" id="s"></span></div>
       <!-- 아날로그 시계(설정 › 시계 모양, 시계 강조 화면): 레코드판 — 네모 케이스(모서리 나사·오른쪽 용두) / 눈금 테 / 레코드판(홈·비친 빛)
-           / 가운데 빨간 라벨은 1분에 한 바퀴 돌며 ▲로 초를 가리킴 / 시침·분침(톤암 바늘). 눈금·홈은 clock.js(drawDial)가 그림 -->
+           / 가운데 빨간 라벨(레코드처럼 1분에 한 바퀴) / 시침·분침(톤암 바늘) / 빨간 초침. 테마는 블랙·실버(data-theme). 눈금·홈은 clock.js(drawDial)가 그림 -->
       <div id="dial" class="dial" aria-hidden="true">
         <svg class="dl-base" viewBox="0 0 200 200">
           <defs>
             <linearGradient id="dl-case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2e2e2e"/><stop offset=".45" stop-color="#161616"/><stop offset="1" stop-color="#0b0b0b"/></linearGradient>
             <!-- 광택 테두리: 왼쪽 위가 밝고 가운데는 어둡게, 오른쪽 아래는 살짝 -->
             <linearGradient id="dl-edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".5" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#fff" stop-opacity=".28"/></linearGradient>
+            <!-- 실버 테마: 밝은 은색 면(왼쪽 위 가장 밝게), 광택 테두리는 흰색 ↔ 짙은 회색 -->
+            <linearGradient id="dl-case-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f2f2"/><stop offset=".45" stop-color="#c3c3c3"/><stop offset="1" stop-color="#8b8b8b"/></linearGradient>
+            <linearGradient id="dl-edge-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#5a5a5a"/><stop offset="1" stop-color="#e6e6e6"/></linearGradient>
           </defs>
           <rect class="dl-crown" x="196" y="89" width="8" height="22" rx="2"/>
           <path class="dl-crown-grip" d="M198 91.5v17M200 91.5v17M202 91.5v17"/>
@@ -124,6 +127,12 @@
           </g>
           <circle class="hd-cap" cx="100" cy="100" r="4.4"/>
           <circle class="hd-pin" cx="100" cy="100" r="1.5"/>
+        </svg>
+        <!-- 초침: 라벨과 같이 1분에 한 바퀴 부드럽게 (초 표시를 끄면 숨김). 뒤쪽 동그란 무게추, 가운데 빨간 덮개 -->
+        <svg id="dl-sec" class="dl-sec" viewBox="0 0 200 200">
+          <path class="hd-sh" d="M100 121V24" stroke-width="2.6"/><circle class="hd-sh" cx="100" cy="115.5" r="3.6" stroke-width="2.6"/>
+          <path class="sc" d="M100 121V24"/><circle class="sc-tail" cx="100" cy="115.5" r="3.6"/>
+          <circle class="sc-cap" cx="100" cy="100" r="2.7"/>
         </svg>
       </div>
       <!-- 시계 강조 화면용 날짜: 시계 오른쪽에 눕혀서 '2026년 10월 27일 … 화요일' -->
@@ -307,6 +316,9 @@
       <div class="set-row">시계 모양
         <div class="seg" data-key="analog"><button data-v="0">디지털</button><button data-v="1">아날로그</button></div>
       </div>
+      <div class="set-row an-row">아날로그 테마
+        <div class="seg" data-key="dialTheme"><button data-v="black">블랙</button><button data-v="silver">실버</button></div>
+      </div>
       <div class="set-row">표시
         <div class="chips"><button data-chip="secs">초</button><button data-chip="date">날짜</button><button data-chip="addr">상세 주소</button></div>
       </div>
@@ -394,16 +406,16 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=45"></script>
-<script src="js/sync.js?v=45"></script>
-<script src="js/clock.js?v=45"></script>
-<script src="js/weather.js?v=45"></script>
-<script src="js/screen.js?v=45"></script>
-<script src="js/clock-modes.js?v=45"></script>
-<script src="js/settings.js?v=45"></script>
-<script src="js/transit.js?v=45"></script>
-<script src="js/photo.js?v=45"></script>
-<script src="js/calendar.js?v=45"></script>
-<script src="js/main.js?v=45"></script>
+<script src="js/core.js?v=46"></script>
+<script src="js/sync.js?v=46"></script>
+<script src="js/clock.js?v=46"></script>
+<script src="js/weather.js?v=46"></script>
+<script src="js/screen.js?v=46"></script>
+<script src="js/clock-modes.js?v=46"></script>
+<script src="js/settings.js?v=46"></script>
+<script src="js/transit.js?v=46"></script>
+<script src="js/photo.js?v=46"></script>
+<script src="js/calendar.js?v=46"></script>
+<script src="js/main.js?v=46"></script>
 </body>
 </html>

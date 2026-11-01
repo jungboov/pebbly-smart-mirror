@@ -64,9 +64,10 @@ body[data-day="sat"] .ds-wd{color:var(--sat)}
 body[data-day="sun"] .ds-wd{color:var(--sun)}
 
 /* ── 아날로그 시계 (설정 › 시계 모양 › 아날로그, 시계 강조 화면에서만): 레코드판 ──
-   4장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands)
-   200×200 단위로 그렸고 크기 --dial은 fitClock(fitDial)이 정함. 배치는 standby-widgets.css '아날로그 시계 배치' */
-.dial{display:none;position:relative;width:var(--dial, 60rem);height:var(--dial, 60rem)}
+   5장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands) / 초침(dl-sec)
+   200×200 단위로 그렸고 크기 --dial은 fitClock(fitDial)이 정함. 배치는 standby-widgets.css '아날로그 시계 배치'
+   테마(설정 › 화면 › 아날로그 테마): 블랙(기본, 아래 색) / 실버(맨 아래). --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
+.dial{display:none;position:relative;width:var(--dial, 60rem);height:var(--dial, 60rem);--dl-sheen:.42;--dl-label:var(--vinyl-label)}
 .dial > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 .dl-case{fill:url(#dl-case);stroke:url(#dl-edge);stroke-width:1.2}
 .dl-bevel{fill:none;stroke:#000;stroke-opacity:.55}
@@ -83,8 +84,8 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
    홈은 밝은 선(검은 곳에서 보임)·어두운 선(빛 위에서 보임)을 번갈아, 곡 사이 띠 둘 */
 .dial .dl-rec{left:13%;top:13%;width:74%;height:74%;border-radius:50%;
   background:radial-gradient(closest-side, rgba(0,0,0,.85) 28%, transparent 82%),   /* 빛은 가장자리 쪽이 밝게 */
-    conic-gradient(from 195deg, transparent, rgba(var(--glow), .08) 20deg, rgba(var(--glow), .42) 62deg, rgba(var(--glow), .1) 106deg, transparent 130deg,
-    transparent 215deg, rgba(var(--glow), .15) 250deg, rgba(var(--glow), .03) 285deg, transparent 305deg), var(--vinyl)}
+    conic-gradient(from 195deg, transparent, rgba(var(--glow), calc(var(--dl-sheen) * .2)) 20deg, rgba(var(--glow), var(--dl-sheen)) 62deg, rgba(var(--glow), calc(var(--dl-sheen) * .24)) 106deg, transparent 130deg,
+    transparent 215deg, rgba(var(--glow), calc(var(--dl-sheen) * .36)) 250deg, rgba(var(--glow), calc(var(--dl-sheen) * .07)) 285deg, transparent 305deg), var(--vinyl)}
 .dl-rec circle{fill:none;stroke-width:.42}
 .dl-rec .g-l{stroke:rgba(var(--glow), .075)}
 .dl-rec .g-d{stroke:rgba(0,0,0,.55)}
@@ -92,7 +93,7 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .dl-rec .g-in{stroke:rgba(var(--glow), .14);stroke-width:.5}
 /* 라벨: 1분에 한 바퀴 (clock.js renderDial). 따로 겹쳐 돌려서 화면을 다시 그리지 않고 돌림 */
 .dial .dl-label{left:38%;top:38%;width:24%;height:24%;will-change:transform}
-.dl-lab{fill:var(--vinyl-label)}
+.dl-lab{fill:var(--dl-label)}
 .dl-lab-ring{fill:none;stroke:rgba(255,255,255,.4);stroke-width:.35}
 .dl-lab-line{stroke:#fff;stroke-width:.5;opacity:.85}
 .dl-label text{fill:#fff;text-anchor:middle}
@@ -100,11 +101,26 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .dl-small{font-size:3.5px;font-weight:600;letter-spacing:.06em;opacity:.9}
 .dl-tri{fill:#fff}
 /* 바늘: 흰 바늘에 검은 그림자 테두리(빛 위에서도 보이게). 분침은 톤암 — 끝에 헤드(빨간 바늘 끝), 뒤에 무게추 */
-.dl-hands .hd, .dl-hands .hd-sh{fill:none;stroke-linecap:round}
+.dial .hd, .dial .hd-sh{fill:none;stroke-linecap:round}
 .dl-hands .hd{stroke:var(--text)}
-.dl-hands .hd-sh{stroke:#000;stroke-opacity:.6}
+.dial .hd-sh{stroke:#000;stroke-opacity:.6}
 .dl-hands rect.hd-sh{fill:#000;fill-opacity:.6}
 .hd-head{fill:var(--text)}
-.hd-stylus{fill:var(--vinyl-label)}
+.hd-stylus{fill:var(--dl-label)}
 .hd-cap{fill:#d8d8d8;stroke:#000;stroke-opacity:.6;stroke-width:1}
 .hd-pin{fill:#7a7a7a}
+/* 초침: 가는 빨간 바늘 + 동그란 무게추 + 가운데 빨간 덮개. 라벨과 같이 1분에 한 바퀴 부드럽게 (따로 겹쳐 돌려서 다시 그리지 않음) */
+.dial .dl-sec{will-change:transform}
+.sc{stroke:var(--dl-label);stroke-width:1.1;stroke-linecap:round}
+.sc-tail{fill:none;stroke:var(--dl-label);stroke-width:1.5}
+.sc-cap{fill:var(--dl-label);stroke:#000;stroke-opacity:.5;stroke-width:.6}
+body.no-sec .dl-sec{display:none}
+
+/* 실버 테마: 사진의 은색 시계 — 밝은 은색 케이스·나사·용두(광택 테두리는 흰색 ↔ 짙은 회색), 레코드판 빛은 더 밝게, 진한 빨강 라벨.
+   눈금 테는 블랙과 같은 검은 테에 흰 눈금 */
+.dial[data-theme="silver"]{--dl-sheen:.76;--dl-label:#d42d2d}
+.dial[data-theme="silver"] .dl-case, .dial[data-theme="silver"] .dl-crown, .dial[data-theme="silver"] .dl-screw{fill:url(#dl-case-s);stroke:url(#dl-edge-s)}
+.dial[data-theme="silver"] .dl-bezel{stroke:url(#dl-edge-s)}
+.dial[data-theme="silver"] .dl-bevel{stroke-opacity:.22}
+.dial[data-theme="silver"] .dl-slot{stroke:rgba(0,0,0,.55)}
+.dial[data-theme="silver"] .dl-crown-grip{stroke:rgba(0,0,0,.3)}
