@@ -514,9 +514,9 @@ function drawRainbow() {
 
 // ===== LCD 시계판 (설정 › 테마 › LCD) =====
 // 은색 판(모서리를 깎은 네모, 광택 강철 테): 위에 헤더와 같은 로고([ 03 ] 스파인 | 점선 | pebbly labs ┐┘), 가운데 LCD 창에 7세그먼트 시:분(꺼진 칸도 아주 옅게, 글자 그림자),
-// 아래에 0~31 숫자 네 줄(0~9 / 10~16 / 17~23 / 24~31) — 오늘 날짜는 굵게 [ 1 ]처럼 괄호로
+// 아래에 00~31 두 자리 숫자 네 줄(한 줄 8개) — 오늘 날짜는 굵게 [ 01 ]처럼 괄호로
 // 판은 200×220 단위(테 포함 214×234 → 세로/가로 1.0935, clock.css), 시각은 분마다·날짜 표시는 날짜가 바뀔 때 다시 그림
-const DC = { win: [22, 52, 156, 80], rows: [[0, 9, 14.6, 149], [10, 16, 20, 164.5], [17, 23, 20, 180], [24, 31, 20, 195.5]], fs: 9.6 };
+const DC = { win: [22, 52, 156, 80], rows: [[0, 7, 20, 149], [8, 15, 20, 164.5], [16, 23, 20, 180], [24, 31, 20, 195.5]], fs: 9.6 };
 // 7세그먼트 한 칸(폭 30·높이 64, 두께 7): a 위 / b 오른쪽 위 / c 오른쪽 아래 / d 아래 / e 왼쪽 아래 / f 왼쪽 위 / g 가운데 — 끝은 비스듬히
 const DC_SEG = (() => {
   const W = 30, H = 64, t = 7, g = .9, L = t / 2, R = W - t / 2, T = t / 2, M = H / 2, B = H - t / 2, h = t / 2;
@@ -549,8 +549,8 @@ function lcdTime(hhmm) {
 // 오늘 날짜: 그 숫자를 굵게, 양옆에 괄호 (판 색 테두리로 옆 숫자와 떼어 놓음)
 function lcdDay(day) {
   const row = DC.rows.find(r => day >= r[0] && day <= r[1]), x = 100 + (day - row[0] - (row[1] - row[0]) / 2) * row[2], y = row[3];
-  const half = day > 9 ? 10.8 : 7.6, bh = 6.4, bw = 1.9, br = s => { const bx = x + s * half; return `M${(bx + s * -bw).toFixed(2)} ${y - bh}H${bx.toFixed(2)}V${y + bh}H${(bx + s * -bw).toFixed(2)}`; };
-  return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="#111" stroke="#e6e7e9" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${day}</text>`
+  const half = 10.8, bh = 6.4, bw = 1.9, br = s => { const bx = x + s * half; return `M${(bx + s * -bw).toFixed(2)} ${y - bh}H${bx.toFixed(2)}V${y + bh}H${(bx + s * -bw).toFixed(2)}`; };
+  return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="#111" stroke="#e6e7e9" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${pad(day)}</text>`
     + `<path d="${br(-1)}${br(1)}" fill="none" stroke="#e6e7e9" stroke-width="3.2"/><path d="${br(-1)}${br(1)}" fill="none" stroke="#111" stroke-width="1.2"/>`;
 }
 // 맨 위 로고: 헤더 로고(clock.css .brand)와 같은 짜임 — 스파인(위아래 막대, 02 / [ 03 ] / 04) | 점선 | pebbly labs | 꺾쇠 ┐┘
@@ -573,7 +573,7 @@ function lcdParts(pre) {
   let ghost = '';
   DC_X.forEach(x => { ghost += `<path transform="translate(${x} ${DC_Y})" d="${Object.values(DC_SEG).join('')}"/>`; });
   let nums = '';
-  for (const [a, b, sp, y] of DC.rows) for (let n = a; n <= b; n++) nums += `<text x="${(100 + (n - a - (b - a) / 2) * sp).toFixed(2)}" y="${y}">${n}</text>`;
+  for (const [a, b, sp, y] of DC.rows) for (let n = a; n <= b; n++) nums += `<text x="${(100 + (n - a - (b - a) / 2) * sp).toFixed(2)}" y="${y}">${pad(n)}</text>`;
   const face = `<path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="${id('g-steel')}"/><path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="none" stroke="#6f747a" stroke-width=".6"/>`
     + `<path d="${dcPoly(dcOct(-1.2, -1.2, 202.4, 222.4, 24.5), 8.5)}" fill="#7b8086"/>`
     + `<path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-face')}"/><path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-brush')}"/>`
