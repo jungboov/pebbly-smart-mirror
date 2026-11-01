@@ -503,7 +503,7 @@ function rainbowParts(pre) {
     + `<text id="${pre}date" x="${dx}" y="${dy + .4}" font-size="8.6" fill="#f2f2f2" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${new Date().getDate()}</text>`
     + `<text x=".5" y="-30.2" font-size="8" fill="#000" opacity=".7" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
     + `<text y="-31" font-size="8" fill="${id('rgh')}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
-    + `<g font-size="3.3" fill="#ececec" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:.35px"><text x="-3.6" y="63.8" text-anchor="end">PEBBLY</text><text x="3.6" y="63.8">LABS</text></g>`
+    + `<g font-size="3.3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;letter-spacing:.15px"><text x="-3.6" y="63.8" text-anchor="end">PEBBLY</text><text x="3.6" y="63.8">LABS</text></g>`
     + `<circle r="74.6" fill="${id('sheen')}"/>`;
   // 작은 다이얼 바늘: 가운데 둥근 판
   const sub = '<path d="M0 4V-19" stroke="#e7ad8b" stroke-width="1.3" stroke-linecap="round"/>'
@@ -596,7 +596,7 @@ function qpParts(pre, d) {
     + `<text y="10" font-size="4.6" fill="${ink}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
   face += at(DQ.sub[0], mo) + at(DQ.sub[1], dt) + at(DQ.sub[2], dw) + at(DQ.sub[3], mn);
   // 아래 PEBBLY ▮ LABS (6시 짧은 눈금 양옆)
-  face += `<g font-size="3" fill="#ececec" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:.3px"><text x="-3.4" y="57.5" text-anchor="end">PEBBLY</text><text x="3.4" y="57.5">LABS</text></g>`;
+  face += `<g font-size="3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;letter-spacing:.15px"><text x="-3.4" y="57.5" text-anchor="end">PEBBLY</text><text x="3.4" y="57.5">LABS</text></g>`;
   // 주 바늘: 가는 로즈골드 + 화살촉, 주 번호 링을 가리킴 (53주는 52주 자리), 맨 위 왼쪽 위 빛
   const wa = (Math.min(52, isoWeek(d)) - 1) * 360 / 52;
   face += `<g filter="url(#${pre}sh)" transform="rotate(${f(wa)})"><path d="M0 13V-60" stroke="${id('rg')}" stroke-width=".9" stroke-linecap="round"/><path d="M-1.9 -59L0 -64.6L1.9 -59Z" fill="${id('rgh')}"/><circle r="2.2" fill="${id('rgh')}"/></g>`
@@ -655,13 +655,13 @@ function lcdDay(day) {
 // 맨 위 로고: 헤더 로고(clock.css .brand)와 같은 짜임 — 스파인(위아래 막대, 02 / [ 03 ] / 04) | 점선 | pebbly labs | 꺾쇠 ┐┘
 // 자리·크기는 헤더 로고를 글자 크기(em) 기준으로 잰 값. 글자 크기 10 단위, 판 가운데 위(y 33)에
 function lcdLogo() {
-  const E = 10, W = 10.7339, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2), ink = '#2f3033';
+  const E = 10, W = 10.6242, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2), ink = '#2f3033';
   const mono = (t, y, fs, op) => `<text x="${X(1.0036)}" y="${Y(y)}" font-size="${(fs * E).toFixed(2)}"${op ? ` opacity="${op}"` : ''} text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:${op ? 400 : 800};white-space:pre">${t}</text>`;
   return `<g fill="${ink}"><rect x="${X(0)}" y="${Y(0)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/><rect x="${X(0)}" y="${(y0 + H * E - .7).toFixed(2)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/>`
     + mono('02', .278, .3654, .45) + mono('[ 03 ]', .7114, .4615) + mono('04', 1.1449, .3654, .45)
-    + `<text x="${X(3.2091)}" y="${Y(.7111)}" font-size="${E}" textLength="${(6.32 * E).toFixed(2)}" lengthAdjust="spacing" dominant-baseline="central" style="font-family:var(--brand);font-weight:700;letter-spacing:.09em">pebbly labs</text></g>`
+    + `<text x="${X(3.2091)}" y="${Y(.7111)}" font-size="${E}" textLength="${(6.3003 * E).toFixed(2)}" lengthAdjust="spacing" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;word-spacing:-.3em">pebbly labs</text></g>`
     + `<path d="M${X(2.6081)} ${Y(0)}V${Y(H)}" stroke="${ink}" stroke-width=".46" stroke-dasharray="1.4 1"/>`
-    + `<path d="M${X(10.4267)} ${Y(.0385)}H${X(10.6954)}V${Y(.3457)}M${X(10.6954)} ${Y(H - .3457)}V${Y(H - .0385)}H${X(10.4267)}" fill="none" stroke="${ink}" stroke-width=".77"/>`;
+    + `<path d="M${X(10.317)} ${Y(.0385)}H${X(10.5857)}V${Y(.3457)}M${X(10.5857)} ${Y(H - .3457)}V${Y(H - .0385)}H${X(10.317)}" fill="none" stroke="${ink}" stroke-width=".77"/>`;
 }
 function lcdParts(pre) {
   const id = n => `url(#${pre}${n})`, [wx, wy, ww, wh] = DC.win;

@@ -46,7 +46,8 @@
   --vinyl:#070707;
   --vinyl-label:#e2533b;
   --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
-  /* 로고(#39): 글자 pebbly labs는 Pretendard(로마자가 시안의 Inter와 같은 모양), 02 [ 03 ] 04는 JetBrains Mono */
+  /* 로고(#39): 02 [ 03 ] 04도 글자 pebbly labs도 JetBrains Mono(--logo는 이름 글자 — 헤더·인트로·시계판 로고·레코드 라벨이 같이 씀) */
   --brand:"Pretendard Variable",Pretendard,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,monospace;
+  --logo:"JetBrains Mono",ui-monospace,monospace;
 }

@@ -108,8 +108,7 @@
   // 글꼴이 늦게 와서 다른 글꼴로 번쩍이지 않게 기다렸다가 (최대 1.5초), 첫 장면을 잠깐 더 보여 준 뒤 시작
   const fonts = Promise.all([
     document.fonts.load("400 12px 'JetBrains Mono'", '0123456789'),
-    document.fonts.load("800 12px 'JetBrains Mono'", '[]0123456789'),
-    document.fonts.load("700 12px 'Pretendard Variable'", 'pebbly labs')
+    document.fonts.load("800 12px 'JetBrains Mono'", '[]0123456789 pebbly labs')
   ]).catch(() => {});
   Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]).then(() => at(200, play));
 })();
