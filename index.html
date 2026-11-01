@@ -17,21 +17,21 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <!-- 로고·인트로의 02 [ 03 ] 04, SPINE INDEX // LABS: 쓰는 글자만 받음 (몇 KB) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&text=0123456789%5B%5D%2F%20ABDEILNPSX&display=block">
-<!-- 아날로그 시계 글자: 레코드 라벨 손글씨 'pebbly labs'(Dancing Script), 다이아 브라운의 12·6 숫자(Graduate)와 PEBBLY LABS·KOREA·SMART MIRROR(Marcellus) — 쓰는 글자만 받음 -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Graduate&family=Marcellus&text=pebbly%20labs126PEBLYASKORMTI&display=swap">
+<!-- 아날로그 시계 글자: 레코드 라벨 손글씨 'pebbly labs'(Dancing Script), 클래식 브라운의 12·6 숫자(Graduate) — 쓰는 글자만 받음 (클래식 브라운의 pebbly labs 등은 로고 글꼴 Pretendard) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Graduate&text=pebbly%20labs126&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=51">
-<link rel="stylesheet" href="css/base.css?v=51">
-<link rel="stylesheet" href="css/clock.css?v=51">
-<link rel="stylesheet" href="css/weather.css?v=51">
-<link rel="stylesheet" href="css/detail.css?v=51">
-<link rel="stylesheet" href="css/standby.css?v=51">
-<link rel="stylesheet" href="css/transit.css?v=51">
-<link rel="stylesheet" href="css/photo.css?v=51">
-<link rel="stylesheet" href="css/calendar.css?v=51">
-<link rel="stylesheet" href="css/standby-widgets.css?v=51">
-<link rel="stylesheet" href="css/settings.css?v=51">
+<link rel="stylesheet" href="css/theme.css?v=52">
+<link rel="stylesheet" href="css/base.css?v=52">
+<link rel="stylesheet" href="css/clock.css?v=52">
+<link rel="stylesheet" href="css/weather.css?v=52">
+<link rel="stylesheet" href="css/detail.css?v=52">
+<link rel="stylesheet" href="css/standby.css?v=52">
+<link rel="stylesheet" href="css/transit.css?v=52">
+<link rel="stylesheet" href="css/photo.css?v=52">
+<link rel="stylesheet" href="css/calendar.css?v=52">
+<link rel="stylesheet" href="css/standby-widgets.css?v=52">
+<link rel="stylesheet" href="css/settings.css?v=52">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
@@ -69,7 +69,7 @@
     </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=51"></script>
+<script src="js/intro.js?v=52"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -88,7 +88,7 @@
       <div id="sgroup" class="sgroup"><span class="colon">:</span><span class="roll peek" id="s"></span></div>
       <!-- 아날로그 시계(설정 › 테마, 시계 강조 화면): 레코드판(.dl) — 네모 케이스(모서리 나사·오른쪽 용두) / 눈금 테 / 레코드판(홈·비친 빛)
            / 가운데 빨간 라벨(레코드처럼 1분에 한 바퀴) / 시침·분침(톤암 바늘) / 빨간 초침. 테마는 블랙·실버(data-theme). 눈금·홈은 clock.js(drawDial)가 그림
-           다이아 브라운은 아래에 따로 그린 직사각 시계판(.dc) -->
+           클래식 브라운은 아래에 따로 그린 직사각 시계판(.dc) -->
       <div id="dial" class="dial" aria-hidden="true">
         <svg class="dl dl-base" viewBox="0 0 200 200">
           <defs>
@@ -135,22 +135,16 @@
           <path class="sc" d="M100 121V24"/><circle class="sc-tail" cx="100" cy="115.5" r="3.6"/>
           <circle class="sc-cap" cx="100" cy="100" r="2.7"/>
         </svg>
-        <!-- 다이아 브라운(data-theme="brown"): 세로로 긴 네모 — 은색 케이스(양옆 다이아 줄)·올림 테 / 브라운 선레이 판(12·6 숫자, 막대 눈금, PEBBLY LABS)
-             / 흰 야광 바늘 / 가는 초침. 200×234 단위(가운데 100,117), 판은 140×190. 다이아·눈금·바늘은 clock.js(drawDial)가 그림 -->
-        <svg class="dc dc-base" viewBox="0 0 200 234">
+        <!-- 클래식 브라운(data-theme="brown"): 세로로 긴 네모 — 판에 딱 맞는 얇은 은색 테 / 브라운 선레이 판(12·6 숫자, 막대 눈금, 로고 글꼴 pebbly labs)
+             / 흰 야광 바늘 / 가는 초침. 152×202 단위(판 140×190 + 테 6), 바늘·초침 그림은 가운데가 0,0. 눈금·바늘은 clock.js(drawRect)가 그림 -->
+        <svg class="dc dc-base" viewBox="0 0 152 202">
           <defs>
-            <linearGradient id="dc-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ced1d5"/><stop offset="1" stop-color="#f2f3f5"/></linearGradient>
+            <linearGradient id="dc-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#c3c7cb"/><stop offset="1" stop-color="#eef0f2"/></linearGradient>
             <linearGradient id="dc-frame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#d6d9dc"/><stop offset="1" stop-color="#a4a8ad"/></linearGradient>
-            <radialGradient id="dc-gem-g"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#e4e8ec"/><stop offset="1" stop-color="#b3bac2"/></radialGradient>
-            <symbol id="dc-gem" viewBox="-1 -1 2 2"></symbol>
           </defs>
-          <rect class="dc-case" x=".6" y=".6" width="198.8" height="232.8" rx="11"/>
-          <rect class="dc-chan" x="4" y="7" width="17" height="220" rx="3"/>
-          <rect class="dc-chan" x="179" y="7" width="17" height="220" rx="3"/>
-          <g id="dc-gems"></g>
-          <rect class="dc-frame" x="24.5" y="14" width="151" height="206" rx="7"/>
-          <rect class="dc-groove" x="27.3" y="17.4" width="145.4" height="199.2" rx="5"/>
-          <rect class="dc-open" x="29.4" y="21.4" width="141.2" height="191.2" rx="3.4"/>
+          <rect class="dc-case" x=".6" y=".6" width="150.8" height="200.8" rx="7"/>
+          <rect class="dc-groove" x="3" y="3" width="146" height="196" rx="5"/>
+          <rect class="dc-open" x="5.4" y="5.4" width="141.2" height="191.2" rx="3.4"/>
         </svg>
         <svg class="dc dc-face" viewBox="0 0 140 190">
           <defs>
@@ -162,25 +156,25 @@
             <text class="dc-num" x="70" y="38">12</text>
             <text class="dc-num" x="70" y="176">6</text>
           </g>
-          <text class="dc-brand" x="70" y="55">PEBBLY LABS</text>
+          <text class="dc-brand" x="70" y="55">pebbly labs</text>
           <text class="dc-city" x="70" y="64.5">KOREA</text>
           <text class="dc-made" x="70" y="185.2">SMART MIRROR</text>
         </svg>
-        <svg class="dc dc-hands" viewBox="0 0 200 234">
+        <svg class="dc dc-hands" viewBox="-76 -101 152 202">
           <defs><filter id="dc-hand-sh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx=".8" dy="1.6" stdDeviation="1" flood-color="#000" flood-opacity=".55"/></filter></defs>
           <g filter="url(#dc-hand-sh)">
             <g id="dc-h"></g>
             <g id="dc-m"></g>
-            <circle class="dc-hub" cx="100" cy="117" r="5.4"/>
-            <circle class="dc-hub-in" cx="100" cy="117" r="3.7"/>
-            <circle class="dc-pin" cx="100" cy="117" r="2.3"/>
+            <circle class="dc-hub" r="5.4"/>
+            <circle class="dc-hub-in" r="3.7"/>
+            <circle class="dc-pin" r="2.3"/>
           </g>
         </svg>
         <!-- 초침: 가는 은색 바늘 + 뒤쪽 작은 무게추, 1분에 한 바퀴 부드럽게 (초 표시를 끄면 숨김 — 사진처럼 시·분만) -->
-        <svg id="dc-sec" class="dc dc-sec" viewBox="0 0 200 234">
-          <path class="dc-sc-sh" d="M100 131V54"/><path class="dc-sc" d="M100 131V54"/>
-          <rect class="dc-sc-tail" x="98.4" y="122" width="3.2" height="8" rx="1.6"/>
-          <circle class="dc-sc-cap" cx="100" cy="117" r="1.9"/>
+        <svg id="dc-sec" class="dc dc-sec" viewBox="-76 -101 152 202">
+          <path class="dc-sc-sh" d="M0 14V-63"/><path class="dc-sc" d="M0 14V-63"/>
+          <rect class="dc-sc-tail" x="-1.6" y="5" width="3.2" height="8" rx="1.6"/>
+          <circle class="dc-sc-cap" r="1.9"/>
         </svg>
       </div>
       <!-- 시계 강조 화면용 날짜: 시계 오른쪽에 눕혀서 '2026년 10월 27일 … 화요일' -->
@@ -454,16 +448,16 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=51"></script>
-<script src="js/sync.js?v=51"></script>
-<script src="js/clock.js?v=51"></script>
-<script src="js/weather.js?v=51"></script>
-<script src="js/screen.js?v=51"></script>
-<script src="js/clock-modes.js?v=51"></script>
-<script src="js/settings.js?v=51"></script>
-<script src="js/transit.js?v=51"></script>
-<script src="js/photo.js?v=51"></script>
-<script src="js/calendar.js?v=51"></script>
-<script src="js/main.js?v=51"></script>
+<script src="js/core.js?v=52"></script>
+<script src="js/sync.js?v=52"></script>
+<script src="js/clock.js?v=52"></script>
+<script src="js/weather.js?v=52"></script>
+<script src="js/screen.js?v=52"></script>
+<script src="js/clock-modes.js?v=52"></script>
+<script src="js/settings.js?v=52"></script>
+<script src="js/transit.js?v=52"></script>
+<script src="js/photo.js?v=52"></script>
+<script src="js/calendar.js?v=52"></script>
+<script src="js/main.js?v=52"></script>
 </body>
 </html>
