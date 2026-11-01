@@ -267,11 +267,11 @@ function renderDial(d) {
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
   if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
-  if (S.dialTheme === 'lcd') {   // LCD: 처음 고를 때 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
-    if (!dcDrawn) drawLcd();
+  if (DC_INK[S.dialTheme]) {   // LCD·LCD 다크: 처음 고를 때(테마를 바꿀 때) 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
+    if (S.dialTheme !== dcTheme) drawLcd(S.dialTheme);
     const hm = pad(S.hour12 ? d.getHours() % 12 || 12 : d.getHours()) + pad(d.getMinutes());
-    if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm); }
-    if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay); }
+    if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm, dcTheme); }
+    if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay, dcTheme); }
   }
   for (const k of ['de', 'dm', 'df', 'dr', 'dq']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
@@ -349,7 +349,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -615,6 +615,7 @@ function drawQp(d) {
 // 은색 판(모서리를 깎은 네모, 광택 강철 테): 위에 헤더와 같은 로고([ 03 ] 스파인 | 점선 | pebbly labs ┐┘), 가운데 LCD 창에 7세그먼트 시:분(꺼진 칸도 아주 옅게, 글자 그림자),
 // 아래에 00~31 두 자리 숫자 네 줄(한 줄 8개) — 오늘 날짜는 굵게 [ 01 ]처럼 괄호로
 // 판은 200×220 단위(테 포함 214×234 → 세로/가로 1.0935, clock.css), 시각은 분마다·날짜 표시는 날짜가 바뀔 때 다시 그림
+// LCD 다크(lcdk): 같은 그림에 색만 — 검은 크롬 테·짙은 회색 판·흰 로고, LCD 창은 검은 바탕에 밝은 칸(네거티브 액정)
 const DC = { win: [22, 52, 156, 80], rows: [[0, 7, 20, 149], [8, 15, 20, 164.5], [16, 23, 20, 180], [24, 31, 20, 195.5]], fs: 9.6 };
 // 7세그먼트 한 칸(폭 30·높이 64, 두께 7): a 위 / b 오른쪽 위 / c 오른쪽 아래 / d 아래 / e 왼쪽 아래 / f 왼쪽 위 / g 가운데 — 끝은 비스듬히
 const DC_SEG = (() => {
@@ -624,6 +625,14 @@ const DC_SEG = (() => {
   return { a: hz(T, L + g, R - g), b: vt(R, T + g, M - g), c: vt(R, M + g, B - g), d: hz(B, L + g, R - g), e: vt(L, M + g, B - g), f: vt(L, T + g, M - g), g: hz(M, L + g, R - g) };
 })();
 const DC_DIG = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
+// 테마별 색: steel 강철 테(왼쪽 위 → 오른쪽 아래) / rim 테 바깥 선 / gap 테와 판 사이 / face 판(위 → 아래) / brush 결(색, 진하기) / ink 로고
+// win LCD 창 [테두리, 위, 조금 아래, 아래] / ghost 꺼진 칸 [색, 진하기] / seg 켜진 칸 / shadow 칸 그림자 [색, 진하기] / num 00~31 / today 오늘 숫자·괄호 / cut 그 둘레(판 색, 옆 숫자와 떼어 놓음)
+const DC_INK = {
+  lcd: { steel: ['#fdfdfd', '#b9bdc2', '#8c9197', '#f1f2f4'], rim: '#6f747a', gap: '#7b8086', face: ['#f3f4f5', '#dcdee1'], brush: ['#fff', .22], ink: '#2f3033',
+    win: ['#a6a9a5', '#cfd2cc', '#dcded8', '#d3d6d0'], ghost: ['#000', .035], seg: '#1b1c1e', shadow: ['#000', .13], num: '#3a3b3e', today: '#111', cut: '#e6e7e9' },
+  lcdk: { steel: ['#7c8087', '#33363a', '#16171a', '#5c6067'], rim: '#000', gap: '#060607', face: ['#2a2b2e', '#18191b'], brush: ['#fff', .035], ink: '#e2e3e5',
+    win: ['#3d4043', '#07080a', '#0e1012', '#0a0b0d'], ghost: ['#fff', .045], seg: '#e6e8e3', shadow: ['#000', 0], num: '#9fa1a6', today: '#fff', cut: '#202123' },
+};
 // 숫자 자리 x (네 칸 + 가운데 콜론), 창 가운데에
 const DC_X = [27, 63, 107, 143], DC_Y = 60;
 // 모서리를 둥글린 다각형 (점 목록, 모서리 크기 r)
@@ -635,27 +644,28 @@ function dcPoly(P, r) {
   }).join('') + 'Z';
 }
 const dcOct = (x, y, w, h, c) => [[x + c, y], [x + w - c, y], [x + w, y + c], [x + w, y + h - c], [x + w - c, y + h], [x + c, y + h], [x, y + h - c], [x, y + c]];
-// 시:분 (네 자리 문자열) → 켜진 칸 + 그림자
-function lcdTime(hhmm) {
+// 시:분 (네 자리 문자열) → 켜진 칸 + 그림자 (v 테마)
+function lcdTime(hhmm, v = 'lcd') {
+  const c = DC_INK[v];
   let on = '', sh = '';
   [...hhmm].forEach((ch, i) => {
     const d = DC_DIG[+ch].split('').map(s => DC_SEG[s]).join(''), tr = `translate(${DC_X[i]} ${DC_Y})`;
     on += `<path transform="${tr}" d="${d}"/>`; sh += `<path transform="${tr} translate(.8 1.1)" d="${d}"/>`;
   });
-  return `<g fill="#000" opacity=".13">${sh}<circle cx="100.8" cy="${DC_Y + 22.1}" r="3"/><circle cx="100.8" cy="${DC_Y + 43.1}" r="3"/></g>`
-    + `<g fill="#1b1c1e">${on}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`;
+  return (c.shadow[1] ? `<g fill="${c.shadow[0]}" opacity="${c.shadow[1]}">${sh}<circle cx="100.8" cy="${DC_Y + 22.1}" r="3"/><circle cx="100.8" cy="${DC_Y + 43.1}" r="3"/></g>` : '')
+    + `<g fill="${c.seg}">${on}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`;
 }
 // 오늘 날짜: 그 숫자를 굵게, 양옆에 괄호 (판 색 테두리로 옆 숫자와 떼어 놓음)
-function lcdDay(day) {
-  const row = DC.rows.find(r => day >= r[0] && day <= r[1]), x = 100 + (day - row[0] - (row[1] - row[0]) / 2) * row[2], y = row[3];
+function lcdDay(day, v = 'lcd') {
+  const c = DC_INK[v], row = DC.rows.find(r => day >= r[0] && day <= r[1]), x = 100 + (day - row[0] - (row[1] - row[0]) / 2) * row[2], y = row[3];
   const half = 10.8, bh = 6.4, bw = 1.9, br = s => { const bx = x + s * half; return `M${(bx + s * -bw).toFixed(2)} ${y - bh}H${bx.toFixed(2)}V${y + bh}H${(bx + s * -bw).toFixed(2)}`; };
-  return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="#111" stroke="#e6e7e9" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${pad(day)}</text>`
-    + `<path d="${br(-1)}${br(1)}" fill="none" stroke="#e6e7e9" stroke-width="3.2"/><path d="${br(-1)}${br(1)}" fill="none" stroke="#111" stroke-width="1.2"/>`;
+  return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="${c.today}" stroke="${c.cut}" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${pad(day)}</text>`
+    + `<path d="${br(-1)}${br(1)}" fill="none" stroke="${c.cut}" stroke-width="3.2"/><path d="${br(-1)}${br(1)}" fill="none" stroke="${c.today}" stroke-width="1.2"/>`;
 }
 // 맨 위 로고: 헤더 로고(clock.css .brand)와 같은 짜임 — 스파인(위아래 막대, 02 / [ 03 ] / 04) | 점선 | pebbly labs | 꺾쇠 ┐┘
 // 자리·크기는 헤더 로고를 글자 크기(em) 기준으로 잰 값. 글자 크기 10 단위, 판 가운데 위(y 33)에
-function lcdLogo() {
-  const E = 10, W = 10.6242, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2), ink = '#2f3033';
+function lcdLogo(ink) {
+  const E = 10, W = 10.6242, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2);
   const mono = (t, y, fs, op) => `<text x="${X(1.0036)}" y="${Y(y)}" font-size="${(fs * E).toFixed(2)}"${op ? ` opacity="${op}"` : ''} text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:${op ? 400 : 800};white-space:pre">${t}</text>`;
   return `<g fill="${ink}"><rect x="${X(0)}" y="${Y(0)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/><rect x="${X(0)}" y="${(y0 + H * E - .7).toFixed(2)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/>`
     + mono('02', .278, .3654, .45) + mono('[ 03 ]', .7114, .4615) + mono('04', 1.1449, .3654, .45)
@@ -663,30 +673,30 @@ function lcdLogo() {
     + `<path d="M${X(2.6081)} ${Y(0)}V${Y(H)}" stroke="${ink}" stroke-width=".46" stroke-dasharray="1.4 1"/>`
     + `<path d="M${X(10.317)} ${Y(.0385)}H${X(10.5857)}V${Y(.3457)}M${X(10.5857)} ${Y(H - .3457)}V${Y(H - .0385)}H${X(10.317)}" fill="none" stroke="${ink}" stroke-width=".77"/>`;
 }
-function lcdParts(pre) {
-  const id = n => `url(#${pre}${n})`, [wx, wy, ww, wh] = DC.win;
-  const defs = `<linearGradient id="${pre}g-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfd"/><stop offset=".35" stop-color="#b9bdc2"/><stop offset=".6" stop-color="#8c9197"/><stop offset="1" stop-color="#f1f2f4"/></linearGradient>`
-    + `<linearGradient id="${pre}g-face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f4f5"/><stop offset="1" stop-color="#dcdee1"/></linearGradient>`
-    + `<linearGradient id="${pre}g-lcd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd2cc"/><stop offset=".12" stop-color="#dcded8"/><stop offset="1" stop-color="#d3d6d0"/></linearGradient>`
-    + `<pattern id="${pre}g-brush" width="200" height="1.1" patternUnits="userSpaceOnUse"><rect width="200" height=".4" fill="#fff" opacity=".22"/></pattern>`;
+function lcdParts(pre, v = 'lcd') {
+  const id = n => `url(#${pre}${n})`, [wx, wy, ww, wh] = DC.win, c = DC_INK[v], st = c.steel, w = c.win;
+  const defs = `<linearGradient id="${pre}g-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${st[0]}"/><stop offset=".35" stop-color="${st[1]}"/><stop offset=".6" stop-color="${st[2]}"/><stop offset="1" stop-color="${st[3]}"/></linearGradient>`
+    + `<linearGradient id="${pre}g-face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.face[0]}"/><stop offset="1" stop-color="${c.face[1]}"/></linearGradient>`
+    + `<linearGradient id="${pre}g-lcd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${w[1]}"/><stop offset=".12" stop-color="${w[2]}"/><stop offset="1" stop-color="${w[3]}"/></linearGradient>`
+    + `<pattern id="${pre}g-brush" width="200" height="1.1" patternUnits="userSpaceOnUse"><rect width="200" height=".4" fill="${c.brush[0]}" opacity="${c.brush[1]}"/></pattern>`;
   let ghost = '';
   DC_X.forEach(x => { ghost += `<path transform="translate(${x} ${DC_Y})" d="${Object.values(DC_SEG).join('')}"/>`; });
   let nums = '';
   for (const [a, b, sp, y] of DC.rows) for (let n = a; n <= b; n++) nums += `<text x="${(100 + (n - a - (b - a) / 2) * sp).toFixed(2)}" y="${y}">${pad(n)}</text>`;
-  const face = `<path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="${id('g-steel')}"/><path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="none" stroke="#6f747a" stroke-width=".6"/>`
-    + `<path d="${dcPoly(dcOct(-1.2, -1.2, 202.4, 222.4, 24.5), 8.5)}" fill="#7b8086"/>`
+  const face = `<path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="${id('g-steel')}"/><path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="none" stroke="${c.rim}" stroke-width=".6"/>`
+    + `<path d="${dcPoly(dcOct(-1.2, -1.2, 202.4, 222.4, 24.5), 8.5)}" fill="${c.gap}"/>`
     + `<path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-face')}"/><path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-brush')}"/>`
-    + lcdLogo()
-    + `<rect x="${wx - .8}" y="${wy - .8}" width="${ww + 1.6}" height="${wh + 1.6}" rx="3.6" fill="#a6a9a5"/><rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="3" fill="${id('g-lcd')}"/>`
-    + `<g fill="#000" opacity=".035">${ghost}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`
-    + `<g font-size="${DC.fs}" fill="#3a3b3e" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${nums}</g>`;
+    + lcdLogo(c.ink)
+    + `<rect x="${wx - .8}" y="${wy - .8}" width="${ww + 1.6}" height="${wh + 1.6}" rx="3.6" fill="${w[0]}"/><rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="3" fill="${id('g-lcd')}"/>`
+    + `<g fill="${c.ghost[0]}" opacity="${c.ghost[1]}">${ghost}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`
+    + `<g font-size="${DC.fs}" fill="${c.num}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${nums}</g>`;
   return { defs, face };
 }
-let dcDrawn = false, dcMin = '', dcDay = 0;
-function drawLcd() {
-  const p = lcdParts('dc-');
+let dcTheme = '', dcMin = '', dcDay = 0;
+function drawLcd(v) {
+  const p = lcdParts('dc-', v);
   $('dc-face').innerHTML = `<defs>${p.defs}</defs>${p.face}<g id="dc-time"></g><g id="dc-day"></g>`;
-  dcDrawn = true; dcMin = ''; dcDay = 0;
+  dcTheme = v; dcMin = ''; dcDay = 0;
 }
 
 // ===== 시계 =====
