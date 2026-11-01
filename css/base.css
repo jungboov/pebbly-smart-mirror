@@ -64,8 +64,8 @@ body.night.night-dim .stage{opacity:.45}
 /* ── 시작 인트로 (#39 로고, intro.js) ── */
 /* 화면 전체 SVG (1 = 1px). 로고 부분은 360×120 단위로 JS가 크기를 맞춤. 첫 장면 [ 03 ] 상자는 JS 없이도 가운데에 보임 */
 .intro{position:fixed;inset:0;z-index:30;background:var(--bg);color:var(--text);
-  transition:opacity .6s;animation:intro-bail .5s 8s forwards}
-.intro > svg{display:block;width:100%;height:100%}
+  transition:opacity .6s,color .8s;animation:intro-bail .5s 8s forwards}
+.intro > svg{display:block;width:100%;height:100%;transition:opacity .8s}
 .intro path,#in-box{fill:none;stroke:currentColor}
 .intro text{fill:currentColor;text-anchor:middle;font-family:var(--mono)}
 .intro .in-mid{font-weight:800;font-size:12.5px}
@@ -80,11 +80,11 @@ body.night.night-dim .stage{opacity:.45}
 .in-reel{transition:transform 1.7s cubic-bezier(.12,.62,.22,1)}
 .intro.out{opacity:0;pointer-events:none}
 @keyframes intro-bail{to{opacity:0;visibility:hidden}}
-/* 밤에 켜면 미러처럼 어둡게·붉게 */
-body.night.night-dim .intro > svg{opacity:.45}
+/* 밤에 켜면 미러처럼 어둡게·붉게 — 펼쳐지기 시작할 때(go)부터 천천히. 첫 장면은 안드로이드 시작 화면(흰 상자)과 같게 밝은 흰색 */
+body.night.night-dim .intro.go > svg{opacity:.45}
 
 /* 접었다 펴기: 가운데 접히는 자리의 빛나는 세로선이 둘로 갈라져 양 끝으로 (screen.js foldCheck) */
 .seam{position:fixed;inset:0;pointer-events:none}   /* z-index 없이 맨 뒤에 붙여서 밤 '붉게' 덮개(body::after)에 같이 물듦 */
 .seam i{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--text);box-shadow:0 0 1.6rem .3rem rgba(var(--glow), .45);opacity:0}   /* 보이는 건 움직이는 동안만 */
 body.night.night-dim .seam{opacity:.45}
-body.night.night-red .intro{color:var(--night-tint)}
+body.night.night-red .intro.go{color:var(--night-tint)}

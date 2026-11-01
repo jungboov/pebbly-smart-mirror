@@ -60,6 +60,14 @@
   }
   const resize = () => { place(); frame(); };
   addEventListener('resize', resize);
+  // 설치한 앱을 안드로이드에서 열면 시스템 시작 화면(안드로이드 12+)이 아이콘을 크게(약 288dp) 띄움 — 상자가 160 기준(index.html)보다 1.73배(폴드8 녹화로 잼)
+  // → 첫 장면도 그 크기에서 시작해야 넘어갈 때 상자가 갑자기 줄지 않음. 안드로이드 11 이하·아이폰·브라우저 탭은 그대로
+  const A0 = { ...A }, splash = s => { for (const key of ['a', 'b', 'sw', 'tx', 'ty', 'fs', 'ls']) A[key] = A0[key] * s; place(); frame(); };
+  if (/Android/.test(navigator.userAgent) && matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches) {
+    splash(1.73);
+    if (navigator.userAgentData) navigator.userAgentData.getHighEntropyValues(['platformVersion'])
+      .then(v => { if (p === 0 && parseInt(v.platformVersion) < 12) splash(1); }).catch(() => {});
+  }
 
   const timers = [];
   let raf = 0;
@@ -78,6 +86,7 @@
   const landed = () => el.classList.add('landed');   // 굴러가는 [ 03 ]으로 바꿔 끼움 (같은 자리·크기라 티 안 남)
   function play() {
     place();
+    el.classList.add('go');   // 밤 어둡게·붉게는 펼쳐지기 시작할 때부터 천천히 (첫 장면은 시작 화면처럼 밝은 흰색)
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       p = 1; frame(); landed();
       at(1500, done);
