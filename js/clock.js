@@ -261,12 +261,12 @@ function renderDial(d) {
   const hd = (h * 30).toFixed(2), md = (m * 6).toFixed(2);
   $('dl-h').setAttribute('transform', `rotate(${hd} 100 100)`);
   $('dl-m').setAttribute('transform', `rotate(${md} 100 100)`);
-  if (S.dialTheme === 'rainbow') {   // 레인보우: 처음 고를 때 그림, 작은 다이얼 9시 쪽 = 시(12시간), 3시 쪽 = 분 ÷ 30
+  if (S.dialTheme === 'rainbow') {   // 블랙 타일: 처음 고를 때 그림, 작은 다이얼 9시 쪽 = 시(12시간), 3시 쪽 = 분 ÷ 30
     if (!drDrawn) drawRainbow();
     $('dr-sl').setAttribute('transform', `translate(${DR.sub[0][0]} ${DR.sub[0][1]}) rotate(${hd})`);
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
-  for (const k of ['de', 'dm', 'df', 'dr']) {   // 엣지·모던·플라워·레인보우 (가운데 0,0)
+  for (const k of ['de', 'dm', 'df', 'dr']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
   }
@@ -421,35 +421,18 @@ function flowerHands(pre) {
   $('df-defs').innerHTML = p.defs; $('df-h').innerHTML = p.hour; $('df-m').innerHTML = p.minute; $('df-hub').innerHTML = p.hub; $('df-sec').innerHTML = p.sec;
 })();
 
-// ===== 레인보우 시계판 (설정 › 테마 › 레인보우) =====
-// 로즈골드 팔각 베젤: 변마다 무지개 바게트 보석 4개(스텝 컷 — 바깥 경사면 4개 + 안쪽 테이블 두 겹, 12시 빨강부터 시계방향으로 주황·노랑·초록·청록·파랑·라벤더·보라·핑크), 꼭짓점마다 육각 화이트골드 나사
-// 검은 타일 다이얼: 가운데가 솟은 네모 타일 격자(윗면·왼면 밝게, 오른면·아랫면 어둡게 — 빛은 왼쪽 위), 가장자리 로즈골드 분 눈금
+// ===== 블랙 타일 시계판 (설정 › 테마 › 블랙 타일 — 테마 id rainbow) =====
+// 베젤·보석 없이 검은 타일 다이얼만: 가운데가 솟은 네모 타일 격자(윗면·왼면 밝게, 오른면·아랫면 어둡게 — 빛은 왼쪽 위), 가장자리 로즈골드 분 눈금
 // 로즈골드 야광 막대 시 눈금(12시 두 개, 3·6·9는 작은 다이얼 바깥에 짧게, 4시는 날짜 창), 로고 [ 03 ], 아래 PEBBLY ▮ LABS
 // 작은 다이얼 3개(동심원 무늬): 9시 쪽 12시간(시), 3시 쪽 30분(분 ÷ 30), 6시 쪽 초 — 0시에 크로노그래프를 켜 둔 것처럼 같이 돎
-// 로즈골드 야광 시침·분침(그림자), 가는 로즈골드 초침. 200×200 단위·가운데 0,0. 보석·나사 면 밝기는 바깥 기준 빛 방향으로 계산
+// 로즈골드 야광 시침·분침(그림자), 가는 로즈골드 초침. 200×200 단위·가운데 0,0이고 다이얼(반지름 75)만 판 가득 보이게 잘라 씀(index.html viewBox)
 const DR = { sub: [[-36, 0], [36, 0], [0, 36]], date: [52, 30] };
-// 보석 32개 색상 (12시 변 왼쪽 끝부터 시계방향, 사이는 이어서)
-const DR_HUE = [[0, -8], [3, 22], [4, 28], [7, 50], [8, 54], [11, 80], [12, 98], [15, 148], [16, 166], [19, 205], [20, 213], [23, 238], [24, 256], [27, 292], [28, 305], [31, 342]];
-const drHue = i => { let k = 0; while (DR_HUE[k + 1][0] < i) k++; const [a, h1] = DR_HUE[k], [b, h2] = DR_HUE[k + 1]; return h1 + (h2 - h1) * (i - a) / (b - a); };
-const DR_L = [-.55, -.83];   // 빛 방향 (왼쪽 위에서)
-// 12시부터 시계방향 a(도)·거리 r 자리 / 모서리를 둥글린 정팔각형(변까지 거리 ap, 위가 평평)
+// 12시부터 시계방향 a(도)·거리 r 자리
 const drPt = (a, r) => [r * Math.sin(a * Math.PI / 180), -r * Math.cos(a * Math.PI / 180)];
-function drOct(ap, rr) {
-  const R = ap / Math.cos(Math.PI / 8), V = Array.from({ length: 8 }, (_, k) => drPt(22.5 + 45 * k, R)), f = v => v.toFixed(2);
-  let d = '';
-  V.forEach((v, k) => {
-    const p = V[(k + 7) % 8], n = V[(k + 1) % 8], L = Math.hypot(n[0] - v[0], n[1] - v[1]), t = rr / L;
-    d += `${k ? 'L' : 'M'}${f(v[0] + (p[0] - v[0]) * t)} ${f(v[1] + (p[1] - v[1]) * t)}Q${f(v[0])} ${f(v[1])} ${f(v[0] + (n[0] - v[0]) * t)} ${f(v[1] + (n[1] - v[1]) * t)}`;
-  });
-  return d + 'Z';
-}
 function rainbowParts(pre) {
   const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2), rg = id('rg');
   const defs = `<linearGradient id="${pre}rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7cfb0"/><stop offset=".5" stop-color="#d4946f"/><stop offset="1" stop-color="#eab494"/></linearGradient>`
-    + `<linearGradient id="${pre}rgp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe6d2"/><stop offset=".45" stop-color="#b97856"/><stop offset=".7" stop-color="#8f5638"/><stop offset="1" stop-color="#f3c2a2"/></linearGradient>`
     + `<linearGradient id="${pre}rgh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffe2cb"/><stop offset=".5" stop-color="#e2a582"/><stop offset=".51" stop-color="#b47452"/><stop offset="1" stop-color="#d69a77"/></linearGradient>`
-    + `<linearGradient id="${pre}wg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#c3c8ce"/><stop offset="1" stop-color="#8a9097"/></linearGradient>`
-    + `<linearGradient id="${pre}gem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`
     + `<radialGradient id="${pre}vig"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>`
     + `<radialGradient id="${pre}sheen" cx=".3" cy=".22" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
     + `<filter id="${pre}sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".6" dy="1" stdDeviation=".7" flood-color="#000" flood-opacity=".7"/></filter>`
@@ -457,42 +440,8 @@ function rainbowParts(pre) {
     + `<pattern id="${pre}tile" width="10.5" height="10.5" patternUnits="userSpaceOnUse" x="-5.25" y="-5.25"><rect width="10.5" height="10.5" fill="#040405"/>`
     + '<path d="M.7 .7H9.8L7.2 3.3H3.3Z" fill="#55555c"/><path d="M.7 .7L3.3 3.3V7.2L.7 9.8Z" fill="#34343a"/>'
     + '<path d="M9.8 .7V9.8L7.2 7.2V3.3Z" fill="#141416"/><path d="M.7 9.8L3.3 7.2H7.2L9.8 9.8Z" fill="#0b0b0d"/><rect x="3.3" y="3.3" width="3.9" height="3.9" fill="#1f1f23"/></pattern>';
-  // 베젤: 두께 그림자 → 로즈골드 면 → 바깥·안쪽 광택 모서리
-  let face = `<path d="${drOct(97, 9)}" transform="translate(1.4 2)" fill="#5c3626"/><path d="${drOct(97, 9)}" fill="${rg}"/>`
-    + `<path d="${drOct(97, 9)}" fill="none" stroke="${id('rgp')}" stroke-width="1.6"/><path d="${drOct(94.6, 8)}" fill="none" stroke="#ffe8d6" stroke-opacity=".35" stroke-width=".5"/>`;
-  // 바게트 보석: 변마다 홈(어둡게) + 4개. 바깥 경사면 4개는 면이 향한 방향과 빛으로 밝기, 안쪽 테이블 두 겹, 빛 쪽 모서리에 반짝임
-  const hw = 6.5, k1 = 2.4, k2 = 4.2, cy = -86;
-  for (let s = 0; s < 8; s++) {
-    const ph = s * Math.PI / 4, c = Math.cos(ph), sn = Math.sin(ph), rot = v => [v[0] * c - v[1] * sn, v[0] * sn + v[1] * c];
-    const lit = n => { const g = rot(n); return g[0] * DR_L[0] + g[1] * DR_L[1]; };
-    let g = `<rect x="-28.9" y="${cy - 7.4}" width="57.8" height="14.8" rx="1" fill="#3a2316"/>`;
-    for (let j = 0; j < 4; j++) {
-      const i = s * 4 + j, h = drHue(i), hh = ((h % 360) + 360) % 360;
-      const L = 48 + 10 * Math.exp(-(((hh - 55) / 30) ** 2)) + 10 * Math.exp(-(((hh - 245) / 35) ** 2));
-      const col = dl => `hsl(${Math.round(hh)} 80% ${Math.max(6, Math.min(94, Math.round(L + dl)))}%)`;
-      const x = (j - 1.5) * 14.2, P = (dx, dy) => `${f(x + dx)} ${f(cy + dy)}`;
-      const fac = [[[0, -1], [[-hw, -hw], [hw, -hw], [hw - k1, -hw + k1], [-hw + k1, -hw + k1]]], [[1, 0], [[hw, -hw], [hw, hw], [hw - k1, hw - k1], [hw - k1, -hw + k1]]],
-        [[0, 1], [[hw, hw], [-hw, hw], [-hw + k1, hw - k1], [hw - k1, hw - k1]]], [[-1, 0], [[-hw, hw], [-hw, -hw], [-hw + k1, -hw + k1], [-hw + k1, hw - k1]]]];
-      for (const [n, pts] of fac) g += `<path d="M${pts.map(p => P(...p)).join('L')}Z" fill="${col(26 * lit(n))}"/>`;
-      g += `<rect x="${f(x - hw + k1)}" y="${f(cy - hw + k1)}" width="${f(2 * (hw - k1))}" height="${f(2 * (hw - k1))}" fill="${col(4)}"/>`
-        + `<rect x="${f(x - hw + k2)}" y="${f(cy - hw + k2)}" width="${f(2 * (hw - k2))}" height="${f(2 * (hw - k2))}" fill="${col(-12)}" stroke="#fff" stroke-opacity=".22" stroke-width=".25"/>`
-        + `<rect x="${f(x - hw + k1)}" y="${f(cy - hw + k1)}" width="${f(2 * (hw - k1))}" height="${f(2 * (hw - k1))}" fill="${id('gem')}" stroke="#fff" stroke-opacity=".3" stroke-width=".25"/>`
-        + `<rect x="${f(x - hw)}" y="${f(cy - hw)}" width="${2 * hw}" height="${2 * hw}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width=".3"/>`;
-      // 반짝임: 테이블 네 모서리 중 빛 쪽
-      const corner = [[-1, -1], [1, -1], [1, 1], [-1, 1]].reduce((b, q) => lit(q) > lit(b) ? q : b), e = hw - k1 - .5;
-      g += `<path d="M${P(corner[0] * e, corner[1] * e)}L${P(corner[0] * (e - 3), corner[1] * e)}L${P(corner[0] * e, corner[1] * (e - 3))}Z" fill="#fff" opacity=".6"/>`;
-    }
-    face += `<g transform="rotate(${s * 45})">${g}</g>`;
-  }
-  // 나사: 보석 줄 꼭짓점마다 육각 화이트골드 + 홈
-  for (let k = 0; k < 8; k++) {
-    const a = 22.5 + 45 * k, [x, y] = drPt(a, 86 / Math.cos(Math.PI / 8));
-    const hex = Array.from({ length: 6 }, (_, q) => drPt(a + 30 + q * 60, 6.2).map((v, i) => f(v + (i ? y : x))).join(' ')).join('L');
-    face += `<path d="M${hex}Z" fill="${id('wg')}" stroke="#6d737a" stroke-width=".4"/>`
-      + `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 64})"><path d="M-4.3 .5H4.3" stroke="#fff" stroke-opacity=".5" stroke-width=".5"/><path d="M-4.3 0H4.3" stroke="#2f343a" stroke-width="1.2"/></g>`;
-  }
-  // 안쪽 광택 테(다이얼 둘레) → 다이얼: 검은 바탕 → 타일 → 분 눈금 → 가장자리 어둡게·왼쪽 위 빛
-  face += `<circle r="78.4" fill="${id('rgp')}"/><circle r="75.3" fill="#2a1910"/><circle r="74.6" fill="#070708"/><circle r="66.2" fill="${id('tile')}"/>`;
+  // 다이얼: 검은 바탕 → 타일 → 분 눈금 → 가장자리 어둡게·왼쪽 위 빛
+  let face = `<circle r="74.6" fill="#070708"/><circle r="66.2" fill="${id('tile')}"/>`;
   let ticks = '';
   for (let k = 0; k < 60; k++) { const [x1, y1] = drPt(k * 6, 68), [x2, y2] = drPt(k * 6, 71.6); ticks += `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}"/>`; }
   face += `<g stroke="#e2a888" stroke-width="${.6}">${ticks}</g><circle r="74.6" fill="${id('vig')}"/>`;
