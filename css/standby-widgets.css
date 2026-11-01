@@ -137,6 +137,9 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   /* 세로 배치 '반반'(설정): 위 절반 시계(가운데) / 아래 절반 위젯. 시계는 위 절반 높이에 맞춤 (fitClock) */
   body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
   body.sb.half .clock{align-self:center}
+  /* 날짜를 끄면(설정) 오른쪽 날짜 칸을 빼고 라벨 | 숫자를 칸 가운데로 (반반 한 줄 배치는 따로) */
+  body.sb.no-date:not(.oneline) .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss";justify-content:center}
+  body.sb.no-date.no-sec:not(.oneline) .clock-in{grid-template-areas:"lh hh" "lm mm"}
   body.sb.half .transit{max-height:100%}
   /* 세로 반반 + 한 줄(.oneline — fitClock이 정함, 폭이 넓은 세로 화면): 시:분을 한 줄로 폭에 맞추고 위아래로 늘려(--sy) 위 절반을 채움
      아래 줄은 왼쪽 날짜(첫 줄 날짜, 둘째 줄 요일·공휴일·오전/오후), 오른쪽 초(같이 늘림). 라벨은 숨김 */
