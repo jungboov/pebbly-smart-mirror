@@ -42,6 +42,9 @@
   --temp-lo:#7d7d7d;
   --moon-lit:#f4efd9;
   --night-tint:#ff3b30;
+  /* 아날로그(레코드판) 시계: 레코드판 바탕, 가운데 라벨 */
+  --vinyl:#070707;
+  --vinyl-label:#e2533b;
   --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
   /* 로고(#39): 글자 pebbly labs는 Pretendard(로마자가 시안의 Inter와 같은 모양), 02 [ 03 ] 04는 JetBrains Mono */
   --brand:"Pretendard Variable",Pretendard,sans-serif;

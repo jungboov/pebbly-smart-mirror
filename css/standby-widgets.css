@@ -237,3 +237,20 @@ body.night.night-red .stage{opacity:.8;filter:grayscale(1)}
 body.night-red::after{content:'';position:fixed;inset:0;background:#fff;mix-blend-mode:multiply;   /* 흰색 = 곱하기에서 그대로, 밤엔 붉게 */
   pointer-events:none;transition:background 3s}
 body.night.night-red::after{background:var(--night-tint)}
+
+/* ── 아날로그 시계 배치 (설정 › 시계 모양): 숫자·라벨 대신 시계판(dl), 날짜는 옆에 눕혀서 / 위(ds-top)·아래(세로 시계만) 가로 줄 ──
+   날짜를 어디 둘지·시계판 크기는 fitDial. 숫자 배치 규칙(ds-top·no-panel 등)보다 앞서도록 #clock-in으로. 시계판과 날짜는 가운데로 모음 */
+body.sb.analog #clock-in{grid-template-columns:var(--dial) auto;grid-template-rows:auto;grid-template-areas:"dl ds";justify-content:center;align-items:center;column-gap:2rem;row-gap:0;margin-top:0;height:auto}
+body.sb.analog .dial{display:block;grid-area:dl}
+body.sb.analog #hh, body.sb.analog #mm, body.sb.analog #sgroup, body.sb.analog .clock .lbl{display:none}
+body.sb.analog.no-date #clock-in{grid-template-columns:var(--dial);grid-template-areas:"dl"}
+body.sb.analog.ds-top #clock-in{grid-template-columns:var(--dial);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"ds" "dl"}
+@media (orientation: landscape){
+  body.sb.analog .ds{margin-top:0}
+  body.sb.analog.ds-top #clock-in{height:100%}   /* 날짜 윗끝 = 위젯 칸 윗끝, 시계판은 남은 높이 가운데 */
+}
+@media (orientation: portrait){
+  body.sb.analog.no-panel #clock-in{grid-template-columns:var(--dial);grid-template-areas:"dl" "ds"}
+  /* 시계 크게: 시계판은 정사각이라 폭에 막히면 위젯 위로 남는 높이가 생김 → 그 가운데에 */
+  body.sb.analog:not(.half):not(.no-panel) .stage{grid-template-rows:1fr auto 1fr auto;grid-template-areas:"." "clock" "." "panel"}
+}

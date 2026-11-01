@@ -100,6 +100,7 @@ function fitClock() {
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
     const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
     if (portrait && !solo) h = S.half ? h / 2 : h - Math.max(...PANELS.map(el => el.offsetHeight)) - 4 * rem;   // 아래 위젯 자리 (반반: 위 절반)
+    if (S.analog) { const cs = fitDial(w, h - pb, portrait, solo, rem, wmax); return clockVars(cs, cs, rem, wmax); }   // 아날로그: 시계판
     // 가로·세로 시계 크게: 날짜를 옆(세로)과 위(가로 줄) 중 시계가 더 커지는 쪽으로 — 시계 칸이 폭에 막히면(가로 반반, 폰 세로 등) 위로 올려
     // 가로는 위젯 칸 위·아래 끝까지, 세로는 시계 아래 빈 곳만큼 시계를 키움. 높이에 막히는 낮고 긴 화면은 옆
     // 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
@@ -170,8 +171,11 @@ function fitClock() {
     const widestEm = 4 * wmax + ($('colon').getBoundingClientRect().width + $('sgroup').getBoundingClientRect().width) / fs + .1;
     size = $('clock').clientWidth / widestEm;
   }
-  // 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
-  // 크기가 바뀔 땐(화면 돌리기·접었다 펴기) 숫자 칸 폭이 천천히 늘고 줄지 않게 — 옛 크기 폭에서 출발하면 시 두 자리가 잠깐 두 줄로 꺾임
+  clockVars(size, cmSize, rem, wmax);
+}
+// 시계 칸(섹션)에 걸어서 스톱워치·타이머·알람 화면도 같은 크기를 씀
+// 크기가 바뀔 땐(화면 돌리기·접었다 펴기) 숫자 칸 폭이 천천히 늘고 줄지 않게 — 옛 크기 폭에서 출발하면 시 두 자리가 잠깐 두 줄로 꺾임
+function clockVars(size, cmSize, rem, wmax) {
   const cv = (size / rem * .99) + 'rem', ck = $('clock');
   if (ck.style.getPropertyValue('--clock') !== cv) {
     ck.classList.add('snap');
@@ -181,6 +185,61 @@ function fitClock() {
   if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
   else $('clock').style.removeProperty('--cm');
   $('clock').style.setProperty('--dw', wmax + 'em');
+}
+
+// 아날로그 시계판: 정사각이라 칸 폭·높이 중 작은 쪽. 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
+// 스톱워치·타이머·알람은 시계판 자리(시계판 + 날짜) 안에 들어가는 크기로 (돌려줌)
+function fitDial(w, h, portrait, solo, rem, wmax) {
+  const ds = document.querySelector('.ds'), gap = 2 * rem;
+  document.body.classList.remove('oneline');
+  $('clock-in').style.rowGap = '';
+  const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;   // 날짜 줄 두께 (놓인 방향과 상관없이 같음)
+  const row = t + 3 * rem, side = t + gap + 3 * rem;   // 시계판과 날짜 사이 3rem (옆이면 칸 사이 2rem도)
+  const top = Math.min(w, h - row), beside = Math.min(w - side, h);
+  const dateRow = S.date && (solo ? portrait : top > beside);
+  document.body.classList.toggle('ds-top', dateRow && !solo);
+  const D = Math.floor(!S.date ? Math.min(w, h) : dateRow ? top : beside);
+  $('clock').style.setProperty('--dial', D + 'px');
+  // 날짜가 시계판보다 길면 줄임 (눕힌 날짜는 시계판 높이, 가로 줄은 시계판 폭에 맞춤)
+  const items = [...ds.children].filter(c => c.offsetHeight);
+  const len = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
+  const z = len ? Math.min(1, D / len) : 1;
+  ds.style.zoom = z < .99 ? z : '';
+  const cw = D + (S.date && !dateRow ? side : 0);
+  $('clock').style.width = portrait ? '' : cw + 'px';
+  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
+}
+
+// ===== 아날로그 시계 (레코드판, 설정 › 시계 모양) =====
+// 눈금 60개(정시는 굵게)·모서리 나사(홈 방향은 제각각)·레코드 홈을 그림 (200×200 단위, 가운데 100,100)
+// 홈은 밝은 선·어두운 선을 번갈아 1.5 간격, 곡 사이 띠 둘(반지름 41·56), 맨 바깥은 판 가장자리 빛
+(function drawDial() {
+  const pt = (a, r) => [(100 + r * Math.sin(a)).toFixed(2), (100 - r * Math.cos(a)).toFixed(2)];
+  let t = '';
+  for (let i = 0; i < 60; i++) {
+    const a = i * Math.PI / 30, hr = i % 5 === 0, [x1, y1] = pt(a, hr ? 77.6 : 79.6), [x2, y2] = pt(a, 87.2);
+    t += `<line${hr ? ' class="tk-h"' : ''} x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  }
+  $('dl-ticks').innerHTML = t;
+  $('dl-screws').innerHTML = [[21, 21, 35], [179, 21, -20], [21, 179, 70], [179, 179, 10]].map(([x, y, r]) =>
+    `<circle class="dl-screw" cx="${x}" cy="${y}" r="6.6"/><path class="dl-slot" d="M${x - 4.4} ${y}h8.8" transform="rotate(${r} ${x} ${y})"/>`).join('');
+  let g = '';
+  for (let r = 25.5, k = 0; r < 72; r += 1.5, k++) g += `<circle class="${k % 2 ? 'g-d' : 'g-l'}" r="${r}"/>`;
+  $('dl-grooves').innerHTML = g + '<circle class="g-gap" r="41"/><circle class="g-gap" r="56"/><circle class="g-in" r="72.6"/>';
+})();
+// 시침·분침은 초마다(분침은 초만큼 조금씩), 라벨은 1분에 한 바퀴 계속 돎 — 초 표시를 끄면 멈춤 (▲가 12시)
+// 라벨은 따로 겹친 그림이라 돌려도 화면을 다시 그리지 않음. 1분마다 실제 초에 다시 맞춤
+let dlSpin = null;
+function renderDial(d) {
+  const on = S.analog && S.focus;
+  if (on && S.secs) {
+    if (!dlSpin) dlSpin = $('dl-label').animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity });
+    if (!dlSpin.synced || !d.getSeconds()) { dlSpin.currentTime = d.getTime() % 6e4; dlSpin.synced = true; }
+  } else if (dlSpin) { dlSpin.cancel(); dlSpin = null; }
+  if (!on) return;
+  const m = d.getMinutes() + d.getSeconds() / 60, h = d.getHours() % 12 + m / 60;
+  $('dl-h').setAttribute('transform', `rotate(${(h * 30).toFixed(2)} 100 100)`);
+  $('dl-m').setAttribute('transform', `rotate(${(m * 6).toFixed(2)} 100 100)`);
 }
 
 // ===== 시계 =====
@@ -201,6 +260,7 @@ function renderClock(d) {
   if ($('lbl-h').textContent !== lbl) $('lbl-h').textContent = lbl;
   const ap = S.hour12 ? (h < 12 ? '오전' : '오후') : '';   // 세로 반반 한 줄 배치는 라벨 대신 날짜 둘째 줄에
   if ($('ds-ap').textContent !== ap) $('ds-ap').textContent = ap;
+  renderDial(d);
   renderDate(d);
 }
 

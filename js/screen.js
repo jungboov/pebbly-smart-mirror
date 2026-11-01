@@ -79,6 +79,7 @@ function applySettings() {
   document.body.classList.toggle('sb', S.focus);
   document.body.classList.toggle('half', S.half);
   document.body.classList.toggle('half-l', S.halfL);
+  document.body.classList.toggle('analog', S.analog);
   document.body.classList.toggle('no-sec', !S.secs);
   document.body.classList.toggle('no-date', !S.date);
   renderAlert();

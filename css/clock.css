@@ -62,3 +62,49 @@ body[data-day="sun"] #date-wd{color:var(--sun)}
 .ds .ds-ap{display:none;font-size:5rem;font-weight:700;line-height:1;color:var(--text-muted)}   /* 오전·오후: 세로 반반 한 줄 배치에서만 (라벨 대신) */
 body[data-day="sat"] .ds-wd{color:var(--sat)}
 body[data-day="sun"] .ds-wd{color:var(--sun)}
+
+/* ── 아날로그 시계 (설정 › 시계 모양 › 아날로그, 시계 강조 화면에서만): 레코드판 ──
+   4장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands)
+   200×200 단위로 그렸고 크기 --dial은 fitClock(fitDial)이 정함. 배치는 standby-widgets.css '아날로그 시계 배치' */
+.dial{display:none;position:relative;width:var(--dial, 60rem);height:var(--dial, 60rem)}
+.dial > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.dl-case{fill:url(#dl-case);stroke:url(#dl-edge);stroke-width:1.2}
+.dl-bevel{fill:none;stroke:#000;stroke-opacity:.55}
+.dl-crown{fill:url(#dl-case);stroke:url(#dl-edge);stroke-width:.8}
+.dl-crown-grip{stroke:rgba(var(--glow), .18);stroke-width:.6}
+.dl-screw{fill:#121212;stroke:url(#dl-edge);stroke-width:.8}
+.dl-slot{stroke:rgba(var(--glow), .32);stroke-width:1.1;stroke-linecap:round}
+/* 눈금 테: 검은 테 + 바깥 광택 링, 흰 막대 눈금 60개(정시는 굵고 밝게) */
+.dl-bezel{fill:#040404;stroke:url(#dl-edge);stroke-width:2.6}
+#dl-ticks line{stroke:var(--text);stroke-width:1.15;opacity:.5}
+#dl-ticks line.tk-h{stroke-width:2.6;opacity:1}
+.dl-rim{fill:var(--vinyl);stroke:rgba(var(--glow), .3);stroke-width:.9}
+/* 레코드판: 비친 빛은 고정(왼쪽 크게, 오른쪽 위 작게 — 판이 돌아도 빛은 그대로), 그 위에 홈.
+   홈은 밝은 선(검은 곳에서 보임)·어두운 선(빛 위에서 보임)을 번갈아, 곡 사이 띠 둘 */
+.dial .dl-rec{left:13%;top:13%;width:74%;height:74%;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(0,0,0,.85) 28%, transparent 82%),   /* 빛은 가장자리 쪽이 밝게 */
+    conic-gradient(from 195deg, transparent, rgba(var(--glow), .08) 20deg, rgba(var(--glow), .42) 62deg, rgba(var(--glow), .1) 106deg, transparent 130deg,
+    transparent 215deg, rgba(var(--glow), .15) 250deg, rgba(var(--glow), .03) 285deg, transparent 305deg), var(--vinyl)}
+.dl-rec circle{fill:none;stroke-width:.42}
+.dl-rec .g-l{stroke:rgba(var(--glow), .075)}
+.dl-rec .g-d{stroke:rgba(0,0,0,.55)}
+.dl-rec .g-gap{stroke:rgba(0,0,0,.75);stroke-width:1.5}
+.dl-rec .g-in{stroke:rgba(var(--glow), .14);stroke-width:.5}
+/* 라벨: 1분에 한 바퀴 (clock.js renderDial). 따로 겹쳐 돌려서 화면을 다시 그리지 않고 돌림 */
+.dial .dl-label{left:38%;top:38%;width:24%;height:24%;will-change:transform}
+.dl-lab{fill:var(--vinyl-label)}
+.dl-lab-ring{fill:none;stroke:rgba(255,255,255,.4);stroke-width:.35}
+.dl-lab-line{stroke:#fff;stroke-width:.5;opacity:.85}
+.dl-label text{fill:#fff;text-anchor:middle}
+.dl-script{font-family:"Dancing Script",cursive;font-weight:700;font-size:9.6px}
+.dl-small{font-size:3.5px;font-weight:600;letter-spacing:.06em;opacity:.9}
+.dl-tri{fill:#fff}
+/* 바늘: 흰 바늘에 검은 그림자 테두리(빛 위에서도 보이게). 분침은 톤암 — 끝에 헤드(빨간 바늘 끝), 뒤에 무게추 */
+.dl-hands .hd, .dl-hands .hd-sh{fill:none;stroke-linecap:round}
+.dl-hands .hd{stroke:var(--text)}
+.dl-hands .hd-sh{stroke:#000;stroke-opacity:.6}
+.dl-hands rect.hd-sh{fill:#000;fill-opacity:.6}
+.hd-head{fill:var(--text)}
+.hd-stylus{fill:var(--vinyl-label)}
+.hd-cap{fill:#d8d8d8;stroke:#000;stroke-opacity:.6;stroke-width:1}
+.hd-pin{fill:#7a7a7a}
