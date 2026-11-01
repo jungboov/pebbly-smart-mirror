@@ -388,19 +388,33 @@ function modernCal(t, d, hy = 122) {
 
 // ===== 플라워 시계판 (설정 › 테마 › 플라워) =====
 // 보석 꽃 그림(img/flower.webp — 정사각, 가운데 웃는 얼굴이 판 가운데, 꽃잎 12장이 시 자리) 위에 바늘만 그림
-// 흰 시침·분침에 검은 테두리(흰 얼굴·색 꽃잎 어디서나 보이게), 빨간 초침(검은 테두리·뒤쪽 무게추). 200×200 단위·가운데 0,0
-// 시침은 얼굴(반지름 45) 밖 꽃잎 뿌리까지, 분침은 꽃잎 안쪽까지
-function flowerHands() {
-  const hand = (L, w) => `<path class="df-hd" d="M${-w * .47} ${L * .19}L${-w} -4L${-w * .7} ${-L + 6}L0 ${-L}L${w * .7} ${-L + 6}L${w} -4L${w * .47} ${L * .19}Z"/>`;
+// 은색 바늘: 칼 모양을 가운데 선으로 반씩 — 왼쪽 밝은 면·오른쪽 어두운 면(가운데가 솟은 금속), 끝으로 갈수록 밝게, 얇은 검은 테두리
+// 시침·분침은 그림자를 바늘 바깥(돌리지 않는 묶음)에 걸어서 늘 오른쪽 아래로. 200×200 단위·가운데 0,0
+// 시침은 얼굴(반지름 약 43) 밖 꽃잎 뿌리까지, 분침은 꽃잎 안쪽까지, 초침(가는 은색 + 뒤쪽 무게추)은 얼굴 안까지만
+// 그라데이션·그림자 id는 앞말 pre로 (설정 › 테마 작은 그림과 겹치지 않게)
+function flowerHands(pre) {
+  const id = n => `url(#${pre}${n})`, line = 'rgba(0,0,0,.6)';
+  const defs = `<linearGradient id="${pre}lt" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d4d8dd"/><stop offset="1" stop-color="#fff"/></linearGradient>`
+    + `<linearGradient id="${pre}dk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6c7279"/><stop offset="1" stop-color="#adb3ba"/></linearGradient>`
+    + `<radialGradient id="${pre}cap" cx=".36" cy=".3" r=".75"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#bcc1c7"/><stop offset="1" stop-color="#767c83"/></radialGradient>`
+    + `<filter id="${pre}sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".7" dy="1.1" stdDeviation=".7" flood-color="#000" flood-opacity=".6"/></filter>`;
+  const hand = (L, w) => {
+    const t = L * .19, half = s => `M0 ${t}L${s * w * .47} ${t}L${s * w} -4L${s * w * .7} ${-L + 6}L0 ${-L}Z`;
+    return `<path d="${half(-1)}" fill="${id('lt')}"/><path d="${half(1)}" fill="${id('dk')}"/>`
+      + `<path d="M${-w * .47} ${t}L${-w} -4L${-w * .7} ${-L + 6}L0 ${-L}L${w * .7} ${-L + 6}L${w} -4L${w * .47} ${t}Z" fill="none" stroke="${line}" stroke-width=".6" stroke-linejoin="round"/>`;
+  };
   return {
-    hour: hand(52, 3.4), minute: hand(82, 2.7),
-    hub: '<circle class="df-hd" r="5"/><circle r="1.6" fill="#111"/>',
-    sec: '<path d="M0 16V-88" stroke="#000" stroke-width="2.6" stroke-linecap="round"/><circle cy="11" r="3.2" fill="#000"/>'
-      + '<path d="M0 16V-88" stroke="#ff2d55" stroke-width="1.1" stroke-linecap="round"/><circle cy="11" r="2.4" fill="#ff2d55"/>'
-      + '<circle r="2.6" fill="#ff2d55" stroke="#000" stroke-width=".8"/><circle r=".8" fill="#000"/>',
+    defs, hour: hand(52, 3.6), minute: hand(82, 2.9),
+    hub: `<circle r="5.2" fill="${id('cap')}" stroke="${line}" stroke-width=".6"/><circle r="1.5" fill="#4a4f55"/>`,
+    sec: `<path d="M0 12V-41" stroke="${line}" stroke-width="2.1" stroke-linecap="round"/><circle cy="8" r="3.2" fill="${line}"/>`
+      + `<path d="M0 12V-41" stroke="#e6e9ec" stroke-width="1.1" stroke-linecap="round"/><circle cy="8" r="2.6" fill="${id('cap')}"/>`
+      + `<circle r="2.9" fill="${id('cap')}" stroke="${line}" stroke-width=".6"/><circle r=".9" fill="#4a4f55"/>`,
   };
 }
-(() => { const p = flowerHands(); $('df-h').innerHTML = p.hour; $('df-m').innerHTML = p.minute; $('df-hub').innerHTML = p.hub; $('df-sec').innerHTML = p.sec; })();
+(() => {
+  const p = flowerHands('df-');
+  $('df-defs').innerHTML = p.defs; $('df-h').innerHTML = p.hour; $('df-m').innerHTML = p.minute; $('df-hub').innerHTML = p.hub; $('df-sec').innerHTML = p.sec;
+})();
 
 // ===== 시계 =====
 // [시작시, 끝시) 안인지. 끝이 시작보다 작으면 자정을 넘김 (23~6시)

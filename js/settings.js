@@ -70,8 +70,9 @@ const CLOCK_THEMES = [
 // 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands)
 function thThumb(t) {
   if (t.flower) {
-    const p = flowerHands(), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`, src = document.querySelector('.df-img').getAttribute('src');
-    return `<svg viewBox="-100 -100 200 200" aria-hidden="true"><image href="${src}" x="-100" y="-100" width="200" height="200"/>${rot(305, p.hour)}${rot(61, p.minute)}${p.hub}${rot(200, p.sec)}</svg>`;
+    const p = flowerHands('th-df-'), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`, src = document.querySelector('.df-img').getAttribute('src');
+    return `<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs>${p.defs}</defs><image href="${src}" x="-100" y="-100" width="200" height="200"/>`
+      + `<g filter="url(#th-df-sh)">${rot(305, p.hour)}${rot(61, p.minute)}${p.hub}</g>${rot(200, p.sec)}</svg>`;
   }
   if (t.modern) {
     const p = modernParts(t.id), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
