@@ -142,9 +142,9 @@ body.no-sec .dl-sec, body.no-sec .dc-sec{display:none}
 .dc-ix{fill:url(#dc-applied);stroke:#7d838a;stroke-width:.45;stroke-linejoin:round}
 .dc-ix-in{fill:#fbfbfa}
 .dc-num{font-family:Graduate,var(--num);font-size:33px;text-anchor:middle;fill:#fbfbfa;stroke:#9ba1a7;stroke-width:2.2;stroke-linejoin:round;paint-order:stroke}
-/* 글자는 로고와 같은 글꼴(Pretendard) — pebbly labs는 로고처럼 소문자·굵게·자간 .09em, 아래 작은 글자는 대문자로 넓게 */
+/* 글자는 로고와 같은 글꼴(Pretendard) — PEBBLY LABS는 로고처럼 굵게·자간 .09em(대문자), 아래 작은 글자는 더 넓게 */
 .dc-face text:not(.dc-num){fill:#efebe5;text-anchor:middle;font-family:var(--brand);font-weight:600}
-.dc-brand{font-size:11px;font-weight:700;letter-spacing:.09em}
+.dc-brand{font-size:10px;font-weight:700;letter-spacing:.09em}
 .dc-city{font-size:5.6px;letter-spacing:.2em}
 .dc-made{font-size:4.2px;letter-spacing:.2em}
 /* 바늘: 은테에 흰 야광, 가운데는 은색 고리·볼록한 핀. 그림자는 바늘 묶음 밖에서 걸어서 바늘이 돌아도 늘 오른쪽 아래 */
