@@ -65,9 +65,10 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 
 /* ── 아날로그 시계 (설정 › 시계 모양 › 아날로그, 시계 강조 화면에서만): 레코드판 ──
    5장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands) / 초침(dl-sec)
-   200×200 단위로 그렸고 크기 --dial은 fitClock(fitDial)이 정함. 배치는 standby-widgets.css '아날로그 시계 배치'
-   테마(설정 › 화면 › 아날로그 테마): 블랙(기본, 아래 색) / 실버(맨 아래). --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
-.dial{display:none;position:relative;width:var(--dial, 60rem);height:var(--dial, 60rem);--dl-sheen:.42;--dl-label:var(--vinyl-label)}
+   200×200 단위로 그렸고 크기 --dial(폭)은 fitClock(fitDial)이 정함. 높이는 폭 × --dial-r(세로/가로, 레코드판은 정사각 1). 배치는 standby-widgets.css '아날로그 시계 배치'
+   테마(설정 › 테마): 레코드 블랙(기본, 아래 색) / 레코드 실버 / 엣지(맨 아래, 따로 그린 시계판 .de — 레코드판 .dl은 숨김).
+   --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
+.dial{display:none;position:relative;width:var(--dial, 60rem);height:calc(var(--dial, 60rem) * var(--dial-r, 1));--dl-sheen:.42;--dl-label:var(--vinyl-label)}
 .dial > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 .dl-case{fill:url(#dl-case);stroke:url(#dl-edge);stroke-width:1.2}
 .dl-bevel{fill:none;stroke:#000;stroke-opacity:.55}
@@ -114,7 +115,7 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .sc{stroke:var(--dl-label);stroke-width:1.1;stroke-linecap:round}
 .sc-tail{fill:none;stroke:var(--dl-label);stroke-width:1.5}
 .sc-cap{fill:var(--dl-label);stroke:#000;stroke-opacity:.5;stroke-width:.6}
-body.no-sec .dl-sec{display:none}
+body.no-sec .dl-sec, body.no-sec .de-sec{display:none}
 
 /* 실버 테마: 사진의 은색 시계 — 밝은 은색 케이스·나사·용두(광택 테두리는 흰색 ↔ 짙은 회색), 레코드판 빛은 더 밝게, 진한 빨강 라벨.
    눈금 테는 블랙과 같은 검은 테에 흰 눈금 */
@@ -124,3 +125,15 @@ body.no-sec .dl-sec{display:none}
 .dial[data-theme="silver"] .dl-bevel{stroke-opacity:.22}
 .dial[data-theme="silver"] .dl-slot{stroke:rgba(0,0,0,.55)}
 .dial[data-theme="silver"] .dl-crown-grip{stroke:rgba(0,0,0,.3)}
+
+/* 엣지: 검은 둥근 네모 화면(세로/가로 1.22) 가장자리를 따라 흰 숫자 — 지금 시 쪽은 굵고 두껍게, 먼 쪽은 가늘고 얇게. 흰 시침·분침(가는 목 + 굵은 막대), 빨간 초침 */
+.dial[data-theme="edge"]{--dial-r:1.22}
+.dial:not([data-theme="edge"]) .de, .dial[data-theme="edge"] .dl{display:none}
+.de-bg{fill:#000}
+#de-nums text{fill:#fff;font-family:Nunito,var(--brand)}
+.de-hd{fill:none;stroke:#fff;stroke-linecap:round}
+.de-hub{fill:#fff}
+.dial .de-sec{will-change:transform}
+.de-sc{stroke:#ff3b30;stroke-width:1.1;stroke-linecap:round}
+.de-sc-cap{fill:#ff3b30}
+.de-pin{fill:#000}

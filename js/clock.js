@@ -192,24 +192,26 @@ function cmLine(h, size, rem) {
   return size;
 }
 
-// 아날로그 시계판: 정사각이라 칸 폭·높이 중 작은 쪽. 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
+// 아날로그 시계판: 칸 폭·높이 중 막히는 쪽에 맞춤 (높이 = 폭 × R, 레코드판은 정사각 R 1·엣지는 세로로 긴 1.22 — clock.css --dial-r)
+// 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
 // 스톱워치·타이머·알람은 시계판 자리(시계판 + 날짜) 안에 들어가는 크기로 (돌려줌)
 // 세로 반반은 시계 칸이 위 절반을 채워서(CSS) 스톱워치 등을 디지털 시계와 똑같이 — 디지털이 한 줄이었을 화면이면 한 줄(cm-line)
 function fitDial(w, h, portrait, solo, rem, wmax) {
   const ds = document.querySelector('.ds'), gap = 2 * rem;
+  const R = parseFloat(getComputedStyle($('dial')).getPropertyValue('--dial-r')) || 1;
   document.body.classList.remove('oneline');
   $('clock-in').style.rowGap = '';
   const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;   // 날짜 줄 두께 (놓인 방향과 상관없이 같음)
   const row = t + 3 * rem, side = t + gap + 3 * rem;   // 시계판과 날짜 사이 3rem (옆이면 칸 사이 2rem도)
-  const top = Math.min(w, h - row), beside = Math.min(w - side, h);
+  const top = Math.min(w, (h - row) / R), beside = Math.min(w - side, h / R);   // 시계판 폭
   const dateRow = S.date && (solo ? portrait : top > beside);
   document.body.classList.toggle('ds-top', dateRow && !solo);
-  const D = Math.floor(!S.date ? Math.min(w, h) : dateRow ? top : beside);
+  const D = Math.floor(!S.date ? Math.min(w, h / R) : dateRow ? top : beside);
   $('clock').style.setProperty('--dial', D + 'px');
   // 날짜가 시계판보다 길면 줄임 (눕힌 날짜는 시계판 높이, 가로 줄은 시계판 폭에 맞춤)
   const items = [...ds.children].filter(c => c.offsetHeight);
   const len = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
-  const z = len ? Math.min(1, D / len) : 1;
+  const z = len ? Math.min(1, (dateRow ? D : D * R) / len) : 1;
   ds.style.zoom = z < .99 ? z : '';
   const cw = D + (S.date && !dateRow ? side : 0);
   $('clock').style.width = portrait ? '' : cw + 'px';
@@ -219,7 +221,7 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   document.body.classList.toggle('cm-line', line);
   if (line) return cmLine(h, oneLineSize(w, wmax), rem);
   if (half) return Math.min((w - lbl - (S.date ? side : 9.4 * rem + gap)) / span, h / 2.25);
-  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
+  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D * R + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
 }
 
 // ===== 아날로그 시계 (레코드판, 설정 › 시계 모양) =====
@@ -245,13 +247,54 @@ let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
   const m = d.getMinutes() + d.getSeconds() / 60, h = d.getHours() % 12 + m / 60;
-  $('dl-h').setAttribute('transform', `rotate(${(h * 30).toFixed(2)} 100 100)`);
-  $('dl-m').setAttribute('transform', `rotate(${(m * 6).toFixed(2)} 100 100)`);
+  const hd = (h * 30).toFixed(2), md = (m * 6).toFixed(2);
+  $('dl-h').setAttribute('transform', `rotate(${hd} 100 100)`);
+  $('dl-m').setAttribute('transform', `rotate(${md} 100 100)`);
+  $('de-h').setAttribute('transform', `rotate(${hd})`);   // 엣지 (가운데 0,0)
+  $('de-m').setAttribute('transform', `rotate(${md})`);
+  const min = d.getHours() * 60 + d.getMinutes();
+  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); }   // 숫자 굵기는 분마다
+}
+
+// ===== 엣지 시계판 (설정 › 테마 › 엣지) =====
+// 화면은 200×244 둥근 네모(모서리 44). 숫자는 5 안쪽 둥근 네모 선(모서리 40)을 따라 — 정시 방향 선이 그 선에 닿는 곳에 숫자,
+// 숫자 칸 길이는 양옆 반 시 방향이 닿는 점 사이. 위·아래 변은 납작하고 넓게, 옆 변은 좁고 길게, 모서리는 기울여서 (가장 가까운 변 기준)
+// 지금 시(hp, 소수)에 가까울수록 굵고 안쪽으로 두껍게 (두께 15~30, 굵기 650~1000, 1.3시간 폭 가우스) — 옆 변은 가로로 눌려서 먼 숫자도 너무 가늘지 않게
+let deMin = -1;
+const DE_CAP = .705;   // Nunito 숫자 높이 / 글자 크기
+function deHit(a) {   // 12시부터 시계방향 a(라디안) 선이 닿는 점(가운데 0,0)과 바깥 법선 각 n
+  const hx = 95, hy = 117, r = 40, sx = Math.sin(a), sy = -Math.cos(a), ox = hx - r, oy = hy - r;
+  let t = Math.min(hx / (Math.abs(sx) || 1e-9), hy / (Math.abs(sy) || 1e-9)), x = t * sx, y = t * sy;
+  if (Math.abs(x) > ox && Math.abs(y) > oy) {   // 모서리: 모서리 원과 만나는 점
+    const cx = Math.sign(x) * ox, cy = Math.sign(y) * oy, b = sx * cx + sy * cy;
+    t = b + Math.sqrt(b * b - (cx * cx + cy * cy - r * r)); x = t * sx; y = t * sy;
+    return { x, y, n: Math.atan2(x - cx, cy - y) };
+  }
+  return { x, y, n: Math.abs(x) > hx - 1e-6 ? Math.sign(x) * Math.PI / 2 : y < 0 ? 0 : Math.PI };
+}
+function edgeNums(hp) {
+  const pts = Array.from({ length: 24 }, (_, k) => deHit(k * Math.PI / 12));   // 짝수 = 정시, 홀수 = 반 시
+  let out = '';
+  for (let i = 1; i <= 12; i++) {
+    const P = pts[2 * i % 24], a = pts[2 * i - 1], b = pts[(2 * i + 1) % 24];
+    let dd = Math.abs(i - hp) % 12; dd = Math.min(dd, 12 - dd);
+    const w = Math.exp(-((dd / 1.3) ** 2)), T = 15 + 15 * w;
+    const n = P.n * 180 / Math.PI, n0 = Math.round(n / 90) * 90, tilt = n - n0, side = n0 % 180 !== 0;
+    // 모서리는 기울인 상자 끝이 둥근 선 밖으로 나가지 않고 너무 납작해 보이지 않게 두께에 맞춘 길이로 (한 자리 1.25배, 두 자리 2배)
+    const chord = Math.hypot(b.x - a.x, b.y - a.y) - 6, along = Math.abs(tilt) > .5 ? Math.min(chord, T * (String(i).length * .75 + .5)) : chord;
+    const bw = side ? T : along, bh = side ? along : T, half = side ? bw / 2 : bh / 2;
+    const a0 = n0 * Math.PI / 180, tr = tilt * Math.PI / 180;
+    const vx = -Math.sin(a0) * half, vy = Math.cos(a0) * half;   // 접점에서 안쪽으로 두께 절반 → 상자 가운데, 모서리는 기울인 만큼 돌림
+    const cx = 100 + P.x + vx * Math.cos(tr) - vy * Math.sin(tr), cy = 122 + P.y + vx * Math.sin(tr) + vy * Math.cos(tr);
+    out += `<text transform="translate(${cx.toFixed(2)} ${cy.toFixed(2)}) rotate(${tilt.toFixed(1)})" y="${(bh / 2).toFixed(2)}" text-anchor="middle" font-size="${(bh / DE_CAP).toFixed(2)}"`
+      + ` textLength="${bw.toFixed(2)}" lengthAdjust="spacingAndGlyphs" style="font-weight:${Math.round(650 + 350 * w)}">${i}</text>`;
+  }
+  return out;
 }
 
 // ===== 시계 =====
