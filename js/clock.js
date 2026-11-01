@@ -253,7 +253,7 @@ let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in', 'df-tb'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
@@ -261,7 +261,8 @@ function renderDial(d) {
   const hd = (h * 30).toFixed(2), md = (m * 6).toFixed(2);
   $('dl-h').setAttribute('transform', `rotate(${hd} 100 100)`);
   $('dl-m').setAttribute('transform', `rotate(${md} 100 100)`);
-  for (const k of ['de', 'dm']) {   // 엣지·모던 (가운데 0,0)
+  if (S.dialTheme === 'flower' && !dfDrawn) drawFlower();   // 플라워는 처음 고를 때 그림 (보석이 많아서)
+  for (const k of ['de', 'dm', 'df']) {   // 엣지·모던·플라워 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
   }
@@ -337,7 +338,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -384,6 +385,96 @@ function modernCal(t, d, hy = 122) {
   return `<g text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand)"><circle cx="${x}" cy="${y}" r="${r}" fill="#2c2c2e"/>`
     + `<text x="${x}" y="${(y - r * .34).toFixed(2)}" font-size="${(r * .4).toFixed(2)}" fill="${c.red ? '#ff3b30' : '#8e8e93'}" style="font-weight:600">${WEEK_EN[d.getDay()]}</text>`
     + `<text x="${x}" y="${(y + r * .3).toFixed(2)}" font-size="${(r * .82).toFixed(2)}" fill="#fff" style="font-weight:500">${d.getDate()}</text></g>`;
+}
+
+// ===== 플라워 시계판 (설정 › 테마 › 플라워) =====
+// 둥근 꽃잎 12장: 흰 금속 테 안에 보석을 촘촘히(파베) — 12시 루비부터 시계방향으로 핑크·라벤더·보라·파랑·하늘·초록·노랑·주황 무지개
+// 가운데 돔: 은색 테·짙은 회색 테 위 무지개 시 눈금, 안쪽 투르비용(1분에 한 바퀴 — 초침 대신, 초 표시를 끄면 멈춤), 위에 로고 [ 03 ]
+// 은색 시침·분침, 맨 위에 돔 유리 빛. 200×200 단위·가운데 0,0. 보석은 바깥 기준 빛(왼쪽 위)이 같게 꽃잎을 돌린 자리에 바로 그림
+// 꽃잎: 반각 15°에서 틈 g만큼 안쪽 선 두 개 + 끝 둥근 원(가운데 rc, 반지름 = rc·sin15° − g → 두 선에 딱 닿음)
+const DF = { a: Math.PI / 12, g: 1.1, rc: 77.9, rim: 2.3, dome: 40, sr: 1.95, pitch: 4.4 };
+// 정시 자리 보석 색 [색상, 채도, 밝기] (12시부터, 끝은 다시 12시) — 사이는 이어서
+const DF_COL = [[350, 82, 50], [332, 80, 62], [312, 62, 70], [285, 55, 72], [268, 58, 64], [226, 72, 52], [210, 78, 58], [192, 72, 56], [125, 70, 46], [56, 92, 56], [36, 95, 56], [16, 90, 54], [-10, 82, 50]];
+const dfCol = a => { const i = Math.floor(a) % 12, f = a - Math.floor(a); return DF_COL[i].map((v, k) => v + (DF_COL[i + 1][k] - v) * f); };
+const dfHsl = ([h, s, l], dl = 0) => `hsl(${((Math.round(h) % 360) + 360) % 360} ${Math.round(s)}% ${Math.max(0, Math.min(100, Math.round(l + dl)))}%)`;
+// 꽃잎 (12시를 향한 자리): 틈 g·끝 원 반지름 pr, 안쪽 끝 r1 (돔 밑이라 안 보임)
+function dfPetal(g, pr, r1) {
+  const { a, rc } = DF, ca = Math.cos(a), sa = Math.sin(a), f = v => v.toFixed(2);
+  const tx = pr * ca, ty = -rc + pr * sa, ix = r1 * sa - g * ca, iy = -r1 * ca - g * sa;
+  return `M${f(-ix)} ${f(iy)}L${f(-tx)} ${f(ty)}A${f(pr)} ${f(pr)} 0 1 1 ${f(tx)} ${f(ty)}L${f(ix)} ${f(iy)}Z`;
+}
+// 그림 조각 (설정 › 테마 작은 그림도 씀 — lite: 보석 대신 꽃잎을 한 색으로, 그라데이션 id 앞말 pre로 겹치지 않게)
+function flowerParts(pre, lite) {
+  const { a, g, rc, rim, dome, sr, pitch } = DF, pr = rc * Math.sin(a) - g, gi = g + rim, pi = pr - rim, ca = Math.cos(a), sa = Math.sin(a);
+  const outer = dfPetal(g, pr, 20), inner = dfPetal(gi, pi, 20), id = n => `url(#${pre}${n})`;
+  let defs = `<linearGradient id="${pre}rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfd"/><stop offset=".5" stop-color="#a3a8ae"/><stop offset="1" stop-color="#eceef0"/></linearGradient>`
+    + `<radialGradient id="${pre}shade" cy=".42" r=".62"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".32"/></radialGradient>`
+    + `<linearGradient id="${pre}bezel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6f7f8"/><stop offset=".55" stop-color="#868c93"/><stop offset="1" stop-color="#e2e5e8"/></linearGradient>`
+    + `<radialGradient id="${pre}flange"><stop offset=".72" stop-color="#1c1e21"/><stop offset="1" stop-color="#4a4d53"/></radialGradient>`
+    + `<radialGradient id="${pre}well" cy=".4"><stop offset="0" stop-color="#34373c"/><stop offset="1" stop-color="#0d0e10"/></radialGradient>`
+    + `<linearGradient id="${pre}hand" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#bfc3c9"/><stop offset="1" stop-color="#f3f4f6"/></linearGradient>`
+    + `<radialGradient id="${pre}glass" cx=".3" cy=".24" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".24"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`;
+  let petals = '', stones = '', spark = '';
+  for (let i = 0; i < 12; i++) {
+    const rot = `transform="rotate(${i * 30})"`;
+    petals += `<path d="${outer}" fill="${id('rim')}" stroke="rgba(0,0,0,.5)" stroke-width=".5" ${rot}/>`
+      + `<path d="${inner}" fill="${lite ? dfHsl(dfCol(i)) : '#9da2a9'}" ${rot}/>`;
+  }
+  if (!lite) {
+    // 보석: 꽃잎 축에 맞춘 육각 격자에서 안쪽 꽃잎(테 안)에 다 들어가는 자리만. 색은 꽃 가운데에서 본 각도로(5°마다 그라데이션 하나)
+    const m = sr + .25, inside = (x, y) => Math.hypot(x, y + rc) <= pi - m
+      || (y >= -rc && x * ca + y * sa <= -(gi + m) && -x * ca + y * sa <= -(gi + m));
+    const used = new Set();
+    let seed = 7;
+    const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+    for (let i = 0; i < 12; i++) {
+      const t = i * Math.PI / 6, ct = Math.cos(t), st = Math.sin(t);
+      for (let row = 0, y = -(rc + pi); y < -dome + 2; row++, y += pitch * .866) {
+        for (let x = (row % 2) * pitch / 2 - Math.ceil(pi / pitch) * pitch; x <= pi; x += pitch) {
+          if (!inside(x, y) || Math.hypot(x, y) < dome - 2) continue;
+          const X = x * ct - y * st, Y = x * st + y * ct, k = Math.round(((Math.atan2(X, -Y) / Math.PI / 2 * 12 + 12) % 12) * 6) % 72;
+          used.add(k);
+          stones += `<circle cx="${X.toFixed(2)}" cy="${Y.toFixed(2)}" r="${sr}" fill="url(#${pre}g${k})"/>`;
+          if (rnd() < .06) {   // 반짝이는 보석 몇 개 (네 갈래 빛)
+            const s = .5 + rnd() * .6, cx = X - .5, cy = Y - .6, q = v => v.toFixed(2);
+            spark += `<path d="M${q(cx)} ${q(cy - 2.4 * s)}L${q(cx + .4 * s)} ${q(cy - .4 * s)}L${q(cx + 2.4 * s)} ${q(cy)}L${q(cx + .4 * s)} ${q(cy + .4 * s)}L${q(cx)} ${q(cy + 2.4 * s)}L${q(cx - .4 * s)} ${q(cy + .4 * s)}L${q(cx - 2.4 * s)} ${q(cy)}L${q(cx - .4 * s)} ${q(cy - .4 * s)}Z"/>`;
+          }
+        }
+      }
+    }
+    for (const k of used) { const c = dfCol(k / 6); defs += `<radialGradient id="${pre}g${k}" fx=".38" fy=".34"><stop offset="0" stop-color="${dfHsl(c, 36)}"/><stop offset=".22" stop-color="${dfHsl(c, 10)}"/><stop offset=".6" stop-color="${dfHsl(c)}"/><stop offset="1" stop-color="${dfHsl(c, -28)}"/></radialGradient>`; }
+  }
+  let shade = '';
+  for (let i = 0; i < 12; i++) shade += `<path d="${inner}" fill="${id('shade')}" transform="rotate(${i * 30})"/>`;
+  let idx = '';
+  for (let h = 0; h < 12; h++) idx += `<path d="M0-29.5V-35" stroke="${dfHsl(dfCol(h), 8)}" stroke-width="1.8" stroke-linecap="round" transform="rotate(${h * 30})"/>`;
+  const face = `<defs>${defs}</defs>${petals}${stones}<g fill="#fff" opacity=".8">${spark}</g>${shade}`
+    + `<circle r="${dome + 2}" fill="rgba(0,0,0,.5)"/><circle r="${dome}" fill="${id('bezel')}"/><circle r="${dome - 3}" fill="${id('flange')}"/>${idx}`
+    + `<circle r="27.5" fill="${id('well')}" stroke="#c4c8ce" stroke-width=".7"/>`
+    + '<text y="-20.5" font-size="6.2" fill="#fff" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>';
+  // 투르비용: 케이지(바퀴 테 + 세 갈래 다리)·밸런스 휠(나사)·헤어스프링·가운데 루비, 초를 가리키는 분홍 바늘
+  let tb = '<circle r="16" fill="none" stroke="#c9cdd3" stroke-width="1.4"/>';
+  for (let k = 0; k < 3; k++) tb += `<path d="M-1.7 0L-1 -15.6H1L1.7 0Z" fill="#d9dce1" transform="rotate(${k * 120 + 60})"/>`;
+  tb += '<circle r="10" fill="none" stroke="#e4e6ea" stroke-width="1.1"/><g stroke="#e4e6ea" stroke-width=".7">';
+  for (let k = 0; k < 4; k++) tb += `<path d="M0 0V-10" transform="rotate(${k * 90 + 45})"/>`;
+  tb += '</g><g fill="#f3f4f6">';
+  for (let k = 0; k < 8; k++) { const t = k * Math.PI / 4; tb += `<circle cx="${(10 * Math.sin(t)).toFixed(2)}" cy="${(-10 * Math.cos(t)).toFixed(2)}" r=".75"/>`; }
+  let sp = '';
+  for (let k = 0; k <= 60; k++) { const t = k / 60, r = 2.6 + 4.6 * t, th = t * 6 * Math.PI; sp += `${k ? 'L' : 'M'}${(r * Math.sin(th)).toFixed(2)} ${(-r * Math.cos(th)).toFixed(2)}`; }
+  tb += `</g><path d="${sp}" fill="none" stroke="#9aa0a6" stroke-width=".35"/>`
+    + '<path d="M0-16V-26" stroke="#ff5b93" stroke-width="1" stroke-linecap="round"/><circle r="2.6" fill="#e9ebee"/><circle r="1.6" fill="#e2457f"/>';
+  const hand = (L, w) => `<path d="M${-w * .45} ${L * .13}L${-w} -8L${-w * .62} ${-L + 8}L0 ${-L}L${w * .62} ${-L + 8}L${w} -8L${w * .45} ${L * .13}Z" fill="${id('hand')}" stroke="rgba(0,0,0,.6)" stroke-width=".7"/>`
+    + `<path d="M0 0V${-L + 9}" stroke="rgba(0,0,0,.22)" stroke-width=".5"/>`;
+  const cap = `<circle r="3.8" fill="${id('hand')}" stroke="rgba(0,0,0,.5)" stroke-width=".5"/><circle r="1.5" fill="#e2457f"/>`;
+  const glass = `<circle r="${dome - 3}" fill="${id('glass')}"/><path d="M-33 -17A37 37 0 0 1 -8 -36" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.2" stroke-linecap="round"/>`;
+  return { face, tb, hour: hand(57, 3.4), minute: hand(89, 2.8), cap, glass };
+}
+let dfDrawn = false;
+function drawFlower() {
+  const p = flowerParts('df-');
+  $('df-face').innerHTML = p.face; $('df-tb').innerHTML = p.tb; $('df-glass').innerHTML = p.glass;
+  $('df-h').innerHTML = p.hour; $('df-m').innerHTML = p.minute; $('df-hub').innerHTML = p.cap;
+  dfDrawn = true;
 }
 
 // ===== 시계 =====
