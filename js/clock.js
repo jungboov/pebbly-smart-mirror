@@ -266,6 +266,12 @@ function renderDial(d) {
     $('dr-sl').setAttribute('transform', `translate(${DR.sub[0][0]} ${DR.sub[0][1]}) rotate(${hd})`);
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
+  if (S.dialTheme === 'lcd') {   // LCD: 처음 고를 때 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
+    if (!dcDrawn) drawLcd();
+    const hm = pad(S.hour12 ? d.getHours() % 12 || 12 : d.getHours()) + pad(d.getMinutes());
+    if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm); }
+    if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay); }
+  }
   for (const k of ['de', 'dm', 'df', 'dr']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
@@ -342,7 +348,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', lcd: 'lcd' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -504,6 +510,76 @@ function drawRainbow() {
   $('dr-h').innerHTML = p.hour; $('dr-m').innerHTML = p.minute; $('dr-hub').innerHTML = p.hub; $('dr-sec').innerHTML = p.sec;
   $('dr-sl').innerHTML = p.sub; $('dr-sr').innerHTML = p.sub; $('dr-ss').innerHTML = p.sub;
   drDrawn = true;
+}
+
+// ===== LCD 시계판 (설정 › 테마 › LCD) =====
+// 은색 판(모서리를 깎은 네모, 광택 강철 테): 위에 PEBBLY LABS, 가운데 LCD 창에 7세그먼트 시:분(꺼진 칸도 아주 옅게, 글자 그림자),
+// 창 왼쪽 세로 점선·오른쪽 꺾쇠 ┐┘(로고처럼), 아래에 0~31 숫자 네 줄(0~9 / 10~16 / 17~23 / 24~31) — 오늘 날짜는 굵게 [ 1 ]처럼 괄호로
+// 판은 200×220 단위(테 포함 214×234 → 세로/가로 1.0935, clock.css), 시각은 분마다·날짜 표시는 날짜가 바뀔 때 다시 그림
+const DC = { win: [22, 52, 156, 80], rows: [[0, 9, 14.6, 149], [10, 16, 20, 164.5], [17, 23, 20, 180], [24, 31, 20, 195.5]], fs: 9.6 };
+// 7세그먼트 한 칸(폭 30·높이 64, 두께 7): a 위 / b 오른쪽 위 / c 오른쪽 아래 / d 아래 / e 왼쪽 아래 / f 왼쪽 위 / g 가운데 — 끝은 비스듬히
+const DC_SEG = (() => {
+  const W = 30, H = 64, t = 7, g = .9, L = t / 2, R = W - t / 2, T = t / 2, M = H / 2, B = H - t / 2, h = t / 2;
+  const hz = (y, x0, x1) => `M${x0} ${y}L${x0 + h} ${y - h}H${x1 - h}L${x1} ${y}L${x1 - h} ${y + h}H${x0 + h}Z`;
+  const vt = (x, y0, y1) => `M${x} ${y0}L${x + h} ${y0 + h}V${y1 - h}L${x} ${y1}L${x - h} ${y1 - h}V${y0 + h}Z`;
+  return { a: hz(T, L + g, R - g), b: vt(R, T + g, M - g), c: vt(R, M + g, B - g), d: hz(B, L + g, R - g), e: vt(L, M + g, B - g), f: vt(L, T + g, M - g), g: hz(M, L + g, R - g) };
+})();
+const DC_DIG = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
+// 숫자 자리 x (네 칸 + 가운데 콜론), 창 가운데에
+const DC_X = [27, 63, 107, 143], DC_Y = 60;
+// 모서리를 둥글린 다각형 (점 목록, 모서리 크기 r)
+function dcPoly(P, r) {
+  const f = v => v.toFixed(2);
+  return P.map((v, k) => {
+    const p = P[(k + P.length - 1) % P.length], n = P[(k + 1) % P.length], tp = r / Math.hypot(p[0] - v[0], p[1] - v[1]), tn = r / Math.hypot(n[0] - v[0], n[1] - v[1]);
+    return `${k ? 'L' : 'M'}${f(v[0] + (p[0] - v[0]) * tp)} ${f(v[1] + (p[1] - v[1]) * tp)}Q${f(v[0])} ${f(v[1])} ${f(v[0] + (n[0] - v[0]) * tn)} ${f(v[1] + (n[1] - v[1]) * tn)}`;
+  }).join('') + 'Z';
+}
+const dcOct = (x, y, w, h, c) => [[x + c, y], [x + w - c, y], [x + w, y + c], [x + w, y + h - c], [x + w - c, y + h], [x + c, y + h], [x, y + h - c], [x, y + c]];
+// 시:분 (네 자리 문자열) → 켜진 칸 + 그림자
+function lcdTime(hhmm) {
+  let on = '', sh = '';
+  [...hhmm].forEach((ch, i) => {
+    const d = DC_DIG[+ch].split('').map(s => DC_SEG[s]).join(''), tr = `translate(${DC_X[i]} ${DC_Y})`;
+    on += `<path transform="${tr}" d="${d}"/>`; sh += `<path transform="${tr} translate(.8 1.1)" d="${d}"/>`;
+  });
+  return `<g fill="#000" opacity=".13">${sh}<circle cx="100.8" cy="${DC_Y + 22.1}" r="3"/><circle cx="100.8" cy="${DC_Y + 43.1}" r="3"/></g>`
+    + `<g fill="#1b1c1e">${on}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`;
+}
+// 오늘 날짜: 그 숫자를 굵게, 양옆에 괄호 (판 색 테두리로 옆 숫자와 떼어 놓음)
+function lcdDay(day) {
+  const row = DC.rows.find(r => day >= r[0] && day <= r[1]), x = 100 + (day - row[0] - (row[1] - row[0]) / 2) * row[2], y = row[3];
+  const half = day > 9 ? 10.8 : 7.6, bh = 6.4, bw = 1.9, br = s => { const bx = x + s * half; return `M${(bx + s * -bw).toFixed(2)} ${y - bh}H${bx.toFixed(2)}V${y + bh}H${(bx + s * -bw).toFixed(2)}`; };
+  return `<text x="${x}" y="${y}" font-size="${DC.fs * 1.08}" fill="#111" stroke="#e6e7e9" stroke-width="2.4" paint-order="stroke" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:800">${day}</text>`
+    + `<path d="${br(-1)}${br(1)}" fill="none" stroke="#e6e7e9" stroke-width="3.2"/><path d="${br(-1)}${br(1)}" fill="none" stroke="#111" stroke-width="1.2"/>`;
+}
+function lcdParts(pre) {
+  const id = n => `url(#${pre}${n})`, [wx, wy, ww, wh] = DC.win;
+  const defs = `<linearGradient id="${pre}g-steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfd"/><stop offset=".35" stop-color="#b9bdc2"/><stop offset=".6" stop-color="#8c9197"/><stop offset="1" stop-color="#f1f2f4"/></linearGradient>`
+    + `<linearGradient id="${pre}g-face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f4f5"/><stop offset="1" stop-color="#dcdee1"/></linearGradient>`
+    + `<linearGradient id="${pre}g-lcd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd2cc"/><stop offset=".12" stop-color="#dcded8"/><stop offset="1" stop-color="#d3d6d0"/></linearGradient>`
+    + `<pattern id="${pre}g-brush" width="200" height="1.1" patternUnits="userSpaceOnUse"><rect width="200" height=".4" fill="#fff" opacity=".22"/></pattern>`;
+  let ghost = '';
+  DC_X.forEach(x => { ghost += `<path transform="translate(${x} ${DC_Y})" d="${Object.values(DC_SEG).join('')}"/>`; });
+  let nums = '';
+  for (const [a, b, sp, y] of DC.rows) for (let n = a; n <= b; n++) nums += `<text x="${(100 + (n - a - (b - a) / 2) * sp).toFixed(2)}" y="${y}">${n}</text>`;
+  const face = `<path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="${id('g-steel')}"/><path d="${dcPoly(dcOct(-7, -7, 214, 234, 28), 10)}" fill="none" stroke="#6f747a" stroke-width=".6"/>`
+    + `<path d="${dcPoly(dcOct(-1.2, -1.2, 202.4, 222.4, 24.5), 8.5)}" fill="#7b8086"/>`
+    + `<path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-face')}"/><path d="${dcPoly(dcOct(0, 0, 200, 220, 24), 8)}" fill="${id('g-brush')}"/>`
+    + `<text x="100" y="33.5" font-size="11" fill="#4a4c50" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:600;letter-spacing:2.2px">PEBBLY LABS</text>`
+    + `<rect x="${wx - .8}" y="${wy - .8}" width="${ww + 1.6}" height="${wh + 1.6}" rx="3.6" fill="#a6a9a5"/><rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="3" fill="${id('g-lcd')}"/>`
+    + `<g fill="#000" opacity=".035">${ghost}<circle cx="100" cy="${DC_Y + 21}" r="3"/><circle cx="100" cy="${DC_Y + 42}" r="3"/></g>`
+    // 창 양옆은 로고처럼: 왼쪽 세로 점선, 오른쪽 꺾쇠 ┐┘ (창 위·아래 끝에 맞춤)
+    + `<path d="M11 ${wy}V${wy + wh}" stroke="#2a2b2e" stroke-width="1" stroke-dasharray="3 2.4"/>`
+    + `<path d="M180 ${wy + .8}H189.2V${wy + 9.8}M189.2 ${wy + wh - 9.8}V${wy + wh - .8}H180" fill="none" stroke="#2a2b2e" stroke-width="1.6"/>`
+    + `<g font-size="${DC.fs}" fill="#3a3b3e" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${nums}</g>`;
+  return { defs, face };
+}
+let dcDrawn = false, dcMin = '', dcDay = 0;
+function drawLcd() {
+  const p = lcdParts('dc-');
+  $('dc-face').innerHTML = `<defs>${p.defs}</defs>${p.face}<g id="dc-time"></g><g id="dc-day"></g>`;
+  dcDrawn = true; dcMin = ''; dcDay = 0;
 }
 
 // ===== 시계 =====
