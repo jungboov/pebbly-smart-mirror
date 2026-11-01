@@ -12,7 +12,7 @@ body.sb .stage{
     "clock panel"
     ".     panel";
   column-gap:2.4rem;
-  padding:calc(5rem + env(safe-area-inset-top)) max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, env(safe-area-inset-left));
+  padding:calc(5rem + env(safe-area-inset-top)) max(9rem, calc(env(safe-area-inset-right) + 5.5rem)) 5rem max(7rem, calc(env(safe-area-inset-left) + 5.5rem));   /* 양 끝 점(위젯·시계 쪽) 자리 */
   transition:opacity 3s, filter 3s, transform 2s;
 }
 body.sb .zone{display:none}
@@ -25,7 +25,7 @@ body.sb .clock{position:relative;padding-bottom:6rem}
   body.sb .clock-in{margin-top:-.1em}
   body.sb .ds{margin-top:.1em}
   body.sb .cm{inset:calc(-.1 * var(--cm, var(--clock))) 0 0}
-  body.sb .head{left:max(7rem, env(safe-area-inset-left));right:max(9rem, calc(env(safe-area-inset-right) + 5.5rem))}
+  body.sb .head{left:max(7rem, calc(env(safe-area-inset-left) + 5.5rem));right:max(9rem, calc(env(safe-area-inset-right) + 5.5rem))}
 }
 
 /* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
@@ -61,9 +61,10 @@ body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
   color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
 .cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
 .cm button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-/* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때 날짜 자리(오른쪽 끝)에 세로로. 메인 시계 화면은 그 자리에 날짜가 있어서 숨김 */
+/* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때만. 위젯 점과 마주 보게 — 가로는 화면 왼쪽 끝 가운데에 세로로(위젯 점은 오른쪽 끝),
+   세로는 시계 칸 맨 위 가운데에 가로로(위젯 점은 맨 아래, standby-widgets.css) */
 .cm-dots{display:none}
-body.sb:not([data-cm="clock"]) .cm-dots{position:absolute;right:0;top:calc(50% - 3rem);transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
+body.sb:not([data-cm="clock"]) .cm-dots{position:fixed;left:max(3rem, env(safe-area-inset-left));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
 body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:var(--accent)}
 /* 울림 */
 .ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:var(--ring-bg);animation:ring 1s steps(2) infinite}
