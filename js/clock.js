@@ -192,13 +192,19 @@ function cmLine(h, size, rem) {
   return size;
 }
 
-// 아날로그 시계판: 칸 폭·높이 중 막히는 쪽에 맞춤 (높이 = 폭 × R, 레코드판은 정사각 R 1·엣지는 세로로 긴 1.22 — clock.css --dial-r)
+// 아날로그 시계판: 칸 폭·높이 중 막히는 쪽에 맞춤 (높이 = 폭 × R, 레코드판은 정사각 R 1·엣지·모던은 세로로 긴 1.22 — clock.css --dial-r)
+// 날짜를 끄면 모던(라인·스윕·데이트)은 R을 칸 모양에 맞춰 위아래·좌우를 다 채움 (너무 납작하거나 길쭉해지지 않게 DIAL_R 안에서)
+// 엣지는 숫자가 판 모양을 따라 늘어나서 정사각에 가까우면 모서리 숫자끼리 겹쳐 1.22 그대로
 // 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
 // 스톱워치·타이머·알람은 시계판 자리(시계판 + 날짜) 안에 들어가는 크기로 (돌려줌)
 // 세로 반반은 시계 칸이 위 절반을 채워서(CSS) 스톱워치 등을 디지털 시계와 똑같이 — 디지털이 한 줄이었을 화면이면 한 줄(cm-line)
+const DIAL_R = [.75, 1.8];
 function fitDial(w, h, portrait, solo, rem, wmax) {
-  const ds = document.querySelector('.ds'), gap = 2 * rem;
-  const R = parseFloat(getComputedStyle($('dial')).getPropertyValue('--dial-r')) || 1;
+  const ds = document.querySelector('.ds'), gap = 2 * rem, dial = $('dial'), dm = dial.dataset.face === 'modern';
+  dial.style.removeProperty('--dial-r');
+  const R = dm && !S.date ? Math.round(Math.min(DIAL_R[1], Math.max(DIAL_R[0], h / w)) * 1000) / 1000
+    : parseFloat(getComputedStyle(dial).getPropertyValue('--dial-r')) || 1;
+  if (dm) { if (!S.date) dial.style.setProperty('--dial-r', R); shapeDial(R); }
   document.body.classList.remove('oneline');
   $('clock-in').style.rowGap = '';
   const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;   // 날짜 줄 두께 (놓인 방향과 상관없이 같음)
@@ -261,7 +267,24 @@ function renderDial(d) {
   }
   if (DM[S.dialTheme] && S.dialTheme !== dmTheme) { dmTheme = S.dialTheme; drawModern(dmTheme); deMin = -1; }   // 모던은 테마를 바꿀 때 그림
   const min = d.getHours() * 60 + d.getMinutes();
-  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); $('dm-cal').innerHTML = modernCal(dmTheme, d); }   // 엣지 숫자 굵기·날짜는 분마다
+  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); $('dm-cal').innerHTML = modernCal(dmTheme, d, DH); }   // 엣지 숫자 굵기·날짜는 분마다
+}
+// 모던 판 모양 (세로/가로 R, fitDial): 화면 그림은 200 × 200R 단위(가운데 0,0 — 반높이 DH)로 다시 그림
+// 바늘·초침은 그대로 두고 보는 칸만 넓혀서, 판이 정사각보다 납작해지면(R < 1) 짧은 쪽(높이)에 맞춰 같이 줄어듦
+let DH = 122;
+function shapeDial(R) {
+  const hy = Math.round(R * 1000) / 10;
+  if (hy === DH) return;
+  DH = hy;
+  const k = Math.max(1, 100 / hy), dial = $('dial');
+  for (const s of dial.querySelectorAll('.dm-hands, .dm-sec')) s.setAttribute('viewBox', `${-100 * k} ${-hy * k} ${200 * k} ${2 * hy * k}`);
+  for (const s of dial.querySelectorAll('.dm-bg, .dm-face, .dm-cal')) s.setAttribute('viewBox', `-100 ${-hy} 200 ${2 * hy}`);
+  // 스윕 빛: 케이스 테 안쪽 화면(5 안쪽, 모서리 39)에 맞추고, 빛 정사각은 화면 대각선보다 크게
+  const sw = dial.querySelector('.dm-sweep'), H = 2 * hy - 10, big = Math.hypot(190, H) / 1.9 + 2;
+  sw.style.top = 500 / (2 * hy) + '%'; sw.style.height = H / (2 * hy) * 100 + '%'; sw.style.borderRadius = `20.5% / ${3900 / H}%`;
+  sw.firstElementChild.style.cssText = `width:${big}%;margin:${-big / 2}% 0 0 ${-big / 2}%`;
+  deMin = -1; dmTheme = '';   // 눈금·날짜를 새 모양으로 바로 다시 그림
+  renderDial(new Date());
 }
 
 // ===== 엣지 시계판 (설정 › 테마 › 엣지) =====
@@ -303,7 +326,7 @@ function edgeNums(hp) {
 }
 
 // ===== 모던 시계판 (설정 › 테마 › 라인·스윕·데이트) =====
-// 화면은 200×244 둥근 네모(모서리 44, 가운데 0,0). 가장자리에 분 눈금 60개(정시 자리는 밝게) — 분 방향 선이 닿는 곳에서 테에 수직으로,
+// 화면은 200×244 둥근 네모(모서리 44, 가운데 0,0 — 날짜를 끄면 높이는 칸에 맞춰, shapeDial). 가장자리에 분 눈금 60개(정시 자리는 밝게) — 분 방향 선이 닿는 곳에서 테에 수직으로,
 // 그 안쪽에 시 눈금 12개(가운데를 향함), 위에 로고 [ 03 ], 날짜 동그라미(요일·날짜)
 // 라인: 회색 케이스 테·검은 화면·굵은 흰 시 눈금·속이 빈 흰 바늘·빨간 초침, 날짜는 3시 쪽
 // 데이트: 라인과 같은데 케이스 테 없이 화면 끝까지, 날짜는 12시 아래(요일 빨강), 로고 없음
@@ -317,24 +340,28 @@ const DM = {
 const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+// 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
+// 판이 납작해지면(hy < 100) 시 눈금도 짧은 쪽에 맞춰 줄임
+const dmIdxLen = (c, hy) => c.idx[1] * Math.min(1, hy / 100);
+const dmFit = (c, hy) => (hy - c.idx[0] - dmIdxLen(c, hy)) / (122 - c.idx[0] - c.idx[1]);
 // 테마 그림 조각 (설정 › 테마 작은 그림도 씀): 바탕(케이스 테·화면), 눈금·숫자·로고, 바늘(길이 L), 가운데 덮개, 초침
-function modernParts(t) {
-  const c = DM[t], R = 44, hx = 100 - c.inset, hy = 122 - c.inset, P1 = k => rrHit(k * Math.PI / 30, hx, hy, R - c.inset);
+function modernParts(t, H = 122) {
+  const c = DM[t], R = 44, hx = 100 - c.inset, hy = H - c.inset, P1 = k => rrHit(k * Math.PI / 30, hx, hy, R - c.inset);
   const bg = (c.nums ? '<defs><radialGradient id="dm-grad" cy=".45" r=".7"><stop offset="0" stop-color="#3a3a3c"/><stop offset="1" stop-color="#151516"/></radialGradient></defs>' : '')
-    + (c.bleed ? '<rect x="-100" y="-122" width="200" height="244" rx="44" fill="#000"/>'
-      : `<rect x="-97.5" y="-119.5" width="195" height="239" rx="41.5" fill="none" stroke="#48484a" stroke-width="5"/><rect x="-95" y="-117" width="190" height="234" rx="39" fill="${c.nums ? 'url(#dm-grad)' : '#000'}"/>`);
+    + (c.bleed ? `<rect x="-100" y="${-H}" width="200" height="${2 * H}" rx="44" fill="#000"/>`
+      : `<rect x="-97.5" y="${2.5 - H}" width="195" height="${2 * H - 5}" rx="41.5" fill="none" stroke="#48484a" stroke-width="5"/><rect x="-95" y="${5 - H}" width="190" height="${2 * H - 10}" rx="39" fill="${c.nums ? 'url(#dm-grad)' : '#000'}"/>`);
   let face = '';
   for (let k = 0; k < 60; k++) {
     const P = P1(k), ux = Math.sin(P.n), uy = -Math.cos(P.n), hr = k % 5 === 0;
     if (c.nums && hr) face += `<text x="${(P.x - ux * 3).toFixed(2)}" y="${(P.y - uy * 3).toFixed(2)}" font-size="7.5" fill="#8e8e93" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:600">${pad(k || 60)}</text>`;
     else face += `<line x1="${P.x.toFixed(2)}" y1="${P.y.toFixed(2)}" x2="${(P.x - ux * 5).toFixed(2)}" y2="${(P.y - uy * 5).toFixed(2)}" stroke="${hr ? '#e5e5ea' : '#636366'}" stroke-width="${hr ? 1.5 : 1}"/>`;
   }
-  const [io, il, iw, ic] = c.idx;
+  const [io, , iw, ic] = c.idx, il = dmIdxLen(c, H);
   for (let h = 0; h < 12; h++) {
-    const a = h * Math.PI / 6, P = rrHit(a, 100 - io, 122 - io, Math.max(R - io, 4)), sx = Math.sin(a), sy = -Math.cos(a);
+    const a = h * Math.PI / 6, P = rrHit(a, 100 - io, H - io, Math.max(R - io, 4)), sx = Math.sin(a), sy = -Math.cos(a);
     face += `<line x1="${P.x.toFixed(2)}" y1="${P.y.toFixed(2)}" x2="${(P.x - sx * il).toFixed(2)}" y2="${(P.y - sy * il).toFixed(2)}" stroke="${ic}" stroke-width="${iw}" stroke-linecap="round"/>`;
   }
-  if (c.logo) face += `<text y="-46" font-size="10" fill="${c.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
+  if (c.logo) face += `<text y="${(-46 * dmFit(c, H)).toFixed(2)}" font-size="10" fill="${c.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
   const hand = L => c.hollow
     ? `<path d="M0 0V-12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><rect x="-3.4" y="${-L}" width="6.8" height="${L - 12}" rx="3.4" fill="#000" stroke="#fff" stroke-width="1.6"/>`
     : `<path d="M0 0V-12" stroke="#d1d1d6" stroke-width="2" stroke-linecap="round"/><rect x="-3.2" y="${-L}" width="6.4" height="${L - 12}" rx="3.2" fill="#fff" stroke="#8e8e93" stroke-width=".6"/>`;
@@ -344,15 +371,16 @@ function modernParts(t) {
   return { bg, face, hand, hub, sec, hands: c.hands };
 }
 function drawModern(t) {
-  const p = modernParts(t);
+  const p = modernParts(t, DH);
   $('dm-bg').innerHTML = p.bg; $('dm-face').innerHTML = p.face;
   $('dm-h').innerHTML = p.hand(p.hands[0]); $('dm-m').innerHTML = p.hand(p.hands[1]); $('dm-hub').innerHTML = p.hub; $('dm-sec').innerHTML = p.sec;
 }
-// 날짜 동그라미: 위 줄 요일(영문 3자, 데이트는 빨강), 아래 줄 날짜
-function modernCal(t, d) {
+// 날짜 동그라미: 위 줄 요일(영문 3자, 데이트는 빨강), 아래 줄 날짜. 12시 아래 날짜는 판 높이(반높이 hy)에 맞춰 자리·크기를 옮김
+function modernCal(t, d, hy = 122) {
   const c = DM[t];
   if (!c || !c.cal) return '';
-  const [x, y, r] = c.cal;
+  let [x, y, r] = c.cal;
+  if (y) { const f = dmFit(c, hy); y *= f; r *= Math.min(1, 1.25 * f); }
   return `<g text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand)"><circle cx="${x}" cy="${y}" r="${r}" fill="#2c2c2e"/>`
     + `<text x="${x}" y="${(y - r * .34).toFixed(2)}" font-size="${(r * .4).toFixed(2)}" fill="${c.red ? '#ff3b30' : '#8e8e93'}" style="font-weight:600">${WEEK_EN[d.getDay()]}</text>`
     + `<text x="${x}" y="${(y + r * .3).toFixed(2)}" font-size="${(r * .82).toFixed(2)}" fill="#fff" style="font-weight:500">${d.getDate()}</text></g>`;
