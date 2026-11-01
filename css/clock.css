@@ -66,7 +66,7 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 /* ── 아날로그 시계 (설정 › 시계 모양 › 아날로그, 시계 강조 화면에서만): 레코드판 ──
    5장을 겹침: 케이스·눈금 테(dl-base) / 레코드판 홈과 비친 빛(dl-rec) / 1분에 한 바퀴 도는 라벨(dl-label) / 시침·분침(dl-hands) / 초침(dl-sec)
    200×200 단위로 그렸고 크기 --dial(폭)은 fitClock(fitDial)이 정함. 높이는 폭 × --dial-r(세로/가로, 레코드판은 정사각 1). 배치는 standby-widgets.css '아날로그 시계 배치'
-   테마(설정 › 테마): 레코드 블랙(기본, 아래 색) / 레코드 실버 / 엣지(맨 아래, 따로 그린 시계판 .de — 레코드판 .dl은 숨김).
+   테마(설정 › 테마): 레코드 블랙(기본, 아래 색) / 레코드 실버 / 엣지·라인·스윕·데이트(맨 아래, 따로 그린 시계판 .de·.dm — data-face로 하나만 보임).
    --dl-sheen: 레코드판 빛 밝기, --dl-label: 라벨·바늘 끝·초침 빨강 */
 .dial{display:none;position:relative;width:var(--dial, 60rem);height:calc(var(--dial, 60rem) * var(--dial-r, 1));--dl-sheen:.42;--dl-label:var(--vinyl-label)}
 .dial > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
@@ -127,8 +127,8 @@ body.no-sec .dl-sec, body.no-sec .de-sec{display:none}
 .dial[data-theme="silver"] .dl-crown-grip{stroke:rgba(0,0,0,.3)}
 
 /* 엣지: 검은 둥근 네모 화면(세로/가로 1.22) 가장자리를 따라 흰 숫자 — 지금 시 쪽은 굵고 두껍게, 먼 쪽은 가늘고 얇게. 흰 시침·분침(가는 목 + 굵은 막대), 빨간 초침 */
-.dial[data-theme="edge"]{--dial-r:1.22}
-.dial:not([data-theme="edge"]) .de, .dial[data-theme="edge"] .dl{display:none}
+.dial:not([data-face="rec"]){--dial-r:1.22}   /* 엣지·모던은 세로로 긴 둥근 네모 */
+.dial:not([data-face="rec"]) .dl, .dial:not([data-face="edge"]) .de, .dial:not([data-face="modern"]) .dm{display:none}
 .de-bg{fill:#000}
 #de-nums text{fill:#fff;font-family:Nunito,var(--brand)}
 .de-hd{fill:none;stroke:#fff;stroke-linecap:round}
@@ -137,3 +137,11 @@ body.no-sec .dl-sec, body.no-sec .de-sec{display:none}
 .de-sc{stroke:#ff3b30;stroke-width:1.1;stroke-linecap:round}
 .de-sc-cap{fill:#ff3b30}
 .de-pin{fill:#000}
+
+/* 모던(라인·스윕·데이트): 모양·색은 clock.js(drawModern)가 그림에 직접 넣음. 여기는 스윕의 빛과 초침 돌리기만
+   스윕 빛: 둥근 네모 화면(케이스 테 안쪽)에 잘린 큰 정사각에 원뿔 그라데이션 — 초침 자리(12시 방향)가 가장 밝고 반시계로 흐려짐, 초침과 같이 1분에 한 바퀴 */
+.dm-sweep{position:absolute;left:2.5%;top:2.05%;width:95%;height:95.9%;border-radius:20.5% / 16.7%;overflow:hidden}
+.dm-sweep i{position:absolute;left:50%;top:50%;width:170%;aspect-ratio:1;margin:-85% 0 0 -85%;will-change:transform;
+  background:conic-gradient(rgba(255,255,255,0) 0deg 200deg, rgba(255,255,255,.06) 265deg, rgba(255,255,255,.42) 360deg)}
+.dial:not([data-theme="sweep"]) .dm-sweep, body.no-sec .dm-sweep, body.no-sec .dm-sec{display:none}
+.dial .dm-sec{will-change:transform}

@@ -82,6 +82,7 @@ function applySettings() {
   document.body.classList.toggle('analog', S.analog);
   if (S.dialTheme === 'brown') S.dialTheme = 'black';   // 잠깐 있다 없앤 브라운 시계를 고른 기기(동기화로 받은 설정 포함)는 레코드 블랙으로
   $('dial').dataset.theme = S.dialTheme;
+  $('dial').dataset.face = DIAL_FACE[S.dialTheme] || 'rec';   // 레코드판 / 엣지 / 모던 중 어느 그림을 보일지
   document.body.classList.toggle('no-sec', !S.secs);
   document.body.classList.toggle('no-date', !S.date);
   renderAlert();

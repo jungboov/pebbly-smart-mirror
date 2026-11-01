@@ -247,7 +247,7 @@ let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
@@ -255,10 +255,13 @@ function renderDial(d) {
   const hd = (h * 30).toFixed(2), md = (m * 6).toFixed(2);
   $('dl-h').setAttribute('transform', `rotate(${hd} 100 100)`);
   $('dl-m').setAttribute('transform', `rotate(${md} 100 100)`);
-  $('de-h').setAttribute('transform', `rotate(${hd})`);   // 엣지 (가운데 0,0)
-  $('de-m').setAttribute('transform', `rotate(${md})`);
+  for (const k of ['de', 'dm']) {   // 엣지·모던 (가운데 0,0)
+    $(k + '-h').setAttribute('transform', `rotate(${hd})`);
+    $(k + '-m').setAttribute('transform', `rotate(${md})`);
+  }
+  if (DM[S.dialTheme] && S.dialTheme !== dmTheme) { dmTheme = S.dialTheme; drawModern(dmTheme); deMin = -1; }   // 모던은 테마를 바꿀 때 그림
   const min = d.getHours() * 60 + d.getMinutes();
-  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); }   // 숫자 굵기는 분마다
+  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); $('dm-cal').innerHTML = modernCal(dmTheme, d); }   // 엣지 숫자 굵기·날짜는 분마다
 }
 
 // ===== 엣지 시계판 (설정 › 테마 › 엣지) =====
@@ -267,8 +270,10 @@ function renderDial(d) {
 // 지금 시(hp, 소수)에 가까울수록 굵고 안쪽으로 두껍게 (두께 15~30, 굵기 650~1000, 1.3시간 폭 가우스) — 옆 변은 가로로 눌려서 먼 숫자도 너무 가늘지 않게
 let deMin = -1;
 const DE_CAP = .705;   // Nunito 숫자 높이 / 글자 크기
-function deHit(a) {   // 12시부터 시계방향 a(라디안) 선이 닿는 점(가운데 0,0)과 바깥 법선 각 n
-  const hx = 95, hy = 117, r = 40, sx = Math.sin(a), sy = -Math.cos(a), ox = hx - r, oy = hy - r;
+const deHit = a => rrHit(a, 95, 117, 40);
+// 12시부터 시계방향 a(라디안) 선이 둥근 네모(가운데 0,0, 반폭 hx·반높이 hy·모서리 r)에 닿는 점과 바깥 법선 각 n (12시부터 시계방향)
+function rrHit(a, hx, hy, r) {
+  const sx = Math.sin(a), sy = -Math.cos(a), ox = hx - r, oy = hy - r;
   let t = Math.min(hx / (Math.abs(sx) || 1e-9), hy / (Math.abs(sy) || 1e-9)), x = t * sx, y = t * sy;
   if (Math.abs(x) > ox && Math.abs(y) > oy) {   // 모서리: 모서리 원과 만나는 점
     const cx = Math.sign(x) * ox, cy = Math.sign(y) * oy, b = sx * cx + sy * cy;
@@ -295,6 +300,62 @@ function edgeNums(hp) {
       + ` textLength="${bw.toFixed(2)}" lengthAdjust="spacingAndGlyphs" style="font-weight:${Math.round(650 + 350 * w)}">${i}</text>`;
   }
   return out;
+}
+
+// ===== 모던 시계판 (설정 › 테마 › 라인·스윕·데이트) =====
+// 화면은 200×244 둥근 네모(모서리 44, 가운데 0,0). 가장자리에 분 눈금 60개(정시 자리는 밝게) — 분 방향 선이 닿는 곳에서 테에 수직으로,
+// 그 안쪽에 시 눈금 12개(가운데를 향함), 위에 로고 [ 03 ], 날짜 동그라미(요일·날짜)
+// 라인: 회색 케이스 테·검은 화면·굵은 흰 시 눈금·속이 빈 흰 바늘·빨간 초침, 날짜는 3시 쪽
+// 데이트: 라인과 같은데 케이스 테 없이 화면 끝까지, 날짜는 12시 아래(요일 빨강), 로고 없음
+// 스윕: 회색 케이스 테·짙은 회색 화면에 초침 뒤로 빛(CSS .dm-sweep), 분 숫자 05~60(그 자리엔 눈금 대신), 가늘고 긴 회색 시 눈금, 흰 바늘·흰 초침
+// inset: 분 눈금 바깥 끝이 화면 끝에서 들어온 거리 / idx: 시 눈금 [바깥 끝 들어온 거리, 길이, 굵기, 색] / hands: [시침, 분침] 길이(분침 끝이 시 눈금 안쪽 끝까지) / cal: 날짜 [x, y, 반지름]
+const DM = {
+  line: { inset: 12, idx: [23, 12, 4, '#fff'], hands: [46, 76], logo: '#fff', cal: [34, 0, 19], hollow: true },
+  sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
+  date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
+};
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern' };
+let dmTheme = '';
+const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+// 테마 그림 조각 (설정 › 테마 작은 그림도 씀): 바탕(케이스 테·화면), 눈금·숫자·로고, 바늘(길이 L), 가운데 덮개, 초침
+function modernParts(t) {
+  const c = DM[t], R = 44, hx = 100 - c.inset, hy = 122 - c.inset, P1 = k => rrHit(k * Math.PI / 30, hx, hy, R - c.inset);
+  const bg = (c.nums ? '<defs><radialGradient id="dm-grad" cy=".45" r=".7"><stop offset="0" stop-color="#3a3a3c"/><stop offset="1" stop-color="#151516"/></radialGradient></defs>' : '')
+    + (c.bleed ? '<rect x="-100" y="-122" width="200" height="244" rx="44" fill="#000"/>'
+      : `<rect x="-97.5" y="-119.5" width="195" height="239" rx="41.5" fill="none" stroke="#48484a" stroke-width="5"/><rect x="-95" y="-117" width="190" height="234" rx="39" fill="${c.nums ? 'url(#dm-grad)' : '#000'}"/>`);
+  let face = '';
+  for (let k = 0; k < 60; k++) {
+    const P = P1(k), ux = Math.sin(P.n), uy = -Math.cos(P.n), hr = k % 5 === 0;
+    if (c.nums && hr) face += `<text x="${(P.x - ux * 3).toFixed(2)}" y="${(P.y - uy * 3).toFixed(2)}" font-size="7.5" fill="#8e8e93" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:600">${pad(k || 60)}</text>`;
+    else face += `<line x1="${P.x.toFixed(2)}" y1="${P.y.toFixed(2)}" x2="${(P.x - ux * 5).toFixed(2)}" y2="${(P.y - uy * 5).toFixed(2)}" stroke="${hr ? '#e5e5ea' : '#636366'}" stroke-width="${hr ? 1.5 : 1}"/>`;
+  }
+  const [io, il, iw, ic] = c.idx;
+  for (let h = 0; h < 12; h++) {
+    const a = h * Math.PI / 6, P = rrHit(a, 100 - io, 122 - io, Math.max(R - io, 4)), sx = Math.sin(a), sy = -Math.cos(a);
+    face += `<line x1="${P.x.toFixed(2)}" y1="${P.y.toFixed(2)}" x2="${(P.x - sx * il).toFixed(2)}" y2="${(P.y - sy * il).toFixed(2)}" stroke="${ic}" stroke-width="${iw}" stroke-linecap="round"/>`;
+  }
+  if (c.logo) face += `<text y="-46" font-size="10" fill="${c.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
+  const hand = L => c.hollow
+    ? `<path d="M0 0V-12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><rect x="-3.4" y="${-L}" width="6.8" height="${L - 12}" rx="3.4" fill="#000" stroke="#fff" stroke-width="1.6"/>`
+    : `<path d="M0 0V-12" stroke="#d1d1d6" stroke-width="2" stroke-linecap="round"/><rect x="-3.2" y="${-L}" width="6.4" height="${L - 12}" rx="3.2" fill="#fff" stroke="#8e8e93" stroke-width=".6"/>`;
+  const hub = c.hollow ? '<circle r="3.8" fill="#fff"/>' : '';
+  const sec = c.hollow ? '<path d="M0 14V-96" stroke="#ff3b30" stroke-width="1.1" stroke-linecap="round"/><circle r="2.8" fill="#ff3b30"/><circle r="1" fill="#000"/>'
+    : '<path d="M0 14V-104" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle r="3" fill="#1c1c1e" stroke="#fff" stroke-width="1.2"/>';
+  return { bg, face, hand, hub, sec, hands: c.hands };
+}
+function drawModern(t) {
+  const p = modernParts(t);
+  $('dm-bg').innerHTML = p.bg; $('dm-face').innerHTML = p.face;
+  $('dm-h').innerHTML = p.hand(p.hands[0]); $('dm-m').innerHTML = p.hand(p.hands[1]); $('dm-hub').innerHTML = p.hub; $('dm-sec').innerHTML = p.sec;
+}
+// 날짜 동그라미: 위 줄 요일(영문 3자, 데이트는 빨강), 아래 줄 날짜
+function modernCal(t, d) {
+  const c = DM[t];
+  if (!c || !c.cal) return '';
+  const [x, y, r] = c.cal;
+  return `<g text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand)"><circle cx="${x}" cy="${y}" r="${r}" fill="#2c2c2e"/>`
+    + `<text x="${x}" y="${(y - r * .34).toFixed(2)}" font-size="${(r * .4).toFixed(2)}" fill="${c.red ? '#ff3b30' : '#8e8e93'}" style="font-weight:600">${WEEK_EN[d.getDay()]}</text>`
+    + `<text x="${x}" y="${(y + r * .3).toFixed(2)}" font-size="${(r * .82).toFixed(2)}" fill="#fff" style="font-weight:500">${d.getDate()}</text></g>`;
 }
 
 // ===== 시계 =====
