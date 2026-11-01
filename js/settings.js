@@ -44,6 +44,7 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.chip) S[b.dataset.chip] = !S[b.dataset.chip];
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
+  else if (b && b.dataset.clockTheme) { const t = CLOCK_THEMES.find(x => x.id === b.dataset.clockTheme); S.analog = !!t.dial; if (t.dial) S.dialTheme = t.id; }
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
     return;
@@ -51,6 +52,35 @@ $('settings').addEventListener('click', e => {
   saveSettings();
   applySettings();
 });
+
+// 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
+// 아날로그 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
+const CLOCK_THEMES = [
+  { id: 'digital', name: '디지털' },
+  { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
+  { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'] },
+];
+// 작은 그림 (40×40): 디지털은 시·분 두 줄, 아날로그는 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초)
+function thThumb(t) {
+  if (!t.dial) return '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x=".6" y=".6" width="38.8" height="38.8" rx="6" fill="#000" stroke="var(--card-bd)" stroke-width=".8"/>'
+    + '<g fill="#fff" font-weight="900" font-size="13" text-anchor="end" style="font-family:var(--num)"><text x="31" y="19">10</text><text x="31" y="34">08</text></g></svg>';
+  const [a, b, c, edge, label] = t.dial, g = 'th-g-' + t.id;
+  const hand = (deg, r, w, color) => `<path d="M20 20V${20 - r}" transform="rotate(${deg} 20 20)" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>`;
+  let ticks = '', grooves = '';
+  for (let i = 0; i < 12; i++) ticks += `<path d="M20 2.8v2.2" transform="rotate(${i * 30} 20 20)"/>`;
+  for (let r = 6.4; r < 14.4; r += 1.2) grooves += `<circle cx="20" cy="20" r="${r.toFixed(1)}"/>`;
+  return `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".45" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient></defs>`
+    + `<rect x=".6" y=".6" width="38.8" height="38.8" rx="6" fill="url(#${g})" stroke="${edge}" stroke-width=".5"/>`
+    + [[4.6, 4.6], [35.4, 4.6], [4.6, 35.4], [35.4, 35.4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="url(#${g})" stroke="${edge}" stroke-width=".3"/>`).join('')
+    + `<circle cx="20" cy="20" r="17.6" fill="#040404" stroke="${edge}" stroke-width=".5"/><g stroke="#fff" stroke-width=".8">${ticks}</g>`
+    + `<circle cx="20" cy="20" r="14.6" fill="#080808"/><g fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".3">${grooves}</g>`
+    + `<circle cx="20" cy="20" r="5" style="fill:${label}"/>${hand(300, 8.5, 1.6, '#fff')}${hand(60, 13, .8, '#fff')}${hand(180, 14, .5, label)}`
+    + `<circle cx="20" cy="20" r="1" fill="#ddd"/></svg>`;
+}
+function thRender() {
+  const cur = S.analog ? S.dialTheme : 'digital';
+  $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
+}
 
 // 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
 // 보이는 시간을 정한 위젯은 그 시간에만 나오고, 시작 시각이 되면 바로 그 위젯으로 넘어감 (시간은 가로·세로 공통)

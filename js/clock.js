@@ -117,9 +117,10 @@ function fitClock() {
     const side = dateRow || !S.date ? 0 : (portrait ? dsThick : ds.offsetWidth) + gap + 3 * rem;
     size = fit(side, h, dateRow);
     // 세로 반반: 시:분 한 줄(폭에 맞춤)이 세 줄 크기의 80% 이상이면 한 줄로 — 위아래로 늘려(--sy) 위 절반을 채우고 아래 줄에 날짜·초
-    // (폭이 좁은 폰은 한 줄이면 많이 작아져서 세 줄 그대로). .33em = 가운데 콜론 + 양옆 여백
-    const lineSize = w * .99 / (4 * wmax + .33);
+    // (폭이 좁은 폰은 한 줄이면 많이 작아져서 세 줄 그대로). 스톱워치·타이머·알람도 같이 (cm-line)
+    const lineSize = oneLineSize(w, wmax);
     const oneLine = portrait && S.half && !solo && lineSize >= .8 * size;
+    document.body.classList.toggle('cm-line', oneLine);
     if (document.body.classList.contains('oneline') !== oneLine) {
       document.body.classList.toggle('oneline', oneLine);
       return fitClock();   // 바뀐 배치로 날짜 높이 등을 다시 재서 맞춤 (그다음엔 안 바뀌어서 한 번뿐)
@@ -146,18 +147,7 @@ function fitClock() {
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
     cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
-    if (oneLine) {
-      // 한 줄 배치: 스톱워치·타이머·알람도 시계와 같은 크기 한 줄, 위아래 배율은 화면마다 (아래 줄 높이가 달라서)
-      // 숫자(.82em × 배율) + (+·− 버튼 줄) + 이름·버튼 줄, 스톱워치는 1/100초(.41em × 배율)도 아래 줄에
-      cmSize = size;
-      for (const el of document.querySelectorAll('.cm')) {
-        const pm = el.querySelector('.cm-pm'), foot = el.querySelector('.cm-foot'), d3 = el.querySelector('.cm-d3');
-        const above = (pm ? pm.offsetHeight : 0) + 4 * rem;   // 줄 사이 2rem × 2 (버튼 줄이 없어도 빈 줄 사이가 있음)
-        let k = (h - above - foot.offsetHeight) / (.82 * size);
-        if (d3) k = Math.min(k, (h - above) / (1.23 * size));
-        el.style.setProperty('--sy', Math.max(1, Math.min(2.4, k)).toFixed(3));
-      }
-    }
+    if (oneLine) cmSize = cmLine(h, size, rem);
     // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤. 한 줄 배치는 위에서)
     const items = [...ds.children].filter(c => c.offsetHeight);
     const dateLen = items.reduce((s, c) => s + (dateRow ? c.offsetWidth : c.offsetHeight), 0) + parseFloat(getComputedStyle(ds).rowGap || 0) * (items.length - 1);
@@ -187,8 +177,24 @@ function clockVars(size, cmSize, rem, wmax) {
   $('clock').style.setProperty('--dw', wmax + 'em');
 }
 
+// 세로 반반 한 줄 배치: 시:분 크기 (폭에 맞춤). .33em = 가운데 콜론 + 양옆 여백
+const oneLineSize = (w, wmax) => w * .99 / (4 * wmax + .33);
+// 한 줄 배치의 스톱워치·타이머·알람: 시계와 같은 크기 한 줄, 위아래 배율은 화면마다 (아래 줄 높이가 달라서). 크기를 돌려줌
+// 숫자(.82em × 배율) + (+·− 버튼 줄) + 이름·버튼 줄, 스톱워치는 1/100초(.41em × 배율)도 아래 줄에
+function cmLine(h, size, rem) {
+  for (const el of document.querySelectorAll('.cm')) {
+    const pm = el.querySelector('.cm-pm'), foot = el.querySelector('.cm-foot'), d3 = el.querySelector('.cm-d3');
+    const above = (pm ? pm.offsetHeight : 0) + 4 * rem;   // 줄 사이 2rem × 2 (버튼 줄이 없어도 빈 줄 사이가 있음)
+    let k = (h - above - foot.offsetHeight) / (.82 * size);
+    if (d3) k = Math.min(k, (h - above) / (1.23 * size));
+    el.style.setProperty('--sy', Math.max(1, Math.min(2.4, k)).toFixed(3));
+  }
+  return size;
+}
+
 // 아날로그 시계판: 정사각이라 칸 폭·높이 중 작은 쪽. 날짜는 옆(눕힘)과 위(가로 줄) 중 시계판이 더 커지는 쪽 — 세로 시계만은 아래 줄, 가로 시계만은 옆
 // 스톱워치·타이머·알람은 시계판 자리(시계판 + 날짜) 안에 들어가는 크기로 (돌려줌)
+// 세로 반반은 시계 칸이 위 절반을 채워서(CSS) 스톱워치 등을 디지털 시계와 똑같이 — 디지털이 한 줄이었을 화면이면 한 줄(cm-line)
 function fitDial(w, h, portrait, solo, rem, wmax) {
   const ds = document.querySelector('.ds'), gap = 2 * rem;
   document.body.classList.remove('oneline');
@@ -207,6 +213,12 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   ds.style.zoom = z < .99 ? z : '';
   const cw = D + (S.date && !dateRow ? side : 0);
   $('clock').style.width = portrait ? '' : cw + 'px';
+  const half = portrait && S.half && !solo, lbl = 2.6 * rem + gap, span = 2 * wmax + .02;
+  const size3 = half ? Math.min((w - lbl - (S.date ? side : 0)) / span, h / (S.secs ? 2.25 : 1.68)) : 0;   // 디지털 세 줄 크기 (날짜는 옆)
+  const line = half && oneLineSize(w, wmax) >= .8 * size3;
+  document.body.classList.toggle('cm-line', line);
+  if (line) return cmLine(h, oneLineSize(w, wmax), rem);
+  if (half) return Math.min((w - lbl - (S.date ? side : 9.4 * rem + gap)) / span, h / 2.25);
   return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
 }
 

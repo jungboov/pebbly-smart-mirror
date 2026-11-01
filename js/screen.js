@@ -112,7 +112,7 @@ function applySettings() {
   $('set-ns').textContent = hourName(S.nightStart);
   $('set-ne').textContent = hourName(S.nightEnd);
   document.querySelectorAll('.nt-row').forEach(r => { r.style.display = nightStyle() === 'off' ? 'none' : ''; });
-  document.querySelectorAll('.an-row').forEach(r => { r.style.display = S.analog ? '' : 'none'; });   // 아날로그 테마는 아날로그일 때만
+  thRender();
 }
 
 // ===== 공휴일 =====

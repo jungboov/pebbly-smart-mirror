@@ -4,14 +4,15 @@
 .settings[hidden]{display:none}
 .set-card{width:min(80rem, 92vw);height:min(94vh, 112rem);overflow-y:auto;touch-action:pan-y;display:flex;flex-direction:column;gap:3rem;padding:4.4rem;border:1px solid var(--card-bd);border-radius:3.2rem;background:var(--panel)}
 .set-title{font-size:4.6rem;font-weight:700}
-/* 설정 탭: 화면 / 위젯 / 야간 / 교통 / 사진. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래 */
-.set-head{display:flex;align-items:center;justify-content:space-between;gap:3rem}
-.set-tabs{display:flex;gap:1rem}
+/* 설정 탭: 화면 / 테마 / 위젯 / 야간 / 교통 / 사진. 창 높이는 고정이라 탭을 바꿔도 창이 안 움직이고, 안내·닫기는 맨 아래
+   제목 옆에 탭이 다 안 들어가면 탭 줄을 제목 아래로 (탭이 늘어도 넘치지 않게 탭끼리도 줄을 바꿈) */
+.set-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2rem 3rem}
+.set-tabs{display:flex;flex-wrap:wrap;gap:1rem}
 .set-card .set-tabs button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px}
-.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
+.set-card[data-tab="screen"] [data-tab="screen"], .set-card[data-tab="theme"] [data-tab="theme"], .set-card[data-tab="widgets"] [data-tab="widgets"], .set-card[data-tab="night"] [data-tab="night"],
 .set-card[data-tab="transit"] [data-tab="transit"], .set-card[data-tab="photo"] [data-tab="photo"]{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
-.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
+.set-card[data-tab="screen"] [data-page="screen"], .set-card[data-tab="theme"] [data-page="theme"], .set-card[data-tab="widgets"] [data-page="widgets"], .set-card[data-tab="night"] [data-page="night"],
 .set-card[data-tab="transit"] [data-page="transit"], .set-card[data-tab="photo"] [data-page="photo"], .set-card[data-tab="sync"] [data-page="sync"],
 .set-card[data-tab="remotes"] [data-page="remotes"]{display:flex}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
@@ -133,3 +134,8 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .ph-view-bar button{min-width:48px;min-height:48px;padding:0 18px;border:1px solid var(--card-bd);border-radius:24px;background:none;color:var(--text);font:inherit;font-size:max(3rem, 16px);cursor:pointer}
 .ph-view-bar .pv-del{color:var(--bad)}
 .set-card .ph-list button{position:absolute;top:.6rem;right:.6rem;width:5.2rem;height:5.2rem;display:grid;place-items:center;padding:0;border-radius:50%;background:var(--scrim);color:var(--text);font-size:3.4rem;line-height:1}
+/* 테마 탭: 시계 카드 — 작은 그림 + 이름, 고른 카드는 흰 테두리 (settings.js thRender) */
+.th-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(19rem, 1fr));gap:2rem}
+.set-card .th-card{display:flex;flex-direction:column;align-items:center;gap:1.6rem;padding:2.2rem 1.6rem 2rem;border:2px solid var(--card-bd);border-radius:2.6rem;font-size:2.8rem}
+.th-card svg{display:block;width:100%;max-width:16rem;aspect-ratio:1}
+.set-card .th-card.on{border-color:var(--accent);color:var(--text);font-weight:700}
