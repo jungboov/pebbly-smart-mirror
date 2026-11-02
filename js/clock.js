@@ -253,7 +253,7 @@ let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in', 'df-sec', 'dr-sec', 'dr-ss'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in', 'df-sec', 'dr-sec', 'dr-ss', 'dw-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
@@ -266,14 +266,15 @@ function renderDial(d) {
     $('dr-sl').setAttribute('transform', `translate(${DR.sub[0][0]} ${DR.sub[0][1]}) rotate(${hd})`);
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
-  if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
+  if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);
+  if (S.dialTheme === 'quartz' && !dwDrawn) drawQuartz();   // 쿼츠: 처음 고를 때 그림   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
   if (DC_INK[S.dialTheme]) {   // LCD·LCD 다크: 처음 고를 때(테마를 바꿀 때) 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
     if (S.dialTheme !== dcTheme) drawLcd(S.dialTheme);
     const hm = pad(S.hour12 ? d.getHours() % 12 || 12 : d.getHours()) + pad(d.getMinutes());
     if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm, dcTheme); }
     if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay, dcTheme); }
   }
-  for (const k of ['de', 'dm', 'df', 'dr', 'dq']) {   // 엣지·모던·플라워·블랙 타일 (가운데 0,0)
+  for (const k of ['de', 'dm', 'df', 'dr', 'dq', 'dw']) {   // 엣지·모던·플라워·블랙 타일·타일 캘린더·쿼츠 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
   }
@@ -349,7 +350,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -697,6 +698,61 @@ function drawLcd(v) {
   const p = lcdParts('dc-', v);
   $('dc-face').innerHTML = `<defs>${p.defs}</defs>${p.face}<g id="dc-time"></g><g id="dc-day"></g>`;
   dcTheme = v; dcMin = ''; dcDay = 0;
+}
+
+// ===== 쿼츠 시계판 (설정 › 테마 › 쿼츠) =====
+// 검은 둥근 벽시계: 광택 플라스틱 테 / 무광 검은 판 가장자리에 분 눈금(정시는 길게)·흰 숫자 1~12 / 안쪽은 한 단 낮은 검은 원판
+// 위에 pebbly labs·quartz, 아래(사과 로고 자리)에 앱 아이콘 [ 03 ] 상자, 6시 눈금 양옆에 Made in | Korea
+// 크림색 막대 시침·분침(그림자), 노란 초침. 200×200 단위·가운데 0,0 (index.html viewBox)
+// 초타원 |x/a|^n + |y/a|^n = 1 (앱 아이콘 모양, intro.js와 같은 n 2.7)
+function dwBox(a, n = 2.7) {
+  let d = '';
+  for (let i = 0; i < 64; i++) {
+    const t = i / 32 * Math.PI, c = Math.cos(t), s = Math.sin(t);
+    d += (i ? 'L' : 'M') + (a * Math.sign(c) * Math.abs(c) ** (2 / n)).toFixed(2) + ' ' + (a * Math.sign(s) * Math.abs(s) ** (2 / n)).toFixed(2);
+  }
+  return d + 'Z';
+}
+function quartzParts(pre) {
+  const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2);
+  const defs = `<linearGradient id="${pre}case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4d"/><stop offset=".3" stop-color="#1b1b1d"/><stop offset=".7" stop-color="#0a0a0b"/><stop offset="1" stop-color="#2c2c2f"/></linearGradient>`
+    + `<radialGradient id="${pre}in" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#151517"/><stop offset="1" stop-color="#09090a"/></radialGradient>`
+    + `<radialGradient id="${pre}sheen" cx=".3" cy=".2" r=".65"><stop offset="0" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
+    + `<filter id="${pre}sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".7" dy="1.2" stdDeviation=".9" flood-color="#000" flood-opacity=".75"/></filter>`;
+  // 테 → 판 → 안쪽 원판(테두리에 살짝 빛) → 분 눈금(6시 양옆 두 칸씩은 글자 자리) → 숫자
+  let face = `<circle r="100" fill="${id('case')}"/><circle r="99.4" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width=".6"/><circle r="96.4" fill="#0c0c0d"/>`
+    + `<circle r="67.6" fill="#000" opacity=".6"/><circle r="67" fill="${id('in')}"/><circle r="67" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width=".6"/>`;
+  let ticks = '';
+  for (let k = 0; k < 60; k++) {
+    if ([28, 29, 31, 32].includes(k)) continue;
+    const hr = k % 5 === 0, [x1, y1] = drPt(k * 6, hr ? 87.4 : 89.6), [x2, y2] = drPt(k * 6, 93.4);
+    ticks += `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}" stroke-width="${hr ? 1.5 : .7}"/>`;
+  }
+  face += `<g stroke="#e9e9e9">${ticks}</g><g font-size="14.6" fill="#f1f1f1" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:400">`;
+  for (let h = 1; h <= 12; h++) { const [x, y] = drPt(h * 30, 78.2); face += `<text x="${f(x)}" y="${f(y + .4)}">${h}</text>`; }
+  // 로고: 위에 pebbly labs·quartz, 아래에 앱 아이콘 [ 03 ] (상자 반폭 7.6 — 아이콘 59.5에 맞춰 선·글자를 줄임), 6시 양옆 Made in | Korea
+  const k = 7.6 / 59.5;
+  face += '</g>'
+    + `<text y="-46" font-size="7" fill="#ededed" text-anchor="middle" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;word-spacing:-.3em">pebbly labs</text>`
+    + `<text y="-38.6" font-size="3.6" fill="#cfcfcf" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:400;letter-spacing:.1px">quartz</text>`
+    + `<g transform="translate(0 38)"><path d="${dwBox(7.6)}" fill="none" stroke="#f1f1f1" stroke-width="${f(7.5 * k)}"/>`
+    + `<text x="${f(-2.75 * k)}" y="${f(12.53 * k)}" font-size="${f(35.5 * k)}" fill="#f1f1f1" text-anchor="middle" style="font-family:var(--mono);font-weight:800;letter-spacing:${f(-5.5 * k)}px;white-space:pre">[ 03 ]</text></g>`
+    + `<g font-size="3.1" fill="#d6d6d6" dominant-baseline="central" style="font-family:var(--brand);font-weight:400"><text x="-2.6" y="91.2" text-anchor="end">Made in</text><text x="2.6" y="91.2">Korea</text></g>`
+    + `<circle r="96.4" fill="${id('sheen')}"/>`;
+  // 크림색 막대 바늘(끝으로 살짝 가늘게, 가운데 뒤로 조금 나옴), 가운데 덮개
+  const hand = (L, w0, w1, tail) => `<path d="M${-w0 / 2} ${tail}L${-w1 / 2} ${-L}H${w1 / 2}L${w0 / 2} ${tail}Z" fill="#ece6d4"/>`;
+  return {
+    defs, face, hour: hand(64, 5.2, 4.4, 5), minute: hand(90, 4, 3.2, 6),
+    hub: '<circle r="3.6" fill="#1c1c1d" stroke="#8a8a8c" stroke-width=".8"/><circle r="1.1" fill="#9a9a9c"/>',
+    sec: '<path d="M0 16V-91" stroke="#f3c21b" stroke-width=".9" stroke-linecap="round"/><circle r="2.4" fill="#f3c21b"/><circle r=".8" fill="#6d5a12"/>',
+  };
+}
+let dwDrawn = false;
+function drawQuartz() {
+  const p = quartzParts('dw-');
+  $('dw-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
+  $('dw-h').innerHTML = p.hour; $('dw-m').innerHTML = p.minute; $('dw-hub').innerHTML = p.hub; $('dw-sec').innerHTML = p.sec;
+  dwDrawn = true;
 }
 
 // ===== 시계 =====
