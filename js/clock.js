@@ -424,8 +424,10 @@ function edgeNums(hp, theme = 'edge', pre = 'de-') {
     const side = edgeSide(i), ch = String(i), two = ch.length > 1, tall = side === 'left' || side === 'right';
     const w = edgeWeight(((hp + 1 - i) % 12 + 12) % 12);
     // 띠 두께(안쪽으로)와 획 굵기(사진에서 잰 값): 획 1.2 ~ 9.6, 글자 속·글자 사이는 1.3 틈까지만 좁아짐
-    const T = tall ? (two ? 7.4 + 24.6 * w : 8.3 + 9.2 * w) : 13.3 + 9 * w;
-    const swMax = tall ? (two ? (i === 11 ? (T - 1.3) / 2 : (T - 2.6) / 3) : (T - 1.3) / 2) : (T - 2.6) / 3;
+    // 11은 막대 둘: 가늘 때는 6.2 떨어진 두 줄, 굵어질수록 사이가 좁아져 가장 굵을 땐 1.3 틈만(10의 1처럼 두꺼운 막대 둘)
+    const sep11 = sw => 6.2 + (sw + 1.3 - 6.2) * w;
+    const T = tall ? (two ? (i === 11 ? sep11(FW + 8.4 * w) + FW + 8.4 * w : 7.4 + 24.6 * w) : 8.3 + 9.2 * w) : 13.3 + 9 * w;
+    const swMax = tall ? (two ? (i === 11 ? Infinity : (T - 2.6) / 3) : (T - 1.3) / 2) : (T - 2.6) / 3;
     const sw = Math.max(FW, Math.min(swMax, FW + 8.4 * w));
     const [d0, d1] = EDGE_SPAN[i];
     let s0 = E.sOf(d0), s1 = E.sOf(d1);
