@@ -61,6 +61,8 @@ const CLOCK_THEMES = [
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
   { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'] },
   { id: 'edge', name: '엣지', edge: true },
+  { id: 'edgem', name: '엣지 민트', edge: true },
+  { id: 'edger', name: '엣지 레인보우', edge: true },
   { id: 'line', name: '라인', modern: true },
   { id: 'sweep', name: '스윕', modern: true },
   { id: 'date', name: '데이트', modern: true },
@@ -73,7 +75,7 @@ const CLOCK_THEMES = [
   { id: 'rotary', name: '로터리', rotary: true },
 ];
 // 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
-// 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts)
+// 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts)
 function thThumb(t) {
   if (t.qp) {
     const p = qpParts('th-dq-', new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
@@ -107,10 +109,11 @@ function thThumb(t) {
     const p = modernParts(t.id), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
     return `<svg viewBox="-128 -126 256 252" aria-hidden="true">${p.bg}${p.face}${modernCal(t.id, new Date())}${rot(305, p.hand(p.hands[0]))}${rot(61, p.hand(p.hands[1]))}${p.hub}${rot(200, p.sec)}</svg>`;
   }
-  if (t.edge) return '<svg viewBox="-28 -4 256 252" aria-hidden="true"><rect width="200" height="244" rx="44" fill="#000" stroke="var(--card-bd)" stroke-width="3"/>'
-    + `<g fill="#fff" style="font-family:Nunito,var(--brand)">${edgeNums(10 + 10 / 60)}</g><g fill="none" stroke="#fff" stroke-linecap="round">`
+  if (t.edge) { const hand = EDGE_INK[t.id] || '#fff';
+    return '<svg viewBox="-28 -4 256 252" aria-hidden="true"><rect width="200" height="244" rx="44" fill="#000" stroke="var(--card-bd)" stroke-width="3"/>'
+    + `${edgeNums(10 + 10 / 60, t.id, `th-${t.id}-`)}<g fill="none" stroke="${hand}" stroke-linecap="round">`
     + [[305, 50], [60, 80]].map(([r, L]) => `<g transform="translate(100 122) rotate(${r})"><path d="M0 0V-14" stroke-width="4"/><path d="M0-14V-${L}" stroke-width="10"/></g>`).join('')
-    + '</g><path d="M100 134V30" stroke="#ff3b30" stroke-width="3"/><circle cx="100" cy="122" r="6" fill="#fff"/></svg>';
+    + `</g><path d="M100 134V30" stroke="#ff3b30" stroke-width="3"/><circle cx="100" cy="122" r="6" fill="${hand}"/></svg>`; }
   if (!t.dial) return '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x=".6" y=".6" width="38.8" height="38.8" rx="6" fill="#000" stroke="var(--card-bd)" stroke-width=".8"/>'
     + '<g fill="#fff" font-weight="900" font-size="13" text-anchor="end" style="font-family:var(--num)"><text x="31" y="19">10</text><text x="31" y="34">08</text></g></svg>';
   const [a, b, c, edge, label] = t.dial, g = 'th-g-' + t.id;

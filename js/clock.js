@@ -286,7 +286,7 @@ function renderDial(d) {
   }
   if (DM[S.dialTheme] && S.dialTheme !== dmTheme) { dmTheme = S.dialTheme; drawModern(dmTheme); deMin = -1; }   // 모던은 테마를 바꿀 때 그림
   const min = d.getHours() * 60 + d.getMinutes();
-  if (min !== deMin) { deMin = min; $('de-nums').innerHTML = edgeNums(h); $('dm-cal').innerHTML = modernCal(dmTheme, d, DH); if (drDrawn) $('dr-date').textContent = d.getDate(); }   // 엣지 숫자 굵기·날짜는 분마다
+  if (min + S.dialTheme !== deMin) { deMin = min + S.dialTheme; $('de-nums').innerHTML = edgeNums(h, S.dialTheme); $('dm-cal').innerHTML = modernCal(dmTheme, d, DH); if (drDrawn) $('dr-date').textContent = d.getDate(); }   // 엣지 숫자 굵기·날짜는 분마다
 }
 // 모던 판 모양 (세로/가로 R, fitDial): 화면 그림은 200 × 200R 단위(가운데 0,0 — 반높이 DH)로 다시 그림
 // 바늘·초침은 그대로 두고 보는 칸만 넓혀서, 판이 정사각보다 납작해지면(R < 1) 짧은 쪽(높이)에 맞춰 같이 줄어듦
@@ -306,13 +306,48 @@ function shapeDial(R) {
   renderDial(new Date());
 }
 
-// ===== 엣지 시계판 (설정 › 테마 › 엣지) =====
+// ===== 엣지 시계판 (설정 › 테마 › 엣지·엣지 민트·엣지 레인보우) =====
 // 화면은 200×244 둥근 네모(모서리 44). 숫자는 5 안쪽 둥근 네모 선(모서리 40)을 따라 — 정시 방향 선이 그 선에 닿는 곳에 숫자,
 // 숫자 칸 길이는 양옆 반 시 방향이 닿는 점 사이. 위·아래 변은 납작하고 넓게, 옆 변은 좁고 길게, 모서리는 기울여서 (가장 가까운 변 기준)
-// 지금 시(hp, 소수)에 가까울수록 굵고 안쪽으로 두껍게 (두께 15~30, 굵기 650~1000, 1.3시간 폭 가우스) — 옆 변은 가로로 눌려서 먼 숫자도 너무 가늘지 않게
+// 숫자는 한 줄 획(둥근 끝·모서리)으로 칸에 맞춰 늘려 그림. 지금 시(hp, 소수)에 가까울수록 획이 굵고 칸이 안쪽으로 두껍게(두께 15~30, 1.3시간 폭 가우스),
+// 먼 숫자는 테두리 선과 같은 가는 선. 숫자 사이는 바깥 테두리 선이 이어 줌(숫자 앞뒤로 조금 띄움)
+// 색: 엣지 흰색 / 민트(빛 번짐) / 레인보우(12시 빨강에서 시계 반대 방향으로 주황·노랑·초록·파랑·보라 — 테두리를 따라 이어지게)
 let deMin = -1;
-const DE_CAP = .705;   // Nunito 숫자 높이 / 글자 크기
 const deHit = a => rrHit(a, 95, 117, 40);
+const EDGE_INK = { edge: '#fff', edgem: '#5cf2cf', edger: null };
+const EDGE_HUE = [355, 285, 250, 220, 195, 165, 125, 85, 52, 38, 25, 10, -5];   // 레인보우: 12시부터 시계방향 한 시간마다의 색상(도)
+const edgeHue = deg => { const t = (deg % 360 + 360) % 360 / 30, i = Math.floor(t); return EDGE_HUE[i] + (EDGE_HUE[i + 1] - EDGE_HUE[i]) * (t - i); };
+const edgeCol = deg => `hsl(${Math.round((edgeHue(deg) + 360) % 360)} 95% 58%)`;
+// 한 줄 획 숫자: 칸 W×H(가운데 0,0, 획 가운데 기준) 안의 점 목록 [x, y, 모서리 둥글기], 닫힌 모양이면 true. 두 자리는 칸을 나눠 씀('1'은 좁게)
+function edgeGlyph(ch, W, H) {
+  const L = -W / 2, Rr = W / 2, T = -H / 2, B = H / 2, R = Math.min(W / 2, H / 4), O = Math.min(W, H) / 2, E = Math.min(W, H / 2) / 2;
+  switch (ch) {
+    case '0': return [[[[L, T, O], [Rr, T, O], [Rr, B, O], [L, B, O]], true]];
+    case '1': { const g = Math.min(W, H * .5); return [[[[-g * .2, T + g * .4], [g * .3, T], [g * .3, B]]]]; }
+    case '2': return [[[[L, T + R], [L, T, R], [Rr, T, R], [Rr, T + H * .42, R * .9], [L, B], [Rr, B]]]];
+    case '3': return [[[[L, T], [Rr, T, R], [Rr, 0, R], [-W * .1, 0]]], [[[-W * .1, 0], [Rr, 0, R], [Rr, B, R], [L, B]]]];
+    case '4': return [[[[W * .22, B], [W * .22, T], [L, H * .2], [Rr, H * .2]]]];
+    case '5': return [[[[Rr, T], [L, T], [L, -H * .04], [Rr, -H * .04, E], [Rr, B, E], [L, B]]]];
+    case '6': return [[[[Rr, T], [L, T, R], [L, B, E], [Rr, B, E], [Rr, 0, E], [L, 0]]]];
+    case '7': return [[[[L, T], [Rr, T], [-W * .08, B]]]];
+    case '8': return [[[[L, T, E], [Rr, T, E], [Rr, 0, E], [L, 0, E]], true], [[[L, 0, E], [Rr, 0, E], [Rr, B, E], [L, B, E]], true]];
+    case '9': return [[[[L, B], [Rr, B, R], [Rr, T, E], [L, T, E], [L, 0, E], [Rr, 0]]]];
+  }
+}
+// 점 목록 → 모서리를 둥글린 선(사분원 근사 곡선). 열린 선의 끝점 옆 모서리는 그 변을 다 써도 됨
+function edgePath(P, closed) {
+  const f = v => v.toFixed(2), n = P.length;
+  let d = '';
+  for (let k = 0; k < n; k++) {
+    const [x, y, r = 0] = P[k];
+    if (!r || (!closed && (k === 0 || k === n - 1))) { d += (d ? 'L' : 'M') + f(x) + ' ' + f(y); continue; }
+    const p = P[(k + n - 1) % n], q = P[(k + 1) % n], lp = Math.hypot(p[0] - x, p[1] - y), lq = Math.hypot(q[0] - x, q[1] - y);
+    const rr = Math.min(r, !closed && k === 1 ? lp : lp / 2, !closed && k === n - 2 ? lq : lq / 2), c = .4477;
+    const a = [x + (p[0] - x) * rr / lp, y + (p[1] - y) * rr / lp], b = [x + (q[0] - x) * rr / lq, y + (q[1] - y) * rr / lq];
+    d += `${d ? 'L' : 'M'}${f(a[0])} ${f(a[1])}C${f(a[0] + (x - a[0]) * (1 - c))} ${f(a[1] + (y - a[1]) * (1 - c))} ${f(b[0] + (x - b[0]) * (1 - c))} ${f(b[1] + (y - b[1]) * (1 - c))} ${f(b[0])} ${f(b[1])}`;
+  }
+  return d + (closed ? 'Z' : '');
+}
 // 12시부터 시계방향 a(라디안) 선이 둥근 네모(가운데 0,0, 반폭 hx·반높이 hy·모서리 r)에 닿는 점과 바깥 법선 각 n (12시부터 시계방향)
 function rrHit(a, hx, hy, r) {
   const sx = Math.sin(a), sy = -Math.cos(a), ox = hx - r, oy = hy - r;
@@ -324,9 +359,10 @@ function rrHit(a, hx, hy, r) {
   }
   return { x, y, n: Math.abs(x) > hx - 1e-6 ? Math.sign(x) * Math.PI / 2 : y < 0 ? 0 : Math.PI };
 }
-function edgeNums(hp) {
+function edgeNums(hp, theme = 'edge', pre = 'de-') {
   const pts = Array.from({ length: 24 }, (_, k) => deHit(k * Math.PI / 12));   // 짝수 = 정시, 홀수 = 반 시
-  let out = '';
+  const f = v => v.toFixed(2), ink = EDGE_INK[theme] !== undefined ? EDGE_INK[theme] : '#fff', FW = 1.4, GAP = 3.4;
+  let out = '', defs = '', holes = '';
   for (let i = 1; i <= 12; i++) {
     const P = pts[2 * i % 24], a = pts[2 * i - 1], b = pts[(2 * i + 1) % 24];
     let dd = Math.abs(i - hp) % 12; dd = Math.min(dd, 12 - dd);
@@ -334,14 +370,52 @@ function edgeNums(hp) {
     const n = P.n * 180 / Math.PI, n0 = Math.round(n / 90) * 90, tilt = n - n0, side = n0 % 180 !== 0;
     // 모서리는 기울인 상자 끝이 둥근 선 밖으로 나가지 않고 너무 납작해 보이지 않게 두께에 맞춘 길이로 (한 자리 1.25배, 두 자리 2배)
     const chord = Math.hypot(b.x - a.x, b.y - a.y) - 6, along = Math.abs(tilt) > .5 ? Math.min(chord, T * (String(i).length * .75 + .5)) : chord;
-    const bw = side ? T : along, bh = side ? along : T, half = side ? bw / 2 : bh / 2;
+    const bw = side ? T * (i > 9 ? 1.3 : 1) : along, bh = side ? along : T, half = side ? bw / 2 : bh / 2;   // 옆 변 두 자리는 30% 넓게
     const a0 = n0 * Math.PI / 180, tr = tilt * Math.PI / 180;
     const vx = -Math.sin(a0) * half, vy = Math.cos(a0) * half;   // 접점에서 안쪽으로 두께 절반 → 상자 가운데, 모서리는 기울인 만큼 돌림
     const cx = 100 + P.x + vx * Math.cos(tr) - vy * Math.sin(tr), cy = 122 + P.y + vx * Math.sin(tr) + vy * Math.cos(tr);
-    out += `<text transform="translate(${cx.toFixed(2)} ${cy.toFixed(2)}) rotate(${tilt.toFixed(1)})" y="${(bh / 2).toFixed(2)}" text-anchor="middle" font-size="${(bh / DE_CAP).toFixed(2)}"`
-      + ` textLength="${bw.toFixed(2)}" lengthAdjust="spacingAndGlyphs" style="font-weight:${Math.round(650 + 350 * w)}">${i}</text>`;
+    // 획 굵기: 먼 숫자 1.4(테두리와 같음) ~ 가까운 숫자 8.4, 글자가 좁으면 그 폭의 42%까지만. 두 자리는 칸 폭을 나눔('1'은 반만)
+    const ch = String(i), share = [...ch].map(c => c === '1' ? .5 : 1), sum = share.reduce((s, v) => s + v, 0);
+    const gw = s => (bw - s - (ch.length - 1) * (s + 1.6)) / sum, lim = s => Math.min(gw(s), bh - s) * .42;
+    let sw = 1.4 + 7 * w;
+    sw = Math.max(FW, Math.min(sw, lim(sw)));
+    const unit = gw(sw), H = bh - sw;
+    let d = '', x = -(bw - sw) / 2;
+    [...ch].forEach((c, k) => {
+      const W = unit * share[k];
+      for (const [P, closed] of edgeGlyph(c, W, H)) d += edgePath(P.map(([px, py, r]) => [px + x + W / 2, py, r]), closed);
+      x += W + sw + 1.6;
+    });
+    // 레인보우: 칸 안에서 시계방향으로 앞(반 시 전)·가운데·뒤(반 시 후) 색을 이어서
+    let stroke = ink;
+    if (!ink) {
+      const v = { 0: [1, 0], 90: [0, 1], 180: [-1, 0], 270: [0, -1] }[(n0 + 360) % 360], ax = side ? bh / 2 : bw / 2;
+      defs += `<linearGradient id="${pre}g${i}" gradientUnits="userSpaceOnUse" x1="${f(-v[0] * ax)}" y1="${f(-v[1] * ax)}" x2="${f(v[0] * ax)}" y2="${f(v[1] * ax)}">`
+        + [[0, i * 30 - 15], [.5, i * 30], [1, i * 30 + 15]].map(([o, deg]) => `<stop offset="${o}" stop-color="${edgeCol(deg)}"/>`).join('') + '</linearGradient>';
+      stroke = `url(#${pre}g${i})`;
+    }
+    const tf = `translate(${f(cx)} ${f(cy)}) rotate(${tilt.toFixed(1)})`;
+    out += `<path transform="${tf}" d="${d}" stroke="${stroke}" stroke-width="${f(sw)}"/>`;
+    // 테두리 선을 숫자 칸 앞뒤로 GAP만큼 비움 (가림판)
+    const gx = side ? 4 : GAP, gy = side ? GAP : 4;
+    holes += `<rect transform="${tf}" x="${f(-bw / 2 - gx)}" y="${f(-bh / 2 - gy)}" width="${f(bw + 2 * gx)}" height="${f(bh + 2 * gy)}"/>`;
   }
-  return out;
+  // 바깥 테두리 선(숫자 칸 바깥 끝과 맞춤): 한 색이면 둥근 네모 하나, 레인보우는 2.5도씩 잘라 색을 바꿈
+  const hx = 95 - FW / 2, hy = 117 - FW / 2, r = 40 - FW / 2;
+  let frame;
+  if (ink) frame = `<path d="M${f(100 - hx + r)} ${f(122 - hy)}H${f(100 + hx - r)}A${r} ${r} 0 0 1 ${f(100 + hx)} ${f(122 - hy + r)}V${f(122 + hy - r)}A${r} ${r} 0 0 1 ${f(100 + hx - r)} ${f(122 + hy)}`
+    + `H${f(100 - hx + r)}A${r} ${r} 0 0 1 ${f(100 - hx)} ${f(122 + hy - r)}V${f(122 - hy + r)}A${r} ${r} 0 0 1 ${f(100 - hx + r)} ${f(122 - hy)}Z" stroke="${ink}"/>`;
+  else {
+    frame = '';
+    for (let a = 0; a < 360; a += 2.5) {
+      const p = rrHit(a * Math.PI / 180, hx, hy, r), q = rrHit((a + 2.5) * Math.PI / 180, hx, hy, r);
+      frame += `<path d="M${f(100 + p.x)} ${f(122 + p.y)}L${f(100 + q.x)} ${f(122 + q.y)}" stroke="${edgeCol(a + 1.25)}"/>`;
+    }
+  }
+  defs += `<mask id="${pre}gap" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="244"><rect width="200" height="244" fill="#fff"/><g fill="#000">${holes}</g></mask>`;
+  if (theme === 'edgem') defs += `<filter id="${pre}glow" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  return `<defs>${defs}</defs><g fill="none" stroke-linecap="round" stroke-linejoin="round"${theme === 'edgem' ? ` filter="url(#${pre}glow)"` : ''}>`
+    + `<g mask="url(#${pre}gap)" stroke-width="${FW}">${frame}</g>${out}</g>`;
 }
 
 // ===== 모던 시계판 (설정 › 테마 › 라인·스윕·데이트) =====
@@ -356,7 +430,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary' };
+const DIAL_FACE = { edge: 'edge', edgem: 'edge', edger: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
