@@ -309,9 +309,9 @@ function shapeDial(R) {
 // ===== 엣지 시계판 (설정 › 테마 › 엣지·엣지 민트·엣지 레인보우) =====
 // 화면은 200×244 둥근 네모(모서리 44). 5 안쪽 둥근 네모 길(모서리는 초타원)을 바깥 끝으로 삼아, 그 길을 따라 1~12 숫자를 띠처럼 빙 둘러 그림 (따로 테두리 선은 없음)
 // 숫자 자리: 정시 방향 ±15도쯤(EDGE_SPAN — 1은 오른쪽 위 모서리를 도는 한 줄, 2는 그 아래, 3은 조금 넓게). 12만 위 글자(납작하게),
-// 1~5는 오른쪽·6~11은 왼쪽처럼 세로 글자를 길을 따라 눕혀 길게 늘리고(두 자리는 띠 안팎으로 나란히, 6은 고리가 4쪽), 모서리에서는 길의 곡선을 따라 휨
-// 위 글자(12)의 띠를 가로지르는 획은 시계 가운데를 향하는 방향(부채꼴로 살짝 기욺), 옆 글자는 길에 수직. 글자는 둥근 7세그먼트꼴 한 줄 획 — 세로 글자는 위·아래 막대 끝이 갈고리로 꺾여 내려옴(2·3·5·6·9)
-// 시침이 향하는 숫자(9시 10분이면 10)가 가장 굵고 띠도 두껍고(속은 가는 틈만), 3시간쯤 지나온 숫자까지 굵다가 4~6시간에서 빠르게 가늘어짐, 그 앞 숫자들은 가는 선
+// 6은 아래 글자(납작하게, 고리가 바깥쪽), 1~5는 오른쪽·7~11은 왼쪽처럼 세로 글자를 길을 따라 눕혀 길게 늘리고(두 자리는 띠 안팎으로 나란히), 모서리에서는 길의 곡선을 따라 휨
+// 위·아래 글자(12·6)의 띠를 가로지르는 획은 시계 가운데를 향하는 방향(부채꼴로 살짝 기욺), 옆 글자는 길에 수직. 글자는 둥근 7세그먼트꼴 한 줄 획 — 세로 글자는 위·아래 막대 끝이 갈고리로 꺾여 내려옴(2·3·5·6·9)
+// 굵기와 띠 깊이는 원본 사진 그대로 고정(EDGE_FIX): 10이 가장 굵고(속은 가는 틈만) 9·8·7·6·5로 시계 반대 방향으로 가늘어지고, 4~11은 가는 선
 // 색: 엣지 흰색 / 민트(빛 번짐) / 레인보우(12시 빨강에서 시계 반대 방향으로 무지개)
 let deMin = -1;
 const EDGE_INK = { edge: '#fff', edgem: '#5cf2cf', edger: null };
@@ -319,12 +319,14 @@ const EDGE_HUE = [355, 285, 250, 220, 195, 165, 125, 85, 52, 38, 25, 10, -5];   
 const edgeHue = deg => { const t = (deg % 360 + 360) % 360 / 30, i = Math.floor(t); return EDGE_HUE[i] + (EDGE_HUE[i + 1] - EDGE_HUE[i]) * (t - i); };
 const edgeCol = deg => `hsl(${Math.round((edgeHue(deg) + 360) % 360)} 95% 58%)`;
 // 숫자마다 [시작, 끝] 방향(12시부터 시계방향 도)과 어느 변 숫자인지
-const EDGE_SPAN = { 12: [-14.5, 14.5], 1: [16, 41], 2: [43.2, 71], 3: [72.8, 108], 4: [109.2, 137], 5: [139, 165], 6: [166, 194], 7: [195.5, 221.2], 8: [224, 251.5], 9: [252.2, 287.2], 10: [289.2, 316.5], 11: [319.2, 344] };
-const edgeSide = i => i === 12 ? 'top' : i <= 5 ? 'right' : 'left';
+const EDGE_SPAN = { 12: [-14.5, 14.5], 1: [16, 41], 2: [43.2, 71], 3: [72.8, 108], 4: [109.2, 137], 5: [139, 165], 6: [165.5, 194.7], 7: [195.5, 221.2], 8: [224, 251.5], 9: [252.2, 287.2], 10: [288.45, 316.75], 11: [319.2, 344] };
+const edgeSide = i => i === 12 ? 'top' : i === 6 ? 'bottom' : i <= 5 ? 'right' : 'left';
+// 원본 사진에서 잰 숫자마다 [띠 깊이, 획 굵기] (띠 폭 190 기준). 11은 두 줄 간격 6, 10은 1과 0 사이·0 속 틈이 1.2쯤
+const EDGE_FIX = { 12: [13.6, 1.1], 1: [0, 1.1], 2: [8.3, 1.5], 3: [8.4, 1.8], 4: [9.4, 2.3], 5: [9.9, 3], 6: [17.9, 3.5], 7: [12, 4.8], 8: [12.8, 5.2], 9: [14.6, 6.1], 10: [24.1, 7.25], 11: [7.1, 1.1] };
 // 바깥 길: 12시 꼭대기에서 시계방향으로 잰 길이 s → 점(x, y)과 안쪽 방향(nx, ny). 가운데 100,122
 // 모서리는 원이 아니라 초타원(모서리 길이 71, 지수 3.6) — 애플식으로 곧은 변에서 천천히 휘기 시작(사진의 11·1 자리와 대각선 쪽에서 잰 값에 맞춤)
 const EDGE_PATH = (() => {
-  const hx = 95, hy = 117, a = 71, n = 3.6, ex = hx - a, ey = hy - a, pts = [[0, -hy]];
+  const hx = 95, hy = 116.1, a = 71, n = 3.6, ex = hx - a, ey = hy - a, pts = [[0, -hy]];
   const corner = (cx, cy, sx, sy, t0, t1) => {
     for (let k = 0; k <= 240; k++) { const t = t0 + (t1 - t0) * k / 240; pts.push([cx + sx * a * Math.abs(Math.cos(t)) ** (2 / n), cy + sy * a * Math.abs(Math.sin(t)) ** (2 / n)]); }
   };
@@ -354,18 +356,19 @@ const EDGE_PATH = (() => {
 // tall: 세로로 긴 옆 글자(위·아래 막대 끝을 갈고리로 꺾어 내림), 아니면 납작한 위·아래 글자. sw: 획 굵기(9의 갈고리를 가운데 막대 바로 밑까지)
 function edgeGlyph(ch, W, H, tall, sw) {
   const L = -W / 2, Rr = W / 2, T = -H / 2, B = H / 2, R = Math.min(W / 2, H / 4), O = Math.min(W, H) / 2, E = Math.min(W, H / 2) / 2, y = k => T + H * k;
-  if (!tall) switch (ch) {   // 위(12): 갈고리 없이
+  if (!tall) switch (ch) {   // 위·아래(12·6): 갈고리 없이
     case '1': return [[[[0, T], [0, B]]]];
     case '2': return [[[[L, T], [Rr, T, R], [Rr, 0, R], [L + W * .03, 0, R * .4], [L + W * .03, B], [Rr, B]]]];
+    case '6': return [[[[Rr, T], [L, T, R], [L, B, R], [Rr, B, R], [Rr, 0, R], [L, 0]]]];
   }
   const h = W / 2;   // 세로 글자의 둥근 끝(반원)
   switch (ch) {
     case '0': return [[[[L, T, O], [Rr, T, O], [Rr, B, O], [L, B, O]], true]];
     case '1': return [[[[0, T], [0, B]]]];
-    case '2': return [[[[L, y(.46)], [L, T, h], [Rr, T, h], [Rr, y(.46), W * .7], [L, y(.7), W * .7], [L, B, W * .25], [Rr, B, W * .25], [Rr, y(.66)]]]];
-    case '3': return [[[[L, y(.3)], [L, T, h], [Rr, T, h], [Rr, B, h], [L, B, h], [L, y(.67)]]], [[[Rr, 0], [L + W * .55, 0]]]];
+    case '2': return [[[[L, y(.41)], [L, T, h], [Rr, T, h], [Rr, y(.46), W * .7], [L, y(.7), W * .7], [L, B, W * .25], [Rr, B, W * .25], [Rr, y(.66)]]]];
+    case '3': return [[[[L, y(.3)], [L, T, h], [Rr, T, h], [Rr, B, h], [L, B, h], [L, y(.67)]]], [[[Rr, 0], [L + W * .12, 0]]]];
     case '4': return [[[[L, T], [L, y(.61)], [Rr, y(.7)]]], [[[Rr, y(.03)], [Rr, B]]]];
-    case '5': return [[[[Rr, y(.24)], [Rr, T], [L, T], [L, y(.52), W * .3], [Rr, y(.55), W * .15], [Rr, B, h], [L, B, h], [L, y(.72)]]]];
+    case '5': return [[[[Rr, y(.24)], [Rr, T], [L, T], [L, y(.49), W * .3], [Rr, y(.52), W * .15], [Rr, B, h], [L, B, h], [L, y(.72)]]]];
     case '6': return [[[[Rr, y(.3)], [Rr, T, h], [L, T, h], [L, B, h], [Rr, B, h], [Rr, y(.5), h], [L, y(.5)]]]];
     case '7': return [[[[L, T], [Rr, T], [L, B]]]];
     case '8': return [[[[L, T, E], [Rr, T, E], [Rr, 0, E], [L, 0, E]], true], [[[L, 0, E], [Rr, 0, E], [Rr, B, E], [L, B, E]], true]];
@@ -406,12 +409,9 @@ function rrHit(a, hx, hy, r) {
   }
   return { x, y, n: Math.abs(x) > hx - 1e-6 ? Math.sign(x) * Math.PI / 2 : y < 0 ? 0 : Math.PI };
 }
-// 숫자 굵기(0~1): 시침이 향하는 자리(지금 시 + 1)를 지난 지 b시간 — 0이면 1, 3시간쯤까지 굵다가 4~6시간에 빠르게 가늘어짐, 그다음 숫자는 마지막 한 시간 동안 굵어짐
-// (사진 9시 10분에서 잰 획 굵기 — 10·9·8 꽉 참, 7 6.8, 6 4.3, 5 3.4, 4 2.4, 3 2.0, 2 1.6, 1·12·11 1.2 — 에 맞춘 곡선)
-const edgeWeight = b => Math.max(1 / (1 + (b / 3.9) ** 4), b > 11 ? (b - 11) ** 2 : 0);
 function edgeNums(hp, theme = 'edge', pre = 'de-') {
-  const f = v => v.toFixed(2), ink = EDGE_INK[theme] !== undefined ? EDGE_INK[theme] : '#fff', FW = 1.2, E = EDGE_PATH;
-  // 길 위 (s, 안쪽 깊이 v) → 화면 점. 옆 글자는 길에 수직으로, 위 글자(fan)는 시계 가운데를 향해 들어감(바깥 끝에 수직인 깊이가 v가 되게)
+  const f = v => v.toFixed(2), ink = EDGE_INK[theme] !== undefined ? EDGE_INK[theme] : '#fff', E = EDGE_PATH;
+  // 길 위 (s, 안쪽 깊이 v) → 화면 점. 옆 글자는 길에 수직으로, 위·아래 글자(fan)는 시계 가운데를 향해 들어감(바깥 끝에 수직인 깊이가 v가 되게)
   const put = (s, v, fan) => {
     const [x, y, nx, ny] = E.at(s);
     if (!fan) return [x + nx * v, y + ny * v];
@@ -422,29 +422,23 @@ function edgeNums(hp, theme = 'edge', pre = 'de-') {
   let out = '', defs = '';
   for (let i = 1; i <= 12; i++) {
     const side = edgeSide(i), ch = String(i), two = ch.length > 1, tall = side === 'left' || side === 'right';
-    const w = edgeWeight(((hp + 1 - i) % 12 + 12) % 12);
-    // 띠 두께(안쪽으로)와 획 굵기(사진에서 잰 값): 획 1.2 ~ 9.6, 글자 속·글자 사이는 1.3 틈까지만 좁아짐
-    // 11은 막대 둘: 가늘 때는 6.2 떨어진 두 줄, 굵어질수록 사이가 좁아져 가장 굵을 땐 1.3 틈만(10의 1처럼 두꺼운 막대 둘)
-    const sep11 = sw => 6.2 + (sw + 1.3 - 6.2) * w;
-    const T = tall ? (two ? (i === 11 ? sep11(FW + 8.4 * w) + FW + 8.4 * w : 7.4 + 24.6 * w) : 8.3 + 9.2 * w) : 13.3 + 9 * w;
-    const swMax = tall ? (two ? (i === 11 ? Infinity : (T - 2.6) / 3) : (T - 1.3) / 2) : (T - 2.6) / 3;
-    const sw = Math.max(FW, Math.min(swMax, FW + 8.4 * w));
+    const [T, sw] = EDGE_FIX[i];   // 띠 깊이(안쪽으로)와 획 굵기
     const [d0, d1] = EDGE_SPAN[i];
     let s0 = E.sOf(d0), s1 = E.sOf(d1);
     if (s1 < s0) s1 += E.P;
     const pad = sw / 2 + .6, A = s1 - s0 - 2 * pad, sm = (s0 + s1) / 2;
-    // 바로 선 글자 칸 → 길 위로: 위는 오른쪽이 시계방향·위가 바깥, 오른쪽은 아래가 시계방향·오른쪽이 바깥, 왼쪽은 위가 시계방향·왼쪽이 바깥
+    // 바로 선 글자 칸 → 길 위로: 위는 오른쪽이 시계방향·위가 바깥, 아래는 왼쪽이 시계방향·아래가 바깥, 오른쪽은 아래가 시계방향·오른쪽이 바깥, 왼쪽은 위가 시계방향·왼쪽이 바깥
     // 오른쪽 한 자리 1은 폭 0(바깥 끝을 도는 한 줄)
     const W = tall ? (i === 1 ? 0 : T - sw) : A, H = tall ? A : T - sw;
     const map = {
-      top: (x, y) => put(sm + x, sw / 2 + y + H / 2, true),
+      top: (x, y) => put(sm + x, sw / 2 + y + H / 2, true), bottom: (x, y) => put(sm - x, sw / 2 + H / 2 - y, true),
       right: (x, y) => put(sm + y, sw / 2 + W / 2 - x), left: (x, y) => put(sm - y, sw / 2 + x + W / 2),
     }[side];
-    // 글자 나누기 [글자, 가로 자리, 폭, 높이, 세로 자리]: 위 12는 1을 좁게(띠 두께의 25%) 앞에, 옆 두 자리는 띠 안팎으로(바깥이 앞 글자 1, 10의 0은 1보다 조금 아래로 — 위는 18% 낮게, 아래는 8% 더 내려감)
+    // 글자 나누기 [글자, 가로 자리, 폭, 높이, 세로 자리]: 위 12는 1을 좁게(띠 두께의 25%) 앞에, 옆 두 자리는 띠 안팎으로(바깥이 앞 글자 1, 10의 0은 1보다 조금 아래로 — 위는 9% 낮게, 아래는 6% 더 내려감)
     const parts = [];
     if (!two) parts.push([ch, 0, W, H]);
     else if (!tall) { const w1 = H * .25, gap = sw + 2.6, w2 = W - w1 - gap; parts.push(['1', -W / 2 + w1 / 2, w1, H], [ch[1], W / 2 - w2 / 2, w2, H]); }
-    else { const gap = sw + 1.3, w2 = ch[1] === '1' ? 0 : W - gap, z = ch[1] === '0'; parts.push(['1', -W / 2, 0, H], [ch[1], W / 2 - w2 / 2, w2, z ? H * .9 : H, z ? H * .13 : 0]); }
+    else { const gap = sw + 1.3, w2 = ch[1] === '1' ? 0 : W - gap, z = ch[1] === '0'; parts.push(['1', -W / 2, 0, H], [ch[1], W / 2 - w2 / 2, w2, z ? H * .97 : H, z ? H * .085 : 0]); }
     let d = '';
     for (const [c, ox, gw, gh, oy = 0] of parts)
       for (const [P, closed] of edgeGlyph(c, gw, gh, tall, sw)) d += line(edgePts(P.map(([x, y, r]) => [x + ox, y + oy, r]), closed).map(([x, y]) => map(x, y))) + (closed ? 'Z' : '');
