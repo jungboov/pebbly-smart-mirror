@@ -358,8 +358,8 @@ function edgeGlyph(ch, W, H, tall, sw) {
     case '1': return [[[[0, T], [0, B]]]];
     case '2': return [[[[L, y(.36)], [L, T, h], [Rr, T, h], [Rr, y(.36), W * .7], [L, y(.6), W * .7], [L, B, W * .25], [Rr, B, W * .25], [Rr, y(.66)]]]];
     case '3': return [[[[L, y(.3)], [L, T, h], [Rr, T, h], [Rr, B, h], [L, B, h], [L, y(.67)]]], [[[Rr, 0], [L + W * .08, 0]]]];
-    case '4': return [[[[L, T], [L, y(.72), W * .2], [Rr, y(.84)]]], [[[Rr, T], [Rr, B]]]];
-    case '5': return [[[[Rr, y(.18)], [Rr, T, W * .3], [L, T, W * .3], [L, y(.6), W * .3], [Rr, y(.68), W * .3], [Rr, B, h], [L, B, h], [L, y(.86)]]]];
+    case '4': return [[[[L, T], [L, y(.6)], [Rr, y(.68)]]], [[[Rr, y(.03)], [Rr, B]]]];
+    case '5': return [[[[Rr, y(.24)], [Rr, T], [L, T], [L, y(.54), W * .3], [Rr, y(.57), W * .15], [Rr, B, h], [L, B, h], [L, y(.72)]]]];
     case '6': return [[[[Rr, y(.36)], [Rr, T, h], [L, T, h], [L, B, h], [Rr, B, h], [Rr, y(.42), h], [L, y(.42)]]]];
     case '7': return [[[[L, T], [Rr, T], [L, B]]]];
     case '8': return [[[[L, T, E], [Rr, T, E], [Rr, 0, E], [L, 0, E]], true], [[[L, 0, E], [Rr, 0, E], [Rr, B, E], [L, B, E]], true]];
@@ -449,7 +449,8 @@ function edgeNums(hp, theme = 'edge', pre = 'de-') {
     out += `<path d="${d}" stroke="${stroke}" stroke-width="${f(sw)}"/>`;
   }
   if (theme === 'edgem') defs += `<filter id="${pre}glow" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
-  return `<defs>${defs}</defs><g fill="none" stroke-linecap="round" stroke-linejoin="round"${theme === 'edgem' ? ` filter="url(#${pre}glow)"` : ''}>${out}</g>`;
+  // 선 끝은 반듯하게 자르고 꺾인 곳은 각지게(사진처럼) — 둥근 모서리는 글자 모양에서 따로 둥글림
+  return `<defs>${defs}</defs><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"${theme === 'edgem' ? ` filter="url(#${pre}glow)"` : ''}>${out}</g>`;
 }
 
 // ===== 모던 시계판 (설정 › 테마 › 라인·스윕·데이트) =====
