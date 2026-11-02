@@ -702,17 +702,8 @@ function drawLcd(v) {
 
 // ===== 쿼츠 시계판 (설정 › 테마 › 쿼츠) =====
 // 검은 둥근 벽시계: 광택 플라스틱 테 / 무광 검은 판 가장자리에 분 눈금(정시는 길게)·흰 숫자 1~12 / 안쪽은 한 단 낮은 검은 원판
-// 위에 pebbly labs·quartz, 아래(사과 로고 자리)에 앱 아이콘 [ 03 ] 상자, 6시 눈금 양옆에 Made in | Korea
+// 위에 pebbly labs·quartz, 아래(사과 로고 자리)에 [ 03 ], 6시 눈금 양옆에 Made in | Korea
 // 크림색 막대 시침·분침(그림자), 노란 초침. 200×200 단위·가운데 0,0 (index.html viewBox)
-// 초타원 |x/a|^n + |y/a|^n = 1 (앱 아이콘 모양, intro.js와 같은 n 2.7)
-function dwBox(a, n = 2.7) {
-  let d = '';
-  for (let i = 0; i < 64; i++) {
-    const t = i / 32 * Math.PI, c = Math.cos(t), s = Math.sin(t);
-    d += (i ? 'L' : 'M') + (a * Math.sign(c) * Math.abs(c) ** (2 / n)).toFixed(2) + ' ' + (a * Math.sign(s) * Math.abs(s) ** (2 / n)).toFixed(2);
-  }
-  return d + 'Z';
-}
 function quartzParts(pre) {
   const id = n => `url(#${pre}${n})`, f = v => v.toFixed(2);
   const defs = `<linearGradient id="${pre}case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4d"/><stop offset=".3" stop-color="#1b1b1d"/><stop offset=".7" stop-color="#0a0a0b"/><stop offset="1" stop-color="#2c2c2f"/></linearGradient>`
@@ -730,13 +721,11 @@ function quartzParts(pre) {
   }
   face += `<g stroke="#e9e9e9">${ticks}</g><g font-size="14.6" fill="#f1f1f1" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:400">`;
   for (let h = 1; h <= 12; h++) { const [x, y] = drPt(h * 30, 78.2); face += `<text x="${f(x)}" y="${f(y + .4)}">${h}</text>`; }
-  // 로고: 위에 pebbly labs·quartz, 아래에 앱 아이콘 [ 03 ] (상자 반폭 7.6 — 아이콘 59.5에 맞춰 선·글자를 줄임), 6시 양옆 Made in | Korea
-  const k = 7.6 / 59.5;
+  // 로고: 위에 pebbly labs·quartz, 아래에 [ 03 ](테두리 없이), 6시 양옆 Made in | Korea
   face += '</g>'
     + `<text y="-46" font-size="7" fill="#ededed" text-anchor="middle" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;word-spacing:-.3em">pebbly labs</text>`
     + `<text y="-38.6" font-size="3.6" fill="#cfcfcf" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:400;letter-spacing:.1px">quartz</text>`
-    + `<g transform="translate(0 38)"><path d="${dwBox(7.6)}" fill="none" stroke="#f1f1f1" stroke-width="${f(7.5 * k)}"/>`
-    + `<text x="${f(-2.75 * k)}" y="${f(12.53 * k)}" font-size="${f(35.5 * k)}" fill="#f1f1f1" text-anchor="middle" style="font-family:var(--mono);font-weight:800;letter-spacing:${f(-5.5 * k)}px;white-space:pre">[ 03 ]</text></g>`
+    + `<text y="38" font-size="5.6" fill="#f1f1f1" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
     + `<g font-size="3.1" fill="#d6d6d6" dominant-baseline="central" style="font-family:var(--brand);font-weight:400"><text x="-2.6" y="91.2" text-anchor="end">Made in</text><text x="2.6" y="91.2">Korea</text></g>`
     + `<circle r="96.4" fill="${id('sheen')}"/>`;
   // 크림색 막대 바늘(끝으로 살짝 가늘게, 가운데 뒤로 조금 나옴), 가운데 덮개
