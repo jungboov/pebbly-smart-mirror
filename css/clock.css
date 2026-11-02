@@ -137,7 +137,6 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial .de-sec{will-change:transform}
 .de-sc{stroke:#ff3b30;stroke-width:1.1;stroke-linecap:round}
 .de-sc-cap{fill:#ff3b30}
-.de-pin{fill:#000}
 
 /* 모던(라인·스윕·데이트): 모양·색은 clock.js(drawModern)가 그림에 직접 넣음. 여기는 스윕의 빛과 초침 돌리기만
    스윕 빛: 둥근 네모 화면(케이스 테 안쪽 — 판 모양이 바뀌면 clock.js shapeDial이 자리·모서리를 다시 맞춤)에 잘린 큰 정사각에 원뿔 그라데이션 — 초침 자리(12시 방향)가 가장 밝고 반시계로 흐려짐, 초침과 같이 1분에 한 바퀴 */

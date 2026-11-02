@@ -112,7 +112,7 @@ function thThumb(t) {
   if (t.edge) { const hand = EDGE_INK[t.id] || '#fff';
     return '<svg viewBox="-28 -4 256 252" aria-hidden="true"><rect width="200" height="244" rx="44" fill="#000" stroke="var(--card-bd)" stroke-width="3"/>'
     + `${edgeNums(10 + 10 / 60, t.id, `th-${t.id}-`)}<g fill="none" stroke="${hand}" stroke-linecap="round">`
-    + [[305, 50], [60, 80]].map(([r, L]) => `<g transform="translate(100 122) rotate(${r})"><path d="M0 0V-14" stroke-width="4"/><path d="M0-14V-${L}" stroke-width="10"/></g>`).join('')
+    + [[305, 49.2], [60, 81.9]].map(([r, L]) => `<g transform="translate(100 122) rotate(${r})"><path d="M0 0V-15.7" stroke-width="3.2"/><path d="M0-15.7V-${L}" stroke-width="11"/></g>`).join('')
     + `</g><path d="M100 134V30" stroke="#ff3b30" stroke-width="3"/><circle cx="100" cy="122" r="6" fill="${hand}"/></svg>`; }
   if (!t.dial) return '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x=".6" y=".6" width="38.8" height="38.8" rx="6" fill="#000" stroke="var(--card-bd)" stroke-width=".8"/>'
     + '<g fill="#fff" font-weight="900" font-size="13" text-anchor="end" style="font-family:var(--num)"><text x="31" y="19">10</text><text x="31" y="34">08</text></g></svg>';
