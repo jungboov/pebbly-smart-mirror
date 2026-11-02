@@ -115,7 +115,7 @@ body[data-day="sun"] .ds-wd{color:var(--sun)}
 .sc{stroke:var(--dl-label);stroke-width:1.1;stroke-linecap:round}
 .sc-tail{fill:none;stroke:var(--dl-label);stroke-width:1.5}
 .sc-cap{fill:var(--dl-label);stroke:#000;stroke-opacity:.5;stroke-width:.6}
-body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-sec, body.no-sec .dr-ss, body.no-sec .dw-sec{display:none}
+body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-sec, body.no-sec .dr-ss, body.no-sec .dw-sec, body.no-sec .dk-snum{display:none}
 
 /* 실버 테마: 사진의 은색 시계 — 밝은 은색 케이스·나사·용두(광택 테두리는 흰색 ↔ 짙은 회색), 레코드판 빛은 더 밝게, 진한 빨강 라벨.
    눈금 테는 블랙과 같은 검은 테에 흰 눈금 */
@@ -167,3 +167,7 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 /* 쿼츠: 검은 둥근 벽시계(R 1). 모양·색은 clock.js(quartzParts)가 그림에 직접 넣음 */
 .dial:not([data-face="quartz"]) .dw{display:none}
 .dial .dw-sec{will-change:transform}
+
+/* 로터리: 정사각(R 1). 링은 초마다 살짝 늦게 툭 (clock.js dkTurn) — 모양·색은 clock.js(rotaryParts)가 그림에 직접 넣음 */
+.dial:not([data-face="rotary"]) .dk{display:none}
+#dk-s, #dk-m, #dk-h{transition:transform .2s .2s ease-in}

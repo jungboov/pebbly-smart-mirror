@@ -55,7 +55,7 @@ $('settings').addEventListener('click', e => {
 
 // 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz — LCD 다크는 LCD 그림에 색만)
+// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary — LCD 다크는 LCD 그림에 색만)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
@@ -70,13 +70,20 @@ const CLOCK_THEMES = [
   { id: 'lcd', name: 'LCD', lcd: true },
   { id: 'lcdk', name: 'LCD 다크', lcd: true },
   { id: 'quartz', name: '쿼츠', quartz: true },
+  { id: 'rotary', name: '로터리', rotary: true },
 ];
 // 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
-// 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts)
+// 엣지는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts)
 function thThumb(t) {
   if (t.qp) {
     const p = qpParts('th-dq-', new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
     return `<svg viewBox="-76 -76 152 152" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-dq-sh)">${rot(305, p.hour)}${rot(61, p.minute)}${p.hub}</g></svg>`;
+  }
+  if (t.rotary) {   // 10시 9분 30초로 링을 돌려 둠, 글자 폭은 카드가 그려진 뒤 맞춤(thRender)
+    const p = rotaryParts('th-dk-');
+    let face = p.face;
+    for (const [n, deg] of [['h', -300], ['m', -54], ['s', -180]]) face = face.replace(`<g id="th-dk-${n}">`, `<g id="th-dk-${n}" transform="rotate(${deg})">`);
+    return `<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs>${p.defs}</defs>${face}</svg>`;
   }
   if (t.quartz) {
     const p = quartzParts('th-dw-'), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
@@ -122,6 +129,7 @@ function thThumb(t) {
 function thRender() {
   const cur = S.analog ? S.dialTheme : 'digital';
   $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
+  rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
 }
 
 // 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만

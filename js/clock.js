@@ -267,7 +267,13 @@ function renderDial(d) {
     $('dr-sr').setAttribute('transform', `translate(${DR.sub[1][0]} ${DR.sub[1][1]}) rotate(${(m % 30 * 12).toFixed(2)})`);
   }
   if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);
-  if (S.dialTheme === 'quartz' && !dwDrawn) drawQuartz();   // 쿼츠: 처음 고를 때 그림   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
+  if (S.dialTheme === 'quartz' && !dwDrawn) drawQuartz();   // 쿼츠: 처음 고를 때 그림
+  if (S.dialTheme === 'rotary') {   // 로터리: 처음 고를 때 그리고, 링은 초마다(초를 끄면 초 링은 멈춤)·날짜와 시각 글자는 분마다
+    if (!dkDrawn) drawRotary();
+    dkTurn('dk-h', -30 * d.getHours()); dkTurn('dk-m', -6 * d.getMinutes()); if (S.secs) dkTurn('dk-s', -6 * d.getSeconds());
+    const key = d.toDateString() + d.getHours() + ':' + d.getMinutes() + S.hour12 + document.fonts.status;
+    if (key !== dkMin) { dkMin = key; rotaryText('dk-', d); }
+  }   // 타일 캘린더: 날짜가 바뀌면 판(작은 다이얼·주 바늘·달)을 다시 그림
   if (DC_INK[S.dialTheme]) {   // LCD·LCD 다크: 처음 고를 때(테마를 바꿀 때) 판을 그리고, 시각은 분이 바뀔 때·오늘 날짜 괄호는 날짜가 바뀔 때
     if (S.dialTheme !== dcTheme) drawLcd(S.dialTheme);
     const hm = pad(S.hour12 ? d.getHours() % 12 || 12 : d.getHours()) + pad(d.getMinutes());
@@ -350,7 +356,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz' };
+const DIAL_FACE = { edge: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -742,6 +748,82 @@ function drawQuartz() {
   $('dw-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
   $('dw-h').innerHTML = p.hour; $('dw-m').innerHTML = p.minute; $('dw-hub').innerHTML = p.hub; $('dw-sec').innerHTML = p.sec;
   dwDrawn = true;
+}
+
+// ===== 로터리 시계판 (설정 › 테마 › 로터리) =====
+// 바늘 대신 숫자 링이 돎: 바깥 흰 링(초 0~59) / 짙은 회색 링(분 0~59, 흰 숫자) / 가운데 흰 판(시 1~12) — 링마다 지금 값이 3시 쪽 빨간 표시선에 오도록
+// 거꾸로 돌려서 맞춤(초마다 살짝 늦게 툭, 59 → 0은 한 칸 앞으로). 숫자는 바깥을 향해 눕혀 써서 표시선 자리에서 바로 읽힘
+// 왼쪽 반은 검은 판(빨간 반원 테)이 덮고 날짜·시각·요일 알약. 가장자리에 점 눈금 60개. 200×200 단위·가운데 0,0, 원래 그림 480px를 줄인 값(k)
+const DK = { k: 100 / 240, font: 'font-family:BenchNine,var(--brand);font-weight:400' };
+const MONTH_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAY_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function rotaryParts(pre) {
+  const k = DK.k, f = v => v.toFixed(2), id = n => `url(#${pre}${n})`, P = n => n * k;
+  // 판 가장자리 안쪽 그림자(원래 inset 그림자): 반지름 비율 a부터 바깥으로 진해짐
+  const rim = (n, a, o) => `<radialGradient id="${pre}${n}"><stop offset="${a}" stop-color="#000" stop-opacity="0"/><stop offset="${(a + 1) / 2}" stop-color="#000" stop-opacity="${o * .35}"/><stop offset="1" stop-color="#000" stop-opacity="${o}"/></radialGradient>`;
+  const defs = rim('rw', .9, .75) + rim('rm', .84, .95) + rim('rh', .9, .45)
+    + `<linearGradient id="${pre}dot"><stop offset="0" stop-color="#7d7e7d"/><stop offset="1" stop-color="#0e0e0e"/></linearGradient>`
+    + `<linearGradient id="${pre}cast"><stop offset="0" stop-color="#000" stop-opacity=".85"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>`
+    + `<clipPath id="${pre}cl"><circle r="${f(P(220))}"/></clipPath>`;
+  // 링: 숫자 v는 3시에서 시계방향 v·step도, 반지름 r에 바깥을 향해 눕혀서. 눈금은 숫자 사이(da도 옆)에 짧게, 다섯 칸마다(두 번째부터) 길고 진하게
+  const ring = (vals, step, r, fs, fill, tk, cls = '') => {
+    let s = `<g${cls ? ` class="${cls}"` : ''} font-size="${f(P(fs))}" fill="${fill}" text-anchor="middle" dominant-baseline="central" style="${DK.font}">`;
+    for (const v of vals) s += `<text transform="rotate(${v * step}) translate(${f(P(r))} 0)">${v}</text>`;
+    s += `</g><g fill="${tk.c}">`;
+    vals.forEach((v, i) => {
+      const long = i % 5 === 1, [r1, r2] = long ? tk.l : tk.s;
+      s += `<rect transform="rotate(${f(v * step + tk.da)})" x="${f(P(r1))}" y="${f(-P(.5))}" width="${f(P(r2 - r1))}" height="${f(P(1))}"${long || tk.o === 1 ? '' : ` opacity="${tk.o}"`}/>`;
+    });
+    return s + '</g>';
+  };
+  const n60 = Array.from({ length: 60 }, (_, i) => i), n12 = Array.from({ length: 12 }, (_, i) => i + 1);
+  let dots = '';
+  for (let s = 0; s < 60; s++) { const w = s % 5 ? 4 : 8; dots += `<rect transform="rotate(${s * 6}) translate(${f(P(230))} 0)" x="${f(-P(w / 2))}" y="${f(-P(2))}" width="${f(P(w))}" height="${f(P(4))}" rx="${f(P(2))}" fill="${id('dot')}"/>`; }
+  const face = `<circle r="100" fill="#111"/>${dots}<circle r="${f(P(220))}" fill="#fff"/><circle r="${f(P(220))}" fill="${id('rw')}"/>`
+    + `<g id="${pre}s">${ring(n60, 6, 195, 12, '#000', { c: '#000', da: -3, s: [216, 220], l: [212, 219], o: .3 }, 'dk-snum')}</g>`
+    + `<circle r="${f(P(175))}" fill="#333"/><circle r="${f(P(175))}" fill="${id('rm')}"/>`
+    + `<g id="${pre}m">${ring(n60, 6, 145, 16, '#fff', { c: '#fff', da: -3, s: [171, 175], l: [167, 174], o: .3 })}</g>`
+    + `<circle r="${f(P(125))}" fill="#fff"/><circle r="${f(P(125))}" fill="${id('rh')}"/>`
+    + `<g id="${pre}h">${ring(n12, 30, 100, 32, '#000', { c: '#000', da: 4.7, s: [121, 125], l: [117, 124], o: 1 })}</g>`
+    // 표시선: 가운데에서 3시 쪽 흰 판 끝까지 빨간 선, 양끝에 서로 마주 보는 삼각형
+    + `<path d="M0 ${f(P(3))}H${f(P(220))}" stroke="#000" stroke-width="${f(P(4))}" opacity=".15"/>`
+    + `<path d="M0 0H${f(P(220))}" stroke="red" stroke-width="${f(P(1))}"/>`
+    + `<path d="M${f(P(2))} ${f(-P(7))}L${f(P(9))} 0L${f(P(2))} ${f(P(7))}ZM${f(P(220))} ${f(-P(7))}L${f(P(213))} 0L${f(P(220))} ${f(P(7))}Z" fill="red"/>`
+    // 왼쪽 검은 판(오른쪽으로 그림자) + 빨간 반원 테 + 날짜·시각·요일 알약
+    + `<rect x="${f(P(2))}" y="-100" width="${f(P(20))}" height="200" fill="${id('cast')}" clip-path="${id('cl')}"/>`
+    + `<path d="M${f(P(2))} ${f(-P(222))}A${f(P(222))} ${f(P(222))} 0 0 0 ${f(P(2))} ${f(P(222))}Z" fill="#090909"/>`
+    + `<path d="M${f(P(3))} ${f(-P(192.5))}A${f(P(192.5))} ${f(P(192.5))} 0 0 0 ${f(P(3))} ${f(P(192.5))}" fill="none" stroke="#8e0a0a" stroke-width="${f(P(15))}"/>`
+    + [['date', -110, 16], ['time', 0, 24], ['day', 110, 16]].map(([n, y, fs]) =>
+      `<rect id="${pre}${n}-bg" x="${f(-P(18))}" y="${f(P(y - fs * .62 - 2))}" width="0" height="${f(P(fs * 1.24 + 4))}" rx="${f(P(fs * .62 + 2))}" fill="#111" stroke="#000" stroke-opacity=".7" stroke-width="${f(P(2.4))}"/>`
+      + `<text id="${pre}${n}" x="${f(-P(38))}" y="${f(P(y + 1))}" font-size="${f(P(fs))}" fill="#fff" text-anchor="end" dominant-baseline="central" style="${DK.font}"></text>`).join('');
+  return { defs, face };
+}
+// 날짜·시각·요일 글자와 알약(글자 폭 + 양옆 20)
+function rotaryText(pre, d, root = document) {
+  const q = n => root.querySelector(`#${pre}${n}`), h = d.getHours();
+  const txt = { date: `${d.getDate()} . ${MONTH_EN[d.getMonth()]}`, day: DAY_EN[d.getDay()],
+    time: S.hour12 ? `${h % 12 || 12}:${pad(d.getMinutes())} ${h < 12 ? 'AM' : 'PM'}` : `${h}:${pad(d.getMinutes())}` };
+  for (const n in txt) {
+    const t = q(n), bg = q(n + '-bg');
+    t.textContent = txt[n];
+    const fs = parseFloat(t.getAttribute('font-size')), w = t.getComputedTextLength() || txt[n].length * fs * .42;
+    bg.setAttribute('x', (-DK.k * 18 - w - DK.k * 40).toFixed(2)); bg.setAttribute('width', (w + DK.k * 40).toFixed(2));
+  }
+}
+// 링 돌리기: 가까운 쪽으로(59 → 0은 한 칸 앞으로), 처음엔 바로
+const dkAng = {};
+function dkTurn(id, deg) {
+  const el = $(id), a = dkAng[id];
+  dkAng[id] = a == null ? deg : a + ((deg - a) % 360 + 540) % 360 - 180;
+  el.style.transition = a == null ? 'none' : '';
+  el.style.transform = `rotate(${dkAng[id]}deg)`;
+}
+let dkDrawn = false, dkMin = '';
+function drawRotary() {
+  const p = rotaryParts('dk-');
+  $('dk-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
+  for (const k in dkAng) delete dkAng[k];
+  dkDrawn = true; dkMin = '';
 }
 
 // ===== 시계 =====
