@@ -308,10 +308,10 @@ function shapeDial(R) {
 
 // ===== 엣지 시계판 (설정 › 테마 › 엣지·엣지 민트·엣지 레인보우) =====
 // 화면은 200×244 둥근 네모(모서리 44). 5 안쪽 둥근 네모 길(모서리 40)을 바깥 끝으로 삼아, 그 길을 따라 1~12 숫자를 띠처럼 빙 둘러 그림 (따로 테두리 선은 없음)
-// 숫자 자리: 정시 방향 ±15도쯤(EDGE_SPAN — 1은 오른쪽 위 모서리를 도는 한 줄, 2는 그 아래, 3은 조금 넓게). 12는 위, 6은 아래 글자,
-// 1~5는 오른쪽·7~11은 왼쪽 세로 글자로 길게 늘리고(두 자리는 띠 안팎으로 나란히), 모서리에서는 길의 곡선을 따라 휨
-// 위·아래 글자의 띠를 가로지르는 획은 시계 가운데를 향하는 방향(부채꼴로 살짝 기욺), 옆 글자는 길에 수직. 글자는 둥근 7세그먼트꼴 한 줄 획 — 세로 글자는 위·아래 막대 끝이 갈고리로 꺾여 내려옴(2·3·5·9)
-// 시침이 지나온 쪽으로 꼬리처럼: 지금 시 숫자가 가장 굵고 띠도 두껍고(속은 가는 틈만), 지나온 숫자일수록 차츰 가늘게(6시간쯤), 다가올 숫자는 가는 선
+// 숫자 자리: 정시 방향 ±15도쯤(EDGE_SPAN — 1은 오른쪽 위 모서리를 도는 한 줄, 2는 그 아래, 3은 조금 넓게). 12만 위 글자(납작하게),
+// 1~5는 오른쪽·6~11은 왼쪽처럼 세로 글자를 길을 따라 눕혀 길게 늘리고(두 자리는 띠 안팎으로 나란히, 6은 고리가 4쪽), 모서리에서는 길의 곡선을 따라 휨
+// 위 글자(12)의 띠를 가로지르는 획은 시계 가운데를 향하는 방향(부채꼴로 살짝 기욺), 옆 글자는 길에 수직. 글자는 둥근 7세그먼트꼴 한 줄 획 — 세로 글자는 위·아래 막대 끝이 갈고리로 꺾여 내려옴(2·3·5·6·9)
+// 시침이 향하는 숫자(9시 10분이면 10)가 가장 굵고 띠도 두껍고(속은 가는 틈만), 거기서 시침이 지나온 쪽으로 차츰 가늘게(6시간쯤), 그 앞 숫자들은 가는 선
 // 색: 엣지 흰색 / 민트(빛 번짐) / 레인보우(12시 빨강에서 시계 반대 방향으로 무지개)
 let deMin = -1;
 const EDGE_INK = { edge: '#fff', edgem: '#5cf2cf', edger: null };
@@ -320,7 +320,7 @@ const edgeHue = deg => { const t = (deg % 360 + 360) % 360 / 30, i = Math.floor(
 const edgeCol = deg => `hsl(${Math.round((edgeHue(deg) + 360) % 360)} 95% 58%)`;
 // 숫자마다 [시작, 끝] 방향(12시부터 시계방향 도)과 어느 변 숫자인지
 const EDGE_SPAN = { 12: [-14.5, 14.5], 1: [17, 41], 2: [42.5, 71], 3: [74, 107.5], 4: [109, 136], 5: [138, 164.5], 6: [166, 194], 7: [196, 223], 8: [225, 253], 9: [255, 287], 10: [289, 319], 11: [321, 344] };
-const edgeSide = i => i === 12 ? 'top' : i <= 5 ? 'right' : i === 6 ? 'bottom' : 'left';
+const edgeSide = i => i === 12 ? 'top' : i <= 5 ? 'right' : 'left';
 // 바깥 길: 12시 꼭대기에서 시계방향으로 잰 길이 s → 점(x, y)과 안쪽 방향(nx, ny). 가운데 100,122
 const EDGE_PATH = (() => {
   const hx = 95, hy = 117, r = 40, ex = hx - r, ey = hy - r, q = Math.PI * r / 2;
@@ -348,10 +348,9 @@ const EDGE_PATH = (() => {
 // tall: 세로로 긴 옆 글자(위·아래 막대 끝을 갈고리로 꺾어 내림), 아니면 납작한 위·아래 글자. sw: 획 굵기(9의 갈고리를 가운데 막대 바로 밑까지)
 function edgeGlyph(ch, W, H, tall, sw) {
   const L = -W / 2, Rr = W / 2, T = -H / 2, B = H / 2, R = Math.min(W / 2, H / 4), O = Math.min(W, H) / 2, E = Math.min(W, H / 2) / 2, y = k => T + H * k;
-  if (!tall) switch (ch) {   // 위·아래(12·6): 갈고리 없이
+  if (!tall) switch (ch) {   // 위(12): 갈고리 없이
     case '1': return [[[[0, T], [0, B]]]];
     case '2': return [[[[L, T], [Rr, T, R], [Rr, 0, R], [L + W * .03, 0, R * .4], [L + W * .03, B], [Rr, B]]]];
-    case '6': return [[[[Rr, T], [L, T, R], [L, B, R], [Rr, B, R], [Rr, 0, R], [L, 0]]]];
   }
   const h = W / 2;   // 세로 글자의 둥근 끝(반원)
   switch (ch) {
@@ -401,11 +400,11 @@ function rrHit(a, hx, hy, r) {
   }
   return { x, y, n: Math.abs(x) > hx - 1e-6 ? Math.sign(x) * Math.PI / 2 : y < 0 ? 0 : Math.PI };
 }
-// 숫자 굵기(0~1): 시침이 지나온 지 b시간 — 지금 시가 1, 지나온 쪽으로 차츰 가늘게, 다음 시는 마지막 한 시간 동안 굵어짐
+// 숫자 굵기(0~1): 시침이 향하는 자리(지금 시 + 1)를 지난 지 b시간 — 0이면 1, 지나온 쪽으로 차츰 가늘게, 그다음 숫자는 마지막 한 시간 동안 굵어짐
 const edgeWeight = b => b >= 11 ? (b - 11) ** 2 : Math.exp(-((b / 4) ** 1.6));
 function edgeNums(hp, theme = 'edge', pre = 'de-') {
   const f = v => v.toFixed(2), ink = EDGE_INK[theme] !== undefined ? EDGE_INK[theme] : '#fff', FW = 1.4, E = EDGE_PATH;
-  // 길 위 (s, 안쪽 깊이 v) → 화면 점. 옆 글자는 길에 수직으로, 위·아래 글자(fan)는 시계 가운데를 향해 들어감(바깥 끝에 수직인 깊이가 v가 되게)
+  // 길 위 (s, 안쪽 깊이 v) → 화면 점. 옆 글자는 길에 수직으로, 위 글자(fan)는 시계 가운데를 향해 들어감(바깥 끝에 수직인 깊이가 v가 되게)
   const put = (s, v, fan) => {
     const [x, y, nx, ny] = E.at(s);
     if (!fan) return [x + nx * v, y + ny * v];
@@ -416,7 +415,7 @@ function edgeNums(hp, theme = 'edge', pre = 'de-') {
   let out = '', defs = '';
   for (let i = 1; i <= 12; i++) {
     const side = edgeSide(i), ch = String(i), two = ch.length > 1, tall = side === 'left' || side === 'right';
-    const w = edgeWeight(((hp - i) % 12 + 12) % 12), ww = Math.sqrt(w);
+    const w = edgeWeight(((hp + 1 - i) % 12 + 12) % 12), ww = Math.sqrt(w);
     // 띠 두께(안쪽으로)와 획 굵기: 가는 획 1.4 ~ 속이 1.4 틈만 남는 굵기
     const T = tall ? (two ? 7 + 19 * ww : 8.5 + 11.5 * ww) : 13 + 8 * ww;
     const swMax = tall ? (two ? (i === 11 ? (T - 2) / 2 : (T - 2.8) / 3) : (T - 1.4) / 2) : (T - 2.8) / 3;
@@ -425,11 +424,11 @@ function edgeNums(hp, theme = 'edge', pre = 'de-') {
     let s0 = E.sOf(d0), s1 = E.sOf(d1);
     if (s1 < s0) s1 += E.P;
     const pad = sw / 2 + .6, A = s1 - s0 - 2 * pad, sm = (s0 + s1) / 2;
-    // 바로 선 글자 칸 → 길 위로: 위는 오른쪽이 시계방향·위가 바깥, 아래는 왼쪽이 시계방향·아래가 바깥, 오른쪽은 아래가 시계방향·오른쪽이 바깥, 왼쪽은 위가 시계방향·왼쪽이 바깥
+    // 바로 선 글자 칸 → 길 위로: 위는 오른쪽이 시계방향·위가 바깥, 오른쪽은 아래가 시계방향·오른쪽이 바깥, 왼쪽은 위가 시계방향·왼쪽이 바깥
     // 오른쪽 한 자리 1은 폭 0(바깥 끝을 도는 한 줄)
     const W = tall ? (i === 1 ? 0 : T - sw) : A, H = tall ? A : T - sw;
     const map = {
-      top: (x, y) => put(sm + x, sw / 2 + y + H / 2, true), bottom: (x, y) => put(sm - x, sw / 2 + H / 2 - y, true),
+      top: (x, y) => put(sm + x, sw / 2 + y + H / 2, true),
       right: (x, y) => put(sm + y, sw / 2 + W / 2 - x), left: (x, y) => put(sm - y, sw / 2 + x + W / 2),
     }[side];
     // 글자 나누기: 위 12는 1을 좁게(띠 두께의 25%) 앞에, 옆 두 자리는 띠 안팎으로(바깥이 앞 글자 1)
