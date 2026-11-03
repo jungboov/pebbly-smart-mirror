@@ -21,18 +21,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=91">
-<link rel="stylesheet" href="css/base.css?v=91">
-<link rel="stylesheet" href="css/clock.css?v=91">
-<link rel="stylesheet" href="css/weather.css?v=91">
-<link rel="stylesheet" href="css/detail.css?v=91">
-<link rel="stylesheet" href="css/standby.css?v=91">
-<link rel="stylesheet" href="css/transit.css?v=91">
-<link rel="stylesheet" href="css/photo.css?v=91">
-<link rel="stylesheet" href="css/calendar.css?v=91">
-<link rel="stylesheet" href="css/logo.css?v=91">
-<link rel="stylesheet" href="css/standby-widgets.css?v=91">
-<link rel="stylesheet" href="css/settings.css?v=91">
+<link rel="stylesheet" href="css/theme.css?v=92">
+<link rel="stylesheet" href="css/base.css?v=92">
+<link rel="stylesheet" href="css/clock.css?v=92">
+<link rel="stylesheet" href="css/weather.css?v=92">
+<link rel="stylesheet" href="css/detail.css?v=92">
+<link rel="stylesheet" href="css/standby.css?v=92">
+<link rel="stylesheet" href="css/transit.css?v=92">
+<link rel="stylesheet" href="css/photo.css?v=92">
+<link rel="stylesheet" href="css/calendar.css?v=92">
+<link rel="stylesheet" href="css/logo.css?v=92">
+<link rel="stylesheet" href="css/standby-widgets.css?v=92">
+<link rel="stylesheet" href="css/settings.css?v=92">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
@@ -68,7 +68,7 @@
     </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=91"></script>
+<script src="js/intro.js?v=92"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -152,7 +152,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=91" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=92" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -383,7 +383,10 @@
       <p class="tr-msg">아날로그 시계는 시계 강조 화면에서 보여요. 화면 탭의 표시에서 초를 끄면 초침이 숨고 가운데 라벨이 멈춰요.</p>
       <div class="set-row">로고 위젯</div>
       <div id="lg-list" class="th-list lg-list"></div>
-      <p class="tr-msg">로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요(위젯 탭에서 끄기·순서). 나타날 때마다 숫자가 한 바퀴 돌아요.</p>
+      <div class="set-row">숫자 다시 돌기
+        <div class="step"><button data-ls="-1" aria-label="간격 줄이기">−</button><span id="set-lgspin"></span><button data-ls="1" aria-label="간격 늘리기">+</button></div>
+      </div>
+      <p class="tr-msg">로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요(위젯 탭에서 끄기·순서). 나타날 때 숫자가 한 바퀴 돌고, 보이는 동안 정한 초마다 다시 돌아요(끔이면 나타날 때만).</p>
     </div>
     <div class="set-page" data-page="widgets">
       <div class="set-row">화면 방향
@@ -456,17 +459,17 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=91"></script>
-<script src="js/sync.js?v=91"></script>
-<script src="js/clock.js?v=91"></script>
-<script src="js/weather.js?v=91"></script>
-<script src="js/screen.js?v=91"></script>
-<script src="js/clock-modes.js?v=91"></script>
-<script src="js/settings.js?v=91"></script>
-<script src="js/transit.js?v=91"></script>
-<script src="js/photo.js?v=91"></script>
-<script src="js/calendar.js?v=91"></script>
-<script src="js/logo.js?v=91"></script>
-<script src="js/main.js?v=91"></script>
+<script src="js/core.js?v=92"></script>
+<script src="js/sync.js?v=92"></script>
+<script src="js/clock.js?v=92"></script>
+<script src="js/weather.js?v=92"></script>
+<script src="js/screen.js?v=92"></script>
+<script src="js/clock-modes.js?v=92"></script>
+<script src="js/settings.js?v=92"></script>
+<script src="js/transit.js?v=92"></script>
+<script src="js/photo.js?v=92"></script>
+<script src="js/calendar.js?v=92"></script>
+<script src="js/logo.js?v=92"></script>
+<script src="js/main.js?v=92"></script>
 </body>
 </html>
