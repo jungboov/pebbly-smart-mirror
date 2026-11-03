@@ -253,7 +253,7 @@ let dlSpin = null;
 function renderDial(d) {
   const on = S.analog && S.focus;
   if (on && S.secs) {
-    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in', 'df-sec', 'dr-sec', 'dr-ss', 'dw-sec'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
+    if (!dlSpin) dlSpin = ['dl-label', 'dl-sec', 'de-sec', 'dm-sec', 'dm-sweep-in', 'df-sec', 'dr-sec', 'dr-ss', 'dw-sec', 'dv-ss'].map(id => $(id).animate([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 6e4, iterations: Infinity }));
     if (!dlSpin.synced || !d.getSeconds()) { dlSpin.forEach(a => { a.currentTime = d.getTime() % 6e4; }); dlSpin.synced = true; }
   } else if (dlSpin) { dlSpin.forEach(a => a.cancel()); dlSpin = null; }
   if (!on) return;
@@ -268,6 +268,11 @@ function renderDial(d) {
   }
   if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);
   if (S.dialTheme === 'quartz' && !dwDrawn) drawQuartz();   // 쿼츠: 처음 고를 때 그림
+  if (S.dialTheme === 'relief') {   // 양각: 처음 고를 때 그리고, 위 작은 다이얼 24시간 바늘은 초마다·요일과 날짜는 날이 바뀔 때
+    if (!dvDrawn) drawRelief();
+    $('dv-24').setAttribute('transform', `translate(0 ${(-DV.sub * DV.k).toFixed(2)}) rotate(${((d.getHours() + m / 60) * 15).toFixed(2)})`);
+    if (d.toDateString() !== dvDay) { dvDay = d.toDateString(); $('dv-date').innerHTML = reliefDate(d); }
+  }
   if (S.dialTheme === 'rotary') {   // 로터리: 처음 고를 때 그리고, 링은 초마다(초를 끄면 초 링은 멈춤)·날짜와 시각 글자는 분마다
     if (!dkDrawn) drawRotary();
     dkTurn('dk-h', -30 * d.getHours()); dkTurn('dk-m', -6 * d.getMinutes()); if (S.secs) dkTurn('dk-s', -6 * d.getSeconds());
@@ -280,7 +285,7 @@ function renderDial(d) {
     if (hm !== dcMin) { dcMin = hm; $('dc-time').innerHTML = lcdTime(hm, dcTheme); }
     if (d.getDate() !== dcDay) { dcDay = d.getDate(); $('dc-day').innerHTML = lcdDay(dcDay, dcTheme); }
   }
-  for (const k of ['de', 'dm', 'df', 'dr', 'dq', 'dw']) {   // 엣지·모던·플라워·블랙 타일·타일 캘린더·쿼츠 (가운데 0,0)
+  for (const k of ['de', 'dm', 'df', 'dr', 'dq', 'dw', 'dv']) {   // 엣지·모던·플라워·블랙 타일·타일 캘린더·쿼츠·양각 (가운데 0,0)
     $(k + '-h').setAttribute('transform', `rotate(${hd})`);
     $(k + '-m').setAttribute('transform', `rotate(${md})`);
   }
@@ -468,7 +473,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', edgem: 'edge', edger: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary' };
+const DIAL_FACE = { edge: 'edge', edgem: 'edge', edger: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary', relief: 'relief' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -860,6 +865,125 @@ function drawQuartz() {
   $('dw-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
   $('dw-h').innerHTML = p.hour; $('dw-m').innerHTML = p.minute; $('dw-hub').innerHTML = p.hub; $('dw-sec').innerHTML = p.sec;
   dwDrawn = true;
+}
+
+// ===== 양각 시계판 (설정 › 테마 › 양각) =====
+// 흰 판(가장자리는 한 단 높은 테와 홈) 위에 도드라진 막대 눈금과 12·6 숫자, 3시 쪽 [ 03 ] — 옆면은 시계 가운데 쪽으로 보이고
+// (위쪽 조각은 어두운 아랫면, 아래쪽 조각은 밝은 윗면) 그림자는 오른쪽 아래로. 1·2·3시 막대는 주황·파랑·빨강, 9시는 짧게·3시는 더 짧게
+// 한 단 낮은 작은 다이얼 둘: 위는 24시간(남색 바늘), 아래는 초(빨간 바늘). 9시 쪽은 요일·날짜(월.일, 숫자마다 색), 6 아래 PEBBLY LABS
+// 원래 사진(736×889)에서 잰 자리 그대로 그려서 줄임: 사진의 (375, 452)가 가운데 0,0, 200/736배 → 200×242 단위 (index.html viewBox)
+const DV = { k: 200 / 736, sub: 137 };   // sub: 작은 다이얼 가운데가 판 가운데에서 위아래로 떨어진 거리(사진 px)
+// 가운데 0,0인 둥근 네모 — 모서리는 초타원(반폭 hx·반높이 hy, 모서리 길이 a, 지수 n)
+function dvRect(hx, hy, a, n) {
+  const ex = hx - a, ey = hy - a, p = [];
+  for (const [cx, cy, sx, sy, down] of [[ex, -ey, 1, -1, 1], [ex, ey, 1, 1, 0], [-ex, ey, -1, 1, 1], [-ex, -ey, -1, -1, 0]])
+    for (let k = 0; k <= 18; k++) {
+      const t = (down ? 1 - k / 18 : k / 18) * Math.PI / 2;
+      p.push(`${(cx + sx * a * Math.abs(Math.cos(t)) ** (2 / n)).toFixed(1)} ${(cy + sy * a * Math.abs(Math.sin(t)) ** (2 / n)).toFixed(1)}`);
+    }
+  return 'M' + p.join('L') + 'Z';
+}
+const dvMix = (a, b, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('');
+// 재질: 윗면, 옆면 [어두운 쪽 바닥·위, 밝은 쪽 바닥·위], 막대 가장자리 비스듬한 면 [빛 반대쪽, 빛 쪽]
+const DV_MAT = {
+  white: ['#f4efed', '#5f5854', '#9d9591', '#b4aca8', '#e0dad8', '#8f8783', '#ffffff'],
+  orange: ['#d3913e', '#6e4415', '#a4682a', '#a86d2e', '#cf8f42', '#8a5520', '#ecb96f'],
+  blue: ['#2d2c66', '#0d0c26', '#1d1c47', '#26255a', '#3a3980', '#141335', '#4d4c9a'],
+  red: ['#c8161f', '#4a0408', '#7d0a10', '#8d1016', '#b8222a', '#5e060b', '#e5464e'],
+  black: ['#161616', '#000000', '#0a0a0a', '#262626', '#383838'],
+};
+// 도드라진 조각: 판 가운데 기준 자리 (x, y)(사진 px)만큼 바깥에 있으면 옆면이 가운데 쪽으로 보임(위쪽 조각은 3.4%, 아래쪽은 2% — 사진처럼 위에서 내려다본 듯)
+// 옆면을 바닥에서 위로 겹쳐 칠하고 윗면. shape(색)은 그 색으로 칠한 모양, top(색)은 윗면(막대는 비스듬한 가장자리까지)
+function dvRaise(shape, x, y, mat, top = shape) {
+  const [c0, d0, d1, l0, l1] = DV_MAT[mat], k = y < 0 ? .034 : .02, ex = -k * x, ey = -k * y, len = Math.hypot(ex, ey) || 1;
+  const lit = (1 - ey / len) / 2, n = Math.max(2, Math.ceil(len / 1.1));
+  let s = '';
+  for (let j = n; j >= 1; j--) s += `<g transform="translate(${(ex * j / n).toFixed(2)} ${(ey * j / n).toFixed(2)})">${shape(dvMix(dvMix(d0, l0, lit), dvMix(d1, l1, lit), 1 - (j - 1) / n))}</g>`;
+  return s + top(c0);
+}
+// 9시 쪽 로고 자리(사진의 noa 16'75): 요일 소문자(회색) 위, 날짜 월.일(숫자마다 회색·금색·남색·빨강) 아래 — Orbitron 0은 빗금이 있어 O로
+function reliefDate(d) {
+  const md = (pad(d.getMonth() + 1) + pad(d.getDate())).replace(/0/g, 'O'), col = ['#5d6570', '#c99a3c', '#2b3170', '#9a1b26'];
+  const t = (y, w, s) => `<text x="239.5" y="${y}" textLength="${w}" lengthAdjust="spacingAndGlyphs" text-anchor="middle" dominant-baseline="central">${s}</text>`;
+  return `<g font-size="34" style="font-family:Orbitron,var(--num);font-weight:500" fill="#5d6570">${t(433.5, 110, WEEK_EN[d.getDay()].toLowerCase())}</g>`
+    + `<g font-size="34" style="font-family:Orbitron,var(--num);font-weight:700">${t(464.5, 110, `<tspan fill="${col[0]}">${md[0]}</tspan><tspan fill="${col[1]}">${md[1]}</tspan><tspan fill="${col[2]}">.</tspan><tspan fill="${col[2]}">${md[2]}</tspan><tspan fill="${col[3]}">${md[3]}</tspan>`)}</g>`;
+}
+function reliefParts(pre, d = new Date()) {
+  const id = n => `url(#${pre}${n})`, f = v => v.toFixed(1), C = [375, 452];
+  const defs = `<radialGradient id="${pre}dial" gradientUnits="userSpaceOnUse" cx="375" cy="380" r="520"><stop offset="0" stop-color="#e3ddda"/><stop offset="1" stop-color="#d0c8c4"/></radialGradient>`
+    + `<linearGradient id="${pre}rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2dbd9"/><stop offset="1" stop-color="#cbc2bf"/></linearGradient>`
+    + `<linearGradient id="${pre}groove" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3531"/><stop offset=".5" stop-color="#6a625e"/><stop offset="1" stop-color="#8f8783"/></linearGradient>`
+    + `<linearGradient id="${pre}lip" x1="0" y1="0" x2="1" y2="1"><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>`
+    + `<clipPath id="${pre}in"><path d="${dvRect(305, 392.5, 138, 2.5)}" transform="translate(375 452.5)"/></clipPath><clipPath id="${pre}sc"><circle r="102"/></clipPath>`
+    + `<filter id="${pre}b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>`
+    + `<filter id="${pre}b4" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter>`
+    // 도드라진 조각 그림자: 가까이 진하게 + 멀리 넓게
+    + `<filter id="${pre}sh" x="-5%" y="-5%" width="110%" height="115%"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="6" result="a"/>`
+    + `<feFlood flood-color="#2b211e" flood-opacity=".42"/><feComposite in2="a" operator="in" result="s1"/><feGaussianBlur in="SourceAlpha" stdDeviation="11"/><feOffset dx="8" dy="20" result="b"/>`
+    + `<feFlood flood-color="#2b211e" flood-opacity=".4"/><feComposite in2="b" operator="in" result="s2"/><feMerge><feMergeNode in="s2"/><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+    // 바늘 그림자 (200×242 단위, 돌아도 늘 아래로)
+    + `<filter id="${pre}hs" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation=".9"/><feOffset dx=".5" dy="1.4" result="a"/>`
+    + `<feFlood flood-color="#2b211e" flood-opacity=".38"/><feComposite in2="a" operator="in" result="s1"/><feGaussianBlur in="SourceAlpha" stdDeviation="2.6"/><feOffset dx="1.8" dy="4.2" result="b"/>`
+    + `<feFlood flood-color="#2b211e" flood-opacity=".28"/><feComposite in2="b" operator="in" result="s2"/><feMerge><feMergeNode in="s2"/><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  // 검은 화면 → 테(한 단 높게, 바깥 끝에 빛) → 홈 → 판 → 판 가장자리 안쪽 그림자(위가 가장 짙게)
+  let g = `<path d="${dvRect(368, 445.3, 200, 2.6)}" transform="translate(375 452)" fill="#000"/>`
+    + `<g transform="translate(375 452.5)"><path d="${dvRect(317, 404.5, 150, 2.5)}" fill="${id('rim')}"/><path d="${dvRect(316, 403.5, 149, 2.5)}" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="1.6"/>`
+    + `<path d="${dvRect(309, 396.5, 142, 2.5)}" fill="${id('groove')}"/></g>`
+    + `<path d="${dvRect(305, 392.5, 138, 2.5)}" transform="translate(375 452.5)" fill="${id('dial')}"/>`
+    + `<g clip-path="url(#${pre}in)"><path d="${dvRect(305, 392.5, 138, 2.5)}" transform="translate(375 459.5)" fill="none" stroke="#2b211e" stroke-opacity=".55" stroke-width="26" filter="url(#${pre}b)"/></g>`;
+  // 작은 다이얼(한 단 낮게): 위 왼쪽 안쪽에 그림자, 아래 오른쪽 벽에 빛 / 눈금·숫자·긴 선 / 가운데 구멍
+  const pr = (cy, s) => `<g transform="translate(375 ${452 + cy})">${s}</g>`;
+  const tick = (a, r1, r2, w) => { const [x1, y1] = drPt(a, r1), [x2, y2] = drPt(a, r2); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}" stroke-width="${w}"/>`; };
+  const num = (a, r, t, fs) => { const [x, y] = drPt(a, r); return `<text x="${f(x)}" y="${f(y)}" font-size="${fs}">${t}</text>`; };
+  const well = inner => `<circle r="102" fill="${id('dial')}" transform="translate(0 0)"/>`
+    + `<g clip-path="url(#${pre}sc)"><circle r="102" cx="3" cy="6" fill="none" stroke="#2b211e" stroke-opacity=".5" stroke-width="12" filter="url(#${pre}b4)"/></g>`
+    + `<circle r="100.6" fill="none" stroke="${id('lip')}" stroke-width="3"/>`
+    + `<g stroke="#1b1b1b" stroke-linecap="butt">${inner[0]}</g><g fill="#1b1b1b" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${inner[1]}</g>`
+    + `<circle r="13" fill="#ebe5e3"/><circle r="12.3" fill="none" stroke="#2b211e" stroke-opacity=".28" stroke-width="1.6"/><circle r="7" fill="#121212"/>`;
+  let t24 = '', n24 = '', t60 = '', n60 = '';
+  for (let k = 0; k < 24; k++) if (k % 8 !== 4) t24 += tick(k * 15, 80, 91, 2.4);
+  for (const a of [60, 180, 300]) t24 += tick(a, 37, 92, 2.8);
+  n24 = num(0, 64, '24', 24) + num(120, 62, '8', 24) + num(240, 62, '16', 24);
+  for (let k = 0; k < 60; k++) t60 += k % 5 ? tick(k * 6, 88, 97, 2) : tick(k * 6, 85, 97.5, 2.6);
+  for (const a of [60, 120, 240, 300]) t60 += tick(a, 37, 92, 2.8);
+  n60 = num(0, 75, '60', 25) + num(180, 75, '30', 25);
+  g += pr(-DV.sub, well([t24, n24])) + pr(DV.sub, well([t60, n60]));
+  // 9시 쪽 요일·날짜, 6 아래 PEBBLY LABS (인쇄)
+  g += `<g id="${pre}date">${reliefDate(d)}</g>`
+    + `<g font-size="22" fill="#222" dominant-baseline="central" style="font-family:var(--brand);font-weight:500;letter-spacing:.6px"><text x="356" y="813.5" text-anchor="end">PEBBLY</text><text x="393" y="813.5">LABS</text></g>`;
+  // 도드라진 조각: 막대 눈금(시, 안쪽·바깥 끝 거리, 재질) — 폭 21
+  let r = '';
+  for (const [h, r1, r2, mat = 'white'] of [[1, 300, 387, 'orange'], [2, 246, 320, 'blue'], [3, 255, 292, 'red'], [4, 228, 311], [5, 274, 371], [7, 274, 371], [8, 228, 311], [9, 238, 295], [10, 246, 320], [11, 300, 387]]) {
+    const [ux, uy] = drPt(h * 30, 1), vx = -uy, vy = ux, M = DV_MAT[mat], rm = (r1 + r2) / 2;
+    const pt = (rr, s) => [C[0] + ux * rr + vx * s, C[1] + uy * rr + vy * s], poly = P => 'M' + P.map(([x, y]) => `${f(x)} ${f(y)}`).join('L') + 'Z';
+    const O = [pt(r1, 10.5), pt(r2, 10.5), pt(r2, -10.5), pt(r1, -10.5)], I = [pt(r1 + 2.6, 7.9), pt(r2 - 2.6, 7.9), pt(r2 - 2.6, -7.9), pt(r1 + 2.6, -7.9)];
+    // 윗면 가장자리 비스듬한 네 면: 바깥 방향이 빛(왼쪽 위) 쪽일수록 밝게
+    const top = c => [[vx, vy], [ux, uy], [-vx, -vy], [-ux, -uy]].map(([nx, ny], j) =>
+      `<path d="${poly([O[j], O[(j + 1) % 4], I[(j + 1) % 4], I[j]])}" fill="${dvMix(M[5], M[6], (1 - .45 * nx - .89 * ny) / 2)}"/>`).join('') + `<path d="${poly(I)}" fill="${c}"/>`;
+    r += dvRaise(c => `<path d="${poly(O)}" fill="${c}"/>`, ux * rm, uy * rm, mat, top);
+  }
+  // 12: 기운 1(위 왼쪽 깃발) + 굵은 2(둥근 위·S자·납작한 바닥) / 6: 납작한 6(왼쪽에서 올라가 꺾인 위 팔, 그 아래 홈, 옆이 두꺼운 넓은 고리)
+  r += dvRaise(c => `<path d="M301 108H348L330 189.5H299L313.5 123H301Z" fill="${c}"/><path d="M352 115.5H427C437.5 115.5 444.5 123 444.5 133C444.5 147 433 153 412 158C384 165 361 171 353 182.5H452" fill="none" stroke="${c}" stroke-width="16" stroke-linejoin="miter"/>`, 1, -303, 'white');
+  r += dvRaise(c => `<path d="M338 771V752C338 740 346 731 359 731H422V743H363C356 743 350 747 350 754V771Z" fill="${c}"/>`
+    + `<path d="M358.5 751H401.5A20.5 20.5 0 0 1 401.5 792H358.5A20.5 20.5 0 0 1 358.5 751ZM369.5 764H391.5A8.5 8.5 0 0 1 391.5 781H369.5A8.5 8.5 0 0 1 369.5 764Z" fill="${c}" fill-rule="evenodd"/>`, 5, 309, 'white');
+  r += dvRaise(c => `<text x="527" y="452" font-size="42" fill="${c}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre;letter-spacing:-3px">[ 03 ]</text>`, 152, 0, 'black');
+  const face = `<g transform="scale(${DV.k}) translate(-375 -452)">${g}<g filter="url(#${pre}sh)">${r}</g></g>`;
+  // 바늘 (200×242 단위): 흰 막대(가운데 기준 왼쪽 반은 밝게·오른쪽 반은 살짝 어둡게, 가는 테), 작은 다이얼 바늘은 남색(24시간)·빨강(초)
+  const hand = (L, w, tail) => `<path d="M${-w / 2} ${tail}V${-L}H${w / 2}V${tail}Z" fill="#e6e0de" stroke="#a39b97" stroke-width=".35"/><path d="M${-w / 2 + .2} ${tail - .2}V${-L + .2}H0V${tail - .2}Z" fill="#fbf8f7"/>`;
+  const needle = (L, tail, w, c, cap) => `<path d="M0 ${tail}V${-L}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/><circle r="${cap}" fill="${c}"/><circle r="${cap * .32}" fill="#0b0b10"/>`;
+  return {
+    defs, face,
+    hour: hand(54.3, 4.9, 8.7), minute: hand(78.3, 3.8, 10.3),
+    hub: '<circle r="3.9" fill="#f6f2f0" stroke="#a39b97" stroke-width=".35"/><circle r="1.1" fill="#bdb5b2"/>',
+    sub24: needle(21.2, 5, .8, '#2b3170', 1.7), sec: needle(25.8, 6, .65, '#d0141d', 1.6),
+  };
+}
+let dvDrawn = false, dvDay = '';
+function drawRelief() {
+  const p = reliefParts('dv-');
+  $('dv-face').innerHTML = `<defs>${p.defs}</defs>${p.face}`;
+  $('dv-h').innerHTML = p.hour; $('dv-m').innerHTML = p.minute; $('dv-hub').innerHTML = p.hub; $('dv-24').innerHTML = p.sub24; $('dv-ss').innerHTML = p.sec;
+  dvDrawn = true; dvDay = new Date().toDateString();
 }
 
 // ===== 로터리 시계판 (설정 › 테마 › 로터리) =====

@@ -55,7 +55,7 @@ $('settings').addEventListener('click', e => {
 
 // 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary — LCD 다크는 LCD 그림에 색만)
+// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief — LCD 다크는 LCD 그림에 색만)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
@@ -73,9 +73,10 @@ const CLOCK_THEMES = [
   { id: 'lcdk', name: 'LCD 다크', lcd: true },
   { id: 'quartz', name: '쿼츠', quartz: true },
   { id: 'rotary', name: '로터리', rotary: true },
+  { id: 'relief', name: '양각', relief: true },
 ];
 // 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
-// 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts)
+// 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리·양각도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts·reliefParts)
 function thThumb(t) {
   if (t.qp) {
     const p = qpParts('th-dq-', new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
@@ -86,6 +87,11 @@ function thThumb(t) {
     let face = p.face;
     for (const [n, deg] of [['h', -300], ['m', -54], ['s', -180]]) face = face.replace(`<g id="th-dk-${n}">`, `<g id="th-dk-${n}" transform="rotate(${deg})">`);
     return `<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs>${p.defs}</defs>${face}</svg>`;
+  }
+  if (t.relief) {   // 10시 10분 30초, 위 작은 다이얼은 22시 10분
+    const p = reliefParts('th-dv-'), y = DV.sub * DV.k, at = (deg, s, oy = 0) => `<g transform="translate(0 ${oy}) rotate(${deg})">${s}</g>`;
+    return `<svg viewBox="-128 -125 256 250" aria-hidden="true"><defs>${p.defs}</defs>${p.face}${at(180, p.sec, y)}${at(332.5, p.sub24, -y)}`
+      + `<g filter="url(#th-dv-hs)">${at(305, p.hour)}${at(61, p.minute)}${p.hub}</g></svg>`;
   }
   if (t.quartz) {
     const p = quartzParts('th-dw-'), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
