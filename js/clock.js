@@ -499,7 +499,7 @@ function modernParts(t, H = 122) {
     const a = h * Math.PI / 6, P = rrHit(a, 100 - io, H - io, Math.max(R - io, 4)), sx = Math.sin(a), sy = -Math.cos(a);
     face += `<line x1="${P.x.toFixed(2)}" y1="${P.y.toFixed(2)}" x2="${(P.x - sx * il).toFixed(2)}" y2="${(P.y - sy * il).toFixed(2)}" stroke="${ic}" stroke-width="${iw}" stroke-linecap="round"/>`;
   }
-  if (c.logo) face += `<text y="${(-46 * dmFit(c, H)).toFixed(2)}" font-size="10" fill="${c.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
+  if (c.logo) face += `<text y="${(-46 * dmFit(c, H)).toFixed(2)}" font-size="10" fill="${c.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`;
   const hand = L => c.hollow
     ? `<path d="M0 0V-12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><rect x="-3.4" y="${-L}" width="6.8" height="${L - 12}" rx="3.4" fill="#000" stroke="#fff" stroke-width="1.6"/>`
     : `<path d="M0 0V-12" stroke="#d1d1d6" stroke-width="2" stroke-linecap="round"/><rect x="-3.2" y="${-L}" width="6.4" height="${L - 12}" rx="3.2" fill="#fff" stroke="#8e8e93" stroke-width=".6"/>`;
@@ -627,9 +627,9 @@ function rainbowParts(pre) {
   const [dx, dy] = DR.date;
   face += `<rect x="${dx - 5.6}" y="${dy - 6.8}" width="11.2" height="13.6" rx=".9" fill="#0a0a0b" stroke="${rg}" stroke-width=".9"/>`
     + `<text id="${pre}date" x="${dx}" y="${dy + .4}" font-size="8.6" fill="#f2f2f2" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:500">${new Date().getDate()}</text>`
-    + `<text x=".5" y="-30.2" font-size="8" fill="#000" opacity=".7" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
-    + `<text y="-31" font-size="8" fill="${id('rgh')}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
-    + `<g font-size="3.3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;letter-spacing:.15px"><text x="-3.6" y="63.8" text-anchor="end">PEBBLY</text><text x="3.6" y="63.8">LABS</text></g>`
+    + `<text x=".5" y="-30.2" font-size="8" fill="#000" opacity=".7" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`
+    + `<text y="-31" font-size="8" fill="${id('rgh')}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`
+    + `<g font-size="3.3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:600;letter-spacing:.15px"><text x="-3.6" y="63.8" text-anchor="end">PEBBLY</text><text x="3.6" y="63.8">LABS</text></g>`
     + `<circle r="74.6" fill="${id('sheen')}"/>`;
   // 작은 다이얼 바늘: 가운데 둥근 판
   const sub = '<path d="M0 4V-19" stroke="#e7ad8b" stroke-width="1.3" stroke-linecap="round"/>'
@@ -719,10 +719,10 @@ function qpParts(pre, d) {
   for (let k = 0; k < 26; k++) { const a = rnd() * 360, r = 3 + rnd() * 12, [x, y] = drPt(a, r); stars += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(.18 + rnd() * .3)}"/>`; }
   const mn = base + `<g mask="url(#${pre}mw)"><g transform="rotate(${f(th)})"><circle r="15.6" fill="${id('sky')}"/><g fill="#fff" opacity=".85">${stars}</g>`
     + `<circle cy="-9.4" r="5" fill="${id('moon')}"/><circle cy="9.4" r="5" fill="${id('moon')}"/></g></g>`
-    + `<text y="10" font-size="4.6" fill="${ink}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`;
+    + `<text y="10" font-size="4.6" fill="${ink}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`;
   face += at(DQ.sub[0], mo) + at(DQ.sub[1], dt) + at(DQ.sub[2], dw) + at(DQ.sub[3], mn);
   // 아래 PEBBLY ▮ LABS (6시 짧은 눈금 양옆)
-  face += `<g font-size="3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;letter-spacing:.15px"><text x="-3.4" y="57.5" text-anchor="end">PEBBLY</text><text x="3.4" y="57.5">LABS</text></g>`;
+  face += `<g font-size="3" fill="#ececec" dominant-baseline="central" style="font-family:var(--logo);font-weight:600;letter-spacing:.15px"><text x="-3.4" y="57.5" text-anchor="end">PEBBLY</text><text x="3.4" y="57.5">LABS</text></g>`;
   // 주 바늘: 가는 로즈골드 + 화살촉, 주 번호 링을 가리킴 (53주는 52주 자리), 맨 위 왼쪽 위 빛
   const wa = (Math.min(52, isoWeek(d)) - 1) * 360 / 52;
   face += `<g filter="url(#${pre}sh)" transform="rotate(${f(wa)})"><path d="M0 13V-60" stroke="${id('rg')}" stroke-width=".9" stroke-linecap="round"/><path d="M-1.9 -59L0 -64.6L1.9 -59Z" fill="${id('rgh')}"/><circle r="2.2" fill="${id('rgh')}"/></g>`
@@ -792,10 +792,10 @@ function lcdDay(day, v = 'lcd') {
 // 자리·크기는 헤더 로고를 글자 크기(em) 기준으로 잰 값. 글자 크기 10 단위, 판 가운데 위(y 33)에
 function lcdLogo(ink) {
   const E = 10, W = 10.6242, H = 1.4228, x0 = 100 - W * E / 2, y0 = 33 - H * E / 2, X = v => (x0 + v * E).toFixed(2), Y = v => (y0 + v * E).toFixed(2);
-  const mono = (t, y, fs, op) => `<text x="${X(1.0036)}" y="${Y(y)}" font-size="${(fs * E).toFixed(2)}"${op ? ` opacity="${op}"` : ''} text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:${op ? 400 : 800};white-space:pre">${t}</text>`;
+  const mono = (t, y, fs, op) => `<text x="${X(1.0036)}" y="${Y(y)}" font-size="${(fs * E).toFixed(2)}"${op ? ` opacity="${op}"` : ''} text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:${op ? 500 : 600};white-space:pre">${t}</text>`;
   return `<g fill="${ink}"><rect x="${X(0)}" y="${Y(0)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/><rect x="${X(0)}" y="${(y0 + H * E - .7).toFixed(2)}" width="${(2.0072 * E).toFixed(2)}" height=".7"/>`
     + mono('02', .278, .3654, .45) + mono('[ 03 ]', .7114, .4615) + mono('04', 1.1449, .3654, .45)
-    + `<text x="${X(3.2091)}" y="${Y(.7111)}" font-size="${E}" textLength="${(6.3003 * E).toFixed(2)}" lengthAdjust="spacing" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;word-spacing:-.3em">pebbly labs</text></g>`
+    + `<text x="${X(3.2091)}" y="${Y(.7111)}" font-size="${E}" textLength="${(6.3003 * E).toFixed(2)}" lengthAdjust="spacing" dominant-baseline="central" style="font-family:var(--logo);font-weight:600">pebbly labs</text></g>`
     + `<path d="M${X(2.6081)} ${Y(0)}V${Y(H)}" stroke="${ink}" stroke-width=".46" stroke-dasharray="1.4 1"/>`
     + `<path d="M${X(10.317)} ${Y(.0385)}H${X(10.5857)}V${Y(.3457)}M${X(10.5857)} ${Y(H - .3457)}V${Y(H - .0385)}H${X(10.317)}" fill="none" stroke="${ink}" stroke-width=".77"/>`;
 }
@@ -848,9 +848,9 @@ function quartzParts(pre) {
   for (let h = 1; h <= 12; h++) { const [x, y] = drPt(h * 30, 78.2); face += `<text x="${f(x)}" y="${f(y + .4)}">${h}</text>`; }
   // 로고: 위에 pebbly labs·quartz, 아래에 [ 03 ](테두리 없이), 6시 양옆 Made in | Korea
   face += '</g>'
-    + `<text y="-46" font-size="7" fill="#ededed" text-anchor="middle" dominant-baseline="central" style="font-family:var(--logo);font-weight:800;word-spacing:-.3em">pebbly labs</text>`
+    + `<text y="-46" font-size="7" fill="#ededed" text-anchor="middle" dominant-baseline="central" style="font-family:var(--logo);font-weight:600">pebbly labs</text>`
     + `<text y="-38.6" font-size="3.6" fill="#cfcfcf" text-anchor="middle" dominant-baseline="central" style="font-family:var(--brand);font-weight:400;letter-spacing:.1px">quartz</text>`
-    + `<text y="38" font-size="5.6" fill="#f1f1f1" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre">[ 03 ]</text>`
+    + `<text y="38" font-size="5.6" fill="#f1f1f1" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`
     + `<g font-size="3.1" fill="#d6d6d6" dominant-baseline="central" style="font-family:var(--brand);font-weight:400"><text x="-2.6" y="91.2" text-anchor="end">Made in</text><text x="2.6" y="91.2">Korea</text></g>`
     + `<circle r="96.4" fill="${id('sheen')}"/>`;
   // 크림색 막대 바늘(끝으로 살짝 가늘게, 가운데 뒤로 조금 나옴), 가운데 덮개
@@ -982,7 +982,7 @@ function reliefParts(pre, d = new Date(), v = 'relief') {
   r += dvRaise(c => `<path d="M301 108H348L330 189.5H299L313.5 123H301Z" fill="${c}"/><path d="M352 115.5H427C437.5 115.5 444.5 123 444.5 133C444.5 147 433 153 412 158C384 165 361 171 353 182.5H452" fill="none" stroke="${c}" stroke-width="16" stroke-linejoin="miter"/>`, 1, -303, K.raise);
   r += dvRaise(c => `<path d="M338 771V752C338 740 346 731 359 731H422V743H363C356 743 350 747 350 754V771Z" fill="${c}"/>`
     + `<path d="M358.5 751H401.5A20.5 20.5 0 0 1 401.5 792H358.5A20.5 20.5 0 0 1 358.5 751ZM369.5 764H391.5A8.5 8.5 0 0 1 391.5 781H369.5A8.5 8.5 0 0 1 369.5 764Z" fill="${c}" fill-rule="evenodd"/>`, 5, 309, K.raise);
-  r += dvRaise(c => `<text x="527" y="452" font-size="42" fill="${c}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre;letter-spacing:-3px">[ 03 ]</text>`, 152, 0, K.badge);
+  r += dvRaise(c => `<text x="527" y="452" font-size="42" fill="${c}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`, 152, 0, K.badge);
   const face = `<g transform="scale(${DV.k}) translate(-375 -452)">${g}<g filter="url(#${pre}sh)">${r}</g></g>`;
   // 바늘 (200×242 단위): 막대(가운데 기준 왼쪽 반은 밝게·오른쪽 반은 살짝 어둡게, 가는 테 — 흰 판은 흰색·다크는 흑연색에 밝은 테), 작은 다이얼 바늘은 남색·파랑(24시간)·빨강(초)
   const [hc, hl, he, hp] = K.hand;

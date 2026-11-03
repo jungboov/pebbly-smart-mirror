@@ -46,8 +46,10 @@
   --vinyl:#070707;
   --vinyl-label:#e2533b;
   --num:"Orbitron","Pretendard Variable",Pretendard,sans-serif;
-  /* 로고(#39): 02 [ 03 ] 04도 글자 pebbly labs도 JetBrains Mono(--logo는 이름 글자 — 헤더·인트로·시계판 로고·레코드 라벨이 같이 씀) */
+  /* 로고(#39): 글자 pebbly labs(--logo)도 02 [ 03 ] 04 표시(--mark)도 MuseoModerno — 둥근 기하학, 큰 자리 400·작은 자리 600
+     (헤더·인트로 이름·시계판 로고·레코드 라벨이 같이 씀). 인트로 첫 장면 [ 03 ] 상자·숫자 릴은 앱 아이콘 그림과 맞춰 JetBrains Mono(--icon) */
   --brand:"Pretendard Variable",Pretendard,sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,monospace;
-  --logo:"JetBrains Mono",ui-monospace,monospace;
+  --mark:"MuseoModerno","Pretendard Variable",Pretendard,sans-serif;
+  --logo:"MuseoModerno","Pretendard Variable",Pretendard,sans-serif;
+  --icon:"JetBrains Mono",ui-monospace,monospace;
 }
