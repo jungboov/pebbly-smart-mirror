@@ -1,7 +1,7 @@
 // Pebbly Mirror — 시작 인트로 (#39 로고)
 // 첫 장면은 안드로이드 시작 화면과 같은 [ 03 ] 상자(index.html에 그대로 그려 둠, 스크립트 전에도 보임)
 // → 상자가 0.8초 동안 왼쪽 스파인 자리로 가며 위아래 막대만 남고, [ 03 ]은 스파인 가운데 칸으로 들어감
-// → 숫자 릴이 한 바퀴(04 … 99 01 02) 돌아 다시 03에 멈춤 → 잠깐 보여 준 뒤 사라짐. 미러는 그동안 뒤에서 뜸
+// → 숫자 릴이 한 바퀴(04 … 99 00 01 02) 돌아 다시 03에 멈춤 → 잠깐 보여 준 뒤 사라짐. 미러는 그동안 뒤에서 뜸
 // 화면을 누르면 바로 넘어감. 안 보이는 때: 폰 설정 화면(?remote), 새벽 자동 새로고침(main.js가 표시를 남김)
 // 움직임 줄이기를 켠 기기는 다 펼쳐진 로고만 잠깐. 스크립트가 멈춰도 CSS가 8초 뒤 알아서 치움 (base.css intro-bail)
 (function intro() {
@@ -13,9 +13,9 @@
   const q = sel => el.querySelector(sel);
   const lock = q('#in-lock'), box = q('#in-box'), t03 = q('#in-03');
 
-  // 릴: 02 03 … 99 01 02 03 04 — 03(1번째)에서 한 바퀴(99칸) 돌아 다시 03(100번째)
+  // 릴: 02 03 … 99 00 01 02 03 04 — 03(1번째)에서 한 바퀴(100칸, 00 포함) 돌아 다시 03(101번째)
   const ROW = 25, nums = [];
-  for (let n = 2; n <= 103; n++) nums.push(String((n - 1) % 99 + 1).padStart(2, '0'));
+  for (let n = 2; n <= 104; n++) nums.push(String(n % 100).padStart(2, '0'));
   const reels = el.querySelectorAll('.in-reel');
   reels.forEach(g => { g.innerHTML = nums.map((v, i) => `<text x="48" y="${64 + i * ROW}">${v}</text>`).join(''); });
   const roll = (i, anim) => reels.forEach(g => {
@@ -101,7 +101,7 @@
       frame();
       if (p < 1) { raf = requestAnimationFrame(step); return; }
       landed();
-      at(120, () => roll(1 + 99, true));               // 1.7초 동안 점점 느려지며 한 바퀴 → 03
+      at(120, () => roll(1 + 100, true));              // 1.7초 동안 점점 느려지며 한 바퀴(00 포함) → 03
       at(120 + 1700 + 600, done);
     };
     raf = requestAnimationFrame(step);
