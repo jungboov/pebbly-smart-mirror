@@ -873,7 +873,7 @@ function drawQuartz() {
 // 흰 판(가장자리는 한 단 높은 테와 홈) 위에 도드라진 막대 눈금과 12·6 숫자, 3시 쪽 [ 03 ] — 옆면은 시계 가운데 쪽으로 보이고
 // (위쪽 조각은 어두운 아랫면, 아래쪽 조각은 밝은 윗면) 그림자는 오른쪽 아래로. 1·2·3시 막대는 주황·파랑·빨강, 9시는 짧게·3시는 더 짧게
 // 한 단 낮은 작은 다이얼 둘: 위는 24시간(남색 바늘), 아래는 초(빨간 바늘). 9시 쪽은 요일·날짜(월.일, 숫자마다 색), 6 아래 PEBBLY LABS
-// 다크는 같은 그림을 검은 판에 — 도드라진 조각은 흑연색(가장자리에 빛), 인쇄·바늘은 밝게, [ 03 ]은 은색 (DV_INK)
+// 다크는 같은 그림을 검은 판에 — 도드라진 조각과 시침·분침은 흑연색(가장자리에 빛·바늘은 밝은 테), 인쇄는 밝게, [ 03 ]은 은색 (DV_INK)
 // 원래 사진(736×889)에서 잰 자리 그대로 그려서 줄임: 사진의 (375, 452)가 가운데 0,0, 200/736배 → 200×242 단위 (index.html viewBox)
 const DV = { k: 200 / 736, sub: 137 };   // sub: 작은 다이얼 가운데가 판 가운데에서 위아래로 떨어진 거리(사진 px)
 // 가운데 0,0인 둥근 네모 — 모서리는 초타원(반폭 hx·반높이 hy, 모서리 길이 a, 지수 n)
@@ -906,7 +906,7 @@ const DV_INK = {
     hand: ['#e6e0de', '#fbf8f7', '#a39b97', '#bdb5b2'], sub: ['#2b3170', '#d0141d'] },
   reliefk: { dial: ['#2b2b2e', '#151517'], rim: ['#505055', '#1d1d20'], edge: .32, groove: ['#000000', '#060607', '#18181a'], sh: '#000000', shO: [.75, .7, .9, .85], lip: .4,
     ink: '#e4e4e4', hole: '#303033', text: '#d8d8d8', raise: 'char', badge: 'silver', blue: 'bluek', date: ['#a3abb5', '#dcaa4c', '#6b78ec', '#ec4a55'],
-    hand: ['#b4b4b8', '#eeeef0', '#1c1c1e', '#76767a'], sub: ['#6b78ec', '#ff3b30'] },
+    hand: ['#3c3c41', '#5a5a60', '#a2a2a8', '#1a1a1c'], sub: ['#6b78ec', '#ff3b30'] },
 };
 // 도드라진 조각: 판 가운데 기준 자리 (x, y)(사진 px)만큼 바깥에 있으면 옆면이 가운데 쪽으로 보임(위쪽 조각은 3.4%, 아래쪽은 2% — 사진처럼 위에서 내려다본 듯)
 // 옆면을 바닥에서 위로 겹쳐 칠하고 윗면. shape(색)은 그 색으로 칠한 모양, top(색)은 윗면(막대는 비스듬한 가장자리까지)
@@ -984,7 +984,7 @@ function reliefParts(pre, d = new Date(), v = 'relief') {
     + `<path d="M358.5 751H401.5A20.5 20.5 0 0 1 401.5 792H358.5A20.5 20.5 0 0 1 358.5 751ZM369.5 764H391.5A8.5 8.5 0 0 1 391.5 781H369.5A8.5 8.5 0 0 1 369.5 764Z" fill="${c}" fill-rule="evenodd"/>`, 5, 309, K.raise);
   r += dvRaise(c => `<text x="527" y="452" font-size="42" fill="${c}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mono);font-weight:800;white-space:pre;letter-spacing:-3px">[ 03 ]</text>`, 152, 0, K.badge);
   const face = `<g transform="scale(${DV.k}) translate(-375 -452)">${g}<g filter="url(#${pre}sh)">${r}</g></g>`;
-  // 바늘 (200×242 단위): 막대(가운데 기준 왼쪽 반은 밝게·오른쪽 반은 살짝 어둡게, 가는 테 — 흰 판은 흰색·다크는 은색), 작은 다이얼 바늘은 남색·파랑(24시간)·빨강(초)
+  // 바늘 (200×242 단위): 막대(가운데 기준 왼쪽 반은 밝게·오른쪽 반은 살짝 어둡게, 가는 테 — 흰 판은 흰색·다크는 흑연색에 밝은 테), 작은 다이얼 바늘은 남색·파랑(24시간)·빨강(초)
   const [hc, hl, he, hp] = K.hand;
   const hand = (L, w, tail) => `<path d="M${-w / 2} ${tail}V${-L}H${w / 2}V${tail}Z" fill="${hc}" stroke="${he}" stroke-width=".35"/><path d="M${-w / 2 + .2} ${tail - .2}V${-L + .2}H0V${tail - .2}Z" fill="${hl}"/>`;
   const needle = (L, tail, w, c, cap) => `<path d="M0 ${tail}V${-L}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/><circle r="${cap}" fill="${c}"/><circle r="${cap * .32}" fill="#0b0b10"/>`;
