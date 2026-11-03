@@ -7,33 +7,31 @@
 <!-- '홈 화면에 추가'로 열면 주소창 없이 전체 화면 (화면 방향은 폰 따라 회전) -->
 <link rel="manifest" href="manifest.webmanifest">
 <!-- 아이콘(#39 [ 03 ]): 탭·설치용은 시안 그대로, 아이폰 홈 화면은 검은 바탕을 꽉 채운 것 (모서리는 아이폰이 둥글게 깎음) -->
-<link rel="icon" type="image/png" href="icon-192.png?v=3">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=5">
+<link rel="icon" type="image/png" href="icon-192.png?v=4">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Pebbly Mirror</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
-<!-- 로고(02 [ 03 ] 04 · pebbly labs · PEBBLY LABS)·시계판: MuseoModerno, 인트로 [ 03 ] 상자·숫자 릴(앱 아이콘과 같은 글꼴): JetBrains Mono
-     — 쓰는 글자(숫자·괄호·빈칸·로고 글자)만 받음 (몇 KB) -->
+<!-- 로고(02 [ 03 ] 04 · pebbly labs · PEBBLY LABS)·인트로·시계판: MuseoModerno — 쓰는 글자(숫자·괄호·빈칸·로고 글자)만 받음 (몇 KB) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400;500;600&text=0123456789%5B%5D%20abelpsyABELPSY&display=block">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&text=0123456789%5B%5D%20&display=block">
 <!-- 로터리 시계판 숫자·날짜: 좁은 BenchNine — 숫자와 영어 달·요일 이름에 쓰는 글자만 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=88">
-<link rel="stylesheet" href="css/base.css?v=88">
-<link rel="stylesheet" href="css/clock.css?v=88">
-<link rel="stylesheet" href="css/weather.css?v=88">
-<link rel="stylesheet" href="css/detail.css?v=88">
-<link rel="stylesheet" href="css/standby.css?v=88">
-<link rel="stylesheet" href="css/transit.css?v=88">
-<link rel="stylesheet" href="css/photo.css?v=88">
-<link rel="stylesheet" href="css/calendar.css?v=88">
-<link rel="stylesheet" href="css/standby-widgets.css?v=88">
-<link rel="stylesheet" href="css/settings.css?v=88">
+<link rel="stylesheet" href="css/theme.css?v=89">
+<link rel="stylesheet" href="css/base.css?v=89">
+<link rel="stylesheet" href="css/clock.css?v=89">
+<link rel="stylesheet" href="css/weather.css?v=89">
+<link rel="stylesheet" href="css/detail.css?v=89">
+<link rel="stylesheet" href="css/standby.css?v=89">
+<link rel="stylesheet" href="css/transit.css?v=89">
+<link rel="stylesheet" href="css/photo.css?v=89">
+<link rel="stylesheet" href="css/calendar.css?v=89">
+<link rel="stylesheet" href="css/standby-widgets.css?v=89">
+<link rel="stylesheet" href="css/settings.css?v=89">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로(#39 로고): 안드로이드 시작 화면의 [ 03 ] 상자 그대로 시작 → 상자가 스파인으로 펼쳐지고
@@ -55,7 +53,7 @@
         <path class="in-late" d="M326 18H340V32M326 102H340V88" stroke-width="2"/>
         <path class="in-late" d="M92 18V102" stroke-width="1.25" stroke-dasharray="4 4"/>
         <g class="in-slot">
-          <text x="48" y="64" class="in-mid" xml:space="preserve">[    ]</text>
+          <text x="48" y="64" class="in-mid" xml:space="preserve">[ <tspan fill-opacity="0">03</tspan> ]</text>
           <g class="in-side"><g clip-path="url(#in-cd)" mask="url(#in-m)"><g class="in-reel in-dim"></g></g></g>
           <g clip-path="url(#in-cm)"><g class="in-reel in-mid"></g></g>
         </g>
@@ -65,11 +63,11 @@
       <!-- 첫 장면: 안드로이드 시작 화면과 같은 [ 03 ] 상자 (icon-maskable.png를 160px로 띄운 크기: 상자 119px).
            상자는 갤럭시 아이콘 테두리와 같은 초타원(n=2.7) — intro.js가 이 모양에서 스파인 테두리로 바꿔 감 -->
       <path id="in-box" d="M59.5 0L59.3 10.6L58.7 17.7L57.6 23.8L56.1 29.2L54.2 34.1L51.9 38.5L49.2 42.5L46 46L42.5 49.2L38.5 51.9L34.1 54.2L29.2 56.1L23.8 57.6L17.7 58.7L10.6 59.3L0 59.5L-10.6 59.3L-17.7 58.7L-23.8 57.6L-29.2 56.1L-34.1 54.2L-38.5 51.9L-42.5 49.2L-46 46L-49.2 42.5L-51.9 38.5L-54.2 34.1L-56.1 29.2L-57.6 23.8L-58.7 17.7L-59.3 10.6L-59.5 0L-59.3 -10.6L-58.7 -17.7L-57.6 -23.8L-56.1 -29.2L-54.2 -34.1L-51.9 -38.5L-49.2 -42.5L-46 -46L-42.5 -49.2L-38.5 -51.9L-34.1 -54.2L-29.2 -56.1L-23.8 -57.6L-17.7 -58.7L-10.6 -59.3L0 -59.5L10.6 -59.3L17.7 -58.7L23.8 -57.6L29.2 -56.1L34.1 -54.2L38.5 -51.9L42.5 -49.2L46 -46L49.2 -42.5L51.9 -38.5L54.2 -34.1L56.1 -29.2L57.6 -23.8L58.7 -17.7L59.3 -10.6Z" stroke-width="7.5"/>
-      <text id="in-03" x="-2.75" y="12.53" class="in-mid" style="font-size:35.5px;letter-spacing:-5.5px" xml:space="preserve">[ 03 ]</text>
+      <text id="in-03" x=".15" y="13.4" class="in-mid" style="font-size:38px" xml:space="preserve">[ 03 ]</text>
     </svg>
   </svg>
 </div>
-<script src="js/intro.js?v=88"></script>
+<script src="js/intro.js?v=89"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -153,7 +151,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=88" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=89" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -451,16 +449,16 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=88"></script>
-<script src="js/sync.js?v=88"></script>
-<script src="js/clock.js?v=88"></script>
-<script src="js/weather.js?v=88"></script>
-<script src="js/screen.js?v=88"></script>
-<script src="js/clock-modes.js?v=88"></script>
-<script src="js/settings.js?v=88"></script>
-<script src="js/transit.js?v=88"></script>
-<script src="js/photo.js?v=88"></script>
-<script src="js/calendar.js?v=88"></script>
-<script src="js/main.js?v=88"></script>
+<script src="js/core.js?v=89"></script>
+<script src="js/sync.js?v=89"></script>
+<script src="js/clock.js?v=89"></script>
+<script src="js/weather.js?v=89"></script>
+<script src="js/screen.js?v=89"></script>
+<script src="js/clock-modes.js?v=89"></script>
+<script src="js/settings.js?v=89"></script>
+<script src="js/transit.js?v=89"></script>
+<script src="js/photo.js?v=89"></script>
+<script src="js/calendar.js?v=89"></script>
+<script src="js/main.js?v=89"></script>
 </body>
 </html>

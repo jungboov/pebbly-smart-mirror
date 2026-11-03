@@ -67,9 +67,9 @@ body.night.night-dim .stage{opacity:.45}
   transition:opacity .6s,color .8s;animation:intro-bail .5s 8s forwards}
 .intro > svg{display:block;width:100%;height:100%;transition:opacity .8s}
 .intro path,#in-box{fill:none;stroke:currentColor}
-.intro text{fill:currentColor;text-anchor:middle;font-family:var(--icon)}
-.intro .in-mid{font-weight:800;font-size:12.5px}
-.intro .in-dim{font-size:11px;opacity:.45}
+.intro text{fill:currentColor;text-anchor:middle;font-family:var(--mark)}
+.intro .in-mid{font-weight:600;font-size:12.5px}
+.intro .in-dim{font-weight:500;font-size:11px;opacity:.45}
 .intro .in-name{font-family:var(--logo);font-weight:400;font-size:27px;dominant-baseline:central}
 /* 펼쳐지는 동안 JS가 차례로 나타나게 함. 다 펼쳐지면(landed) 굴러가는 릴로 바꿔 끼움 */
 .in-bars,.in-late,.in-word,.in-slot,.in-side{opacity:0}

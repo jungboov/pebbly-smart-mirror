@@ -42,7 +42,8 @@
     }
     return d + 'Z';
   };
-  const A = { x: 0, y: 0, a: 59.5, b: 59.5, n: 2.7, sw: 7.5, tx: -2.75, ty: 12.53, fs: 35.5, ls: -5.5 };
+  // 첫 장면 [ 03 ]: 앱 아이콘(icon-maskable.png = 이 장면 3.2배)과 같은 MuseoModerno 600 38 — 숫자 높이·괄호 폭이 예전 아이콘과 거의 같음
+  const A = { x: 0, y: 0, a: 59.5, b: 59.5, n: 2.7, sw: 7.5, tx: .15, ty: 13.4, fs: 38, ls: 0 };
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const part = (a, b) => Math.max(0, Math.min(1, (p - a) / (b - a)));
   function frame() {
@@ -107,8 +108,8 @@
   }
   // 글꼴이 늦게 와서 다른 글꼴로 번쩍이지 않게 기다렸다가 (최대 1.5초), 첫 장면을 잠깐 더 보여 준 뒤 시작
   const fonts = Promise.all([
-    document.fonts.load("400 12px 'JetBrains Mono'", '0123456789'),
-    document.fonts.load("800 12px 'JetBrains Mono'", '[]0123456789 '),
+    document.fonts.load("500 12px 'MuseoModerno'", '0123456789'),
+    document.fonts.load("600 12px 'MuseoModerno'", '[]0123456789 '),
     document.fonts.load("400 12px 'MuseoModerno'", 'pebbly labs')
   ]).catch(() => {});
   Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]).then(() => at(200, play));
