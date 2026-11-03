@@ -53,11 +53,12 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게) / halfL: 가로 화면을 왼쪽 시계 / 오른쪽 위젯 반반으로 (끄면 위젯 자리만 남기고 시계를 최대한 크게)
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarms: 알람 [{ h, m, on, days: 'all' 매일 · 'wk' 평일(공휴일 빼고) · 'we' 주말 }]
+// logoTheme: 로고 위젯 테마 'emboss'(양각)·'embossk'(양각 다크)·'deboss'(음각)·'debossk'(음각 다크)
 // album: 사진 액자 앨범 번호(처음 올릴 때 만듦) / photoAt: 사진을 마지막으로 올리거나 지운 시각 (폰에서 바꾸면 미러가 목록을 새로 받는 신호)
 // phPer: 사진 액자 차례가 오면 몇 장 보여 주고 다음 위젯으로 갈지 (0 = 모두, 설정 버튼은 1을 true로 저장해서 숫자로 바꿔 씀)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, analog: false, dialTheme: 'black', secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, analog: false, dialTheme: 'black', logoTheme: 'emboss', secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3 },
   // 폰에서 다른 미러 설정 중(REMOTE)이면 이 폰 자기 설정은 섞지 않음: 기본값 위에 그 미러 설정만 (remoteStart)
   //   섞으면 그 미러에 없던 값(사진 앨범 등)이 이 폰 것으로 채워져 '미러에 적용' 때 그 미러로 넘어감

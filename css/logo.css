@@ -1,0 +1,10 @@
+/* Pebbly Mirror — 로고 위젯 */
+/* 양각·음각 pebbly labs 판(logo.js)을 위젯 칸 가운데에, 판 비율(--lg-r) 그대로 칸 폭·높이 중 막히는 쪽에 맞춤
+   container-type:size — 판이 위젯 칸 높이를 늘리지 않게 (세로 화면에서 시계 크기 그대로) */
+.logo{display:none}
+body.sb .logo{display:flex;align-items:center;justify-content:center;container-type:size}
+.lg-box{display:contents}
+.lg-box svg{display:block;width:min(100cqw, 100cqh * var(--lg-r, 2.75));height:auto}
+/* 설정 › 테마 › 로고 위젯 카드: 판이 옆으로 길어서 카드도 넓게 */
+.lg-list{grid-template-columns:repeat(auto-fill, minmax(30rem, 1fr))}
+.lg-list .th-card svg{aspect-ratio:auto;max-width:none}

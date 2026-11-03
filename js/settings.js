@@ -45,6 +45,7 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
   else if (b && b.dataset.clockTheme) { const t = b.dataset.clockTheme; S.analog = t !== 'digital'; if (S.analog) S.dialTheme = t; }
+  else if (b && b.dataset.logoTheme) S.logoTheme = b.dataset.logoTheme;   // 로고 위젯 테마
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
     return;
@@ -140,6 +141,7 @@ function thRender() {
   const cur = S.analog ? S.dialTheme : 'digital';
   $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
   rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
+  $('lg-list').innerHTML = lgCards();
 }
 
 // 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만

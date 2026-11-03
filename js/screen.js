@@ -89,6 +89,7 @@ function applySettings() {
   document.body.classList.toggle('has-tr', S.transit.length > 0);
   trRenderList();
   phApply();
+  lgApply();
   wgRender();
   const shown = panelList();
   PANELS.forEach((el, i) => el.classList.toggle('wg-off', S.focus && !shown.includes(PANEL_NAMES[i])));
@@ -153,7 +154,7 @@ async function loadHolidays(y) {
 // 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장을 등록해야, 사진 액자는 사진을 올려야 나옴) / 상세 세로: 시간별 ↔ 일별
 // S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김. 사진 액자는 넘어올 때마다 다음 사진
 let panel = 0, panelName = 'now', panelTimer;
-const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자', cal: '달력' };
+const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자', cal: '달력', logo: '로고' };
 // o: 'L' 가로·'P' 세로 (없으면 지금 화면 방향)
 const portraitMQ = matchMedia('(orientation: portrait)');
 const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
@@ -185,6 +186,7 @@ function showPanel(p, dir, axis, from) {
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
   else if (old === 'photo') phLeave();   // 동영상 멈춤
+  if (panelName === 'logo' && old !== 'logo') lgSpin();   // 로고: 들어올 때마다 숫자 한 바퀴
   if (dir && S.focus && old !== panelName) page(panelEl(old), panelEl(panelName), dir, axis, from);
   schedulePanel();
 }
