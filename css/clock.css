@@ -127,7 +127,7 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial[data-theme="silver"] .dl-crown-grip{stroke:rgba(0,0,0,.3)}
 
 /* 엣지: 검은 둥근 네모 화면(세로/가로 1.22) 가장자리를 따라 흰 숫자 — 지금 시 쪽은 굵고 두껍게, 먼 쪽은 가늘고 얇게. 흰 시침·분침(가는 목 + 굵은 막대), 빨간 초침 */
-.dial[data-face="edge"], .dial[data-face="modern"]{--dial-r:1.22}   /* 엣지·모던은 세로로 긴 둥근 네모 (날짜를 끄면 모던은 fitDial이 칸 모양에 맞춰 바꿈) */
+.dial[data-face="edge"], .dial[data-face="modern"]{--dial-r:1.22}   /* 엣지·모던은 세로로 긴 둥근 네모 (날짜를 끄면 모던은 가로 화면에서만 fitDial이 칸 모양에 맞춰 바꿈) */
 .dial:not([data-face="rec"]) .dl, .dial:not([data-face="edge"]) .de, .dial:not([data-face="modern"]) .dm{display:none}
 .de-bg{fill:#000}
 .de-hd{fill:none;stroke:#fff;stroke-linecap:round}
