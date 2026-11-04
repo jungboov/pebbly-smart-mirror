@@ -100,7 +100,7 @@ function pwHourly(k, W, H) {
   const temps = idx.map((i, j) => j === 0 ? w.current.temperature_2m : h.temperature_2m[i]);
   const x1 = W - 38, cw = (x1 - 20) / n, cx = j => 20 + cw * (j + .5);
   const is = Math.min(cw * .44, 22, H * .09), ts = Math.min(cw * .36, 17), yi = 58, yt = yi + is + 6 + ts * .78;
-  const bh = Math.min(22, H * .08), yb0 = H - 26 - bh, p0 = yt + 12, p1 = yb0 - 12;
+  const bh = plTall(W, H) ? Math.min(40, H * .1) : Math.min(22, H * .08), yb0 = H - 26 - bh, p0 = yt + 12, p1 = yb0 - 12;   // 세로로 긴 판은 막대를 길게 — 채운 만큼이 잘 보이게
   const ys = pwTempY(temps, p0, p1), pts = idx.map((_, j) => [cx(j), ys[j]]);
   o += k.up(pwLine([[20, ys[0]], ...pts, [x1, ys[n - 1]]]), .5);
   idx.forEach((i, j) => {
