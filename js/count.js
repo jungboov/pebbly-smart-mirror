@@ -166,7 +166,7 @@ function cdFormRender() {
   $('cd-form').querySelectorAll('[data-cdm]').forEach(b => b.classList.toggle('on', b.dataset.cdm === f.mode));
   $('cd-form').querySelectorAll('[data-cdo]').forEach(b => { b.classList.toggle('on', f[b.dataset.cdo] === '1'); b.hidden = (b.dataset.cdo === 'first') !== (f.mode === 'since'); });
 }
-document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
+document.querySelector('[data-page="count"]').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
   const f = $('cd-form').dataset;

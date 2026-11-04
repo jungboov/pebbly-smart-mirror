@@ -202,7 +202,7 @@ function foSetState() {
   $('fo-set-go').textContent = st.go;
   $('fo-set-go').classList.toggle('on', st.run);
 }
-document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
+document.querySelector('[data-page="focus"]').addEventListener('click', e => {
   const b = e.target.closest('[data-fs], [data-fb]');
   if (!b) return;
   if (b.dataset.fs) { const k = b.dataset.fs, [lo, hi, d] = FO_LIM[k]; S.fo[k] = Math.min(hi, Math.max(lo, S.fo[k] + d * Number(b.dataset.fv))); }

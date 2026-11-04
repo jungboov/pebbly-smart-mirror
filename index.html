@@ -21,20 +21,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 로고 → 디데이 → 집중 타이머 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=98">
-<link rel="stylesheet" href="css/base.css?v=98">
-<link rel="stylesheet" href="css/clock.css?v=98">
-<link rel="stylesheet" href="css/weather.css?v=98">
-<link rel="stylesheet" href="css/detail.css?v=98">
-<link rel="stylesheet" href="css/standby.css?v=98">
-<link rel="stylesheet" href="css/transit.css?v=98">
-<link rel="stylesheet" href="css/photo.css?v=98">
-<link rel="stylesheet" href="css/calendar.css?v=98">
-<link rel="stylesheet" href="css/logo.css?v=98">
-<link rel="stylesheet" href="css/count.css?v=98">
-<link rel="stylesheet" href="css/focus.css?v=98">
-<link rel="stylesheet" href="css/standby-widgets.css?v=98">
-<link rel="stylesheet" href="css/settings.css?v=98">
+<link rel="stylesheet" href="css/theme.css?v=99">
+<link rel="stylesheet" href="css/base.css?v=99">
+<link rel="stylesheet" href="css/clock.css?v=99">
+<link rel="stylesheet" href="css/weather.css?v=99">
+<link rel="stylesheet" href="css/detail.css?v=99">
+<link rel="stylesheet" href="css/standby.css?v=99">
+<link rel="stylesheet" href="css/transit.css?v=99">
+<link rel="stylesheet" href="css/photo.css?v=99">
+<link rel="stylesheet" href="css/calendar.css?v=99">
+<link rel="stylesheet" href="css/logo.css?v=99">
+<link rel="stylesheet" href="css/count.css?v=99">
+<link rel="stylesheet" href="css/focus.css?v=99">
+<link rel="stylesheet" href="css/standby-widgets.css?v=99">
+<link rel="stylesheet" href="css/settings.css?v=99">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로: 공용 번호 인트로 [ 03 ] pebbly mirror (js/pebbly-intro.js — _brand/intro 원본의 사본, sync.py로 맞춤)
@@ -42,7 +42,7 @@
      부품을 바로 불러서 스크립트가 도는 즉시 첫 장면이 보임. 그동안 뒤에서 미러가 뜸, 누르면 바로 넘어감 (intro.js) -->
 <div id="intro" class="intro" aria-hidden="true"></div>
 <script src="js/pebbly-intro.js?v=8e44084a"></script>
-<script src="js/intro.js?v=98"></script>
+<script src="js/intro.js?v=99"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -126,7 +126,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=98" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=99" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -326,24 +326,23 @@
 
 <div id="settings" class="settings" hidden>
   <div class="set-card" data-tab="screen">
-    <!-- 탭: 화면 / 테마 / 위젯 / 야간 / 교통 / 사진. 고른 탭의 내용만 보임 -->
+    <!-- 탭: 화면(미러 전체) / 시계 / 위젯. 위젯 탭 목록에서 이름 옆에 ›가 있는 줄을 누르면 그 위젯 페이지(교통·사진 액자·로고·디데이·집중 타이머)로 들어감 (settings.js setTab)
+         고른 페이지만 보이고(.on), 위젯 페이지에선 위젯 탭이 켜져 있음 -->
     <div class="set-head"><div class="set-title">설정</div>
-      <div class="set-tabs"><button data-tab="screen">화면</button><button data-tab="theme">테마</button><button data-tab="widgets">위젯</button><button data-tab="night">야간</button><button data-tab="transit">교통</button><button data-tab="photo">사진</button></div>
+      <div class="set-tabs"><button data-tab="screen" class="on">화면</button><button data-tab="clock">시계</button><button data-tab="widgets">위젯</button></div>
     </div>
     <p class="remote-note">이 폰에서 <b>미러 설정</b>을 바꾸는 중이에요. 다 바꾼 뒤 아래 <b>미러에 적용</b>을 누르면 10초쯤 안에 반영되고, 미러가 받으면 여기에 알려 드려요.
       이 폰은 이 미러를 이름으로 기억해서, 다음엔 QR 없이 이 폰의 미러 설정 › <b>미러 설정하기</b>에서 이름을 누르면 열려요(주소 mirror.pebblylabs.com/?remote 는 마지막에 연 미러). <span id="remote-msg"></span></p>
     <!-- 폰(설정 중): 이 미러 이름 정하기(처음 열 때), 기억한 다른 미러로 바로 바꾸기 (sync.js renderRemotes) -->
     <div id="remote-bar" class="remote-bar"></div>
-    <div class="set-page" data-page="screen">
+    <div class="set-page on" data-page="screen">
       <!-- 위치(+ 날씨 갱신 시각): 헤더에서 옮겨 옴 (weather.js renderFoot). 폰에서 미러 설정 중엔 폰 위치라 숨김 -->
       <div class="set-row set-loc">위치
         <span class="set-place"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="foot"></span></span>
       </div>
-      <div class="set-row">시계 형식
-        <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
-      </div>
-      <div class="set-row">표시
-        <div class="chips"><button data-chip="secs">초</button><button data-chip="date">날짜</button><button data-chip="addr">상세 주소</button></div>
+      <!-- 스타일: 시계(디지털)·로고·디데이·집중 타이머 모양을 한 번에 (settings.js STYLES). 하나씩 따로 바꿔서 섞이면 아무것도 안 켜짐 -->
+      <div class="set-row">스타일
+        <div class="seg"><button data-style="flat">평면</button><button data-style="emboss">양각</button><button data-style="embossk">양각 블랙</button></div>
       </div>
       <div class="set-row">시계 강조
         <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
@@ -354,25 +353,35 @@
       <div class="set-row">가로 배치
         <div class="seg" data-key="halfL"><button data-v="0">시계 크게</button><button data-v="1">반반</button></div>
       </div>
+      <div class="set-row">표시
+        <div class="chips"><button data-chip="date">날짜</button><button data-chip="addr">상세 주소</button></div>
+      </div>
       <div class="set-row">알림 띠
         <div class="seg" data-key="alert"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
       </div>
-    </div>
-    <!-- 테마: 시계 카드(작은 그림 + 이름)를 누르면 시계 모양·테마가 같이 바뀜, 아래 로고 위젯 카드는 로고 위젯 테마 (settings.js thRender) -->
-    <div class="set-page" data-page="theme">
-      <div class="set-row">시계</div>
-      <div id="th-list" class="th-list"></div>
-      <p class="tr-msg">아날로그 시계와 디지털 양각(판·도드라진 숫자, 스톱워치·타이머·알람도 같이)은 시계 강조 화면에서 보여요. 화면 탭의 표시에서 초를 끄면 초침이 숨고 가운데 라벨이 멈춰요.</p>
-      <div class="set-row">로고 위젯</div>
-      <div id="lg-list" class="th-list lg-list"></div>
-      <div class="set-row">숫자 다시 돌기
-        <div class="step"><button data-ls="-1" aria-label="간격 줄이기">−</button><span id="set-lgspin"></span><button data-ls="1" aria-label="간격 늘리기">+</button></div>
+      <div class="set-row">야간 모드
+        <div class="seg" data-key="night"><button data-v="off">끄기</button><button data-v="dim">어둡게</button><button data-v="red">붉게</button></div>
       </div>
-      <p class="tr-msg">로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요(위젯 탭에서 끄기·순서). 나타날 때 숫자가 한 바퀴 돌고, 보이는 동안 정한 초마다 다시 돌아요(끔이면 나타날 때만).</p>
-      <!-- 디데이·집중 타이머 위젯 테마: 평면(미러 기본) · 양각 · 양각 블랙 (plate.js plCards) -->
-      <div class="set-row">디데이·집중 타이머 위젯</div>
-      <div id="pl-list" class="th-list lg-list"></div>
+      <div class="set-row nt-row">야간 시작
+        <div class="step"><button data-nt="nightStart" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ns"></span><button data-nt="nightStart" data-d="1" aria-label="1시간 늦추기">+</button></div>
+      </div>
+      <div class="set-row nt-row">야간 끝
+        <div class="step"><button data-nt="nightEnd" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ne"></span><button data-nt="nightEnd" data-d="1" aria-label="1시간 늦추기">+</button></div>
+      </div>
     </div>
+    <!-- 시계: 형식·초 / 테마 카드 — 같은 시계의 색 차이(디지털 평면·양각·양각 블랙, 엣지 화이트·민트·레인보우 …)는 카드 하나에 점으로 (settings.js thRender) -->
+    <div class="set-page" data-page="clock">
+      <div class="set-row">시계 형식
+        <div class="seg" data-key="hour12"><button data-v="1">12시간</button><button data-v="0">24시간</button></div>
+      </div>
+      <div class="set-row">초
+        <div class="seg" data-key="secs"><button data-v="1">보이기</button><button data-v="0">숨기기</button></div>
+      </div>
+      <div class="set-row set-sub">테마</div>
+      <div id="th-list" class="th-list"></div>
+      <p class="tr-msg">카드 아래 점을 누르면 같은 시계의 다른 색으로 바뀌어요. 아날로그 시계와 디지털 양각은 시계 강조 화면에서 보여요. 초를 숨기면 초침이 숨고 가운데 라벨이 멈춰요.</p>
+    </div>
+    <!-- 위젯: 고치는 화면 방향 / 자동 넘김 / 목록(이름 › 누르면 그 위젯 페이지, 보이는 시간·위로·아래로·켜짐) (settings.js wgRender) -->
     <div class="set-page" data-page="widgets">
       <div class="set-row">화면 방향
         <div class="seg wg-or"><button data-or="L">가로</button><button data-or="P">세로</button></div>
@@ -382,8 +391,54 @@
       </div>
       <p id="wg-hint" class="tr-msg"></p>
       <ul id="wg-list" class="wg-list"></ul>
+    </div>
+    <!-- 위젯 페이지: 맨 위 ‹ 위젯(목록으로) + 이름 -->
+    <div class="set-page" data-page="transit">
+      <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>교통</b></div>
+      <div id="tr-sec" class="tr-sec">
+        <div class="set-row">정류장·역
+          <div class="tr-add"><button data-add="bus">+ 버스</button><button data-add="sub">+ 지하철</button></div>
+        </div>
+        <ul id="tr-list" class="tr-list"></ul>
+        <div id="tr-find" hidden>
+          <div class="tr-bar"><input id="tr-q" enterkeyhint="search" autocomplete="off"><button id="tr-go">검색</button><button id="tr-near">내 주변</button></div>
+          <p id="tr-msg" class="tr-msg"></p>
+          <ul id="tr-res" class="tr-res"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="set-page" data-page="photo">
+      <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>사진 액자</b></div>
+      <div id="ph-sec" class="tr-sec">
+        <div class="set-row">액자 사진
+          <div class="tr-add"><label class="ph-add" for="ph-file">+ 사진·동영상</label><input id="ph-file" type="file" accept="image/*,video/*" multiple hidden></div>
+        </div>
+        <!-- 위젯이 돌다가 사진 액자 차례가 오면 이만큼 보여 주고 다음 위젯으로 (다음 차례엔 이어서) -->
+        <div class="set-row">한 번에 볼 사진
+          <div class="seg" data-key="phPer"><button data-v="1">1장</button><button data-v="3">3장</button><button data-v="5">5장</button><button data-v="0">모두</button></div>
+        </div>
+        <!-- 이 기기가 '미러 설정하기'에 기억한 다른 미러 중 사진이 있는 미러와 앨범을 같이 쓰거나 이 미러만 따로 (photo.js) -->
+        <div id="ph-share-row" class="set-row ph-share-row" hidden>사진 앨범
+          <div id="ph-share" class="chips"></div>
+        </div>
+        <p id="ph-msg" class="tr-msg"></p>
+        <ul id="ph-list" class="ph-list"></ul>
+      </div>
+    </div>
+    <!-- 로고 위젯: 모양 카드(logo.js lgCards) / 숫자 다시 돌기 -->
+    <div class="set-page" data-page="logo">
+      <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>로고</b></div>
+      <div id="lg-list" class="th-list lg-list"></div>
+      <div class="set-row">숫자 다시 돌기
+        <div class="step"><button data-ls="-1" aria-label="간격 줄이기">−</button><span id="set-lgspin"></span><button data-ls="1" aria-label="간격 늘리기">+</button></div>
+      </div>
+      <p class="tr-msg">나타날 때 숫자가 한 바퀴 돌고, 보이는 동안 정한 초마다 다시 돌아요(끔이면 나타날 때만). 로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요.</p>
+    </div>
+    <!-- 디데이: 항목(count.js) / 모양(plate.js plCards — 집중 타이머와 같은 설정 S.plate) -->
+    <div class="set-page" data-page="count">
+      <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>디데이</b></div>
       <!-- 디데이 항목: 목록(위로·고치기·지우기) / 추가·고치기 칸 (count.js) -->
-      <div class="set-row set-sub">디데이
+      <div class="set-row">항목
         <div class="tr-add"><button id="cd-add">+ 추가</button></div>
       </div>
       <p id="cd-empty" class="tr-msg">'만난 지 412일'처럼 지난 날을 세거나, '출시까지 D-12'처럼 남은 날을 세요. 맨 위 항목이 크게 보여요.</p>
@@ -397,8 +452,14 @@
         <p id="cd-msg" class="tr-msg"></p>
         <div class="tr-add"><button id="cd-save" class="tr-save">저장</button><button id="cd-cancel">취소</button></div>
       </div>
-      <!-- 집중 타이머: 지금 상태와 시작·건너뛰기·초기화(폰에서 누르면 바로 미러로) / 길이 / 끝나면 / 도는 동안 (focus.js) -->
-      <div class="set-row set-sub">집중 타이머 <span id="fo-state" class="fo-state"></span></div>
+      <div class="set-row set-sub">모양</div>
+      <div class="th-list lg-list pl-list" data-pl="count"></div>
+      <p class="tr-msg">집중 타이머 위젯과 같이 바뀌어요.</p>
+    </div>
+    <!-- 집중 타이머: 지금 상태와 시작·건너뛰기·초기화(폰에서 누르면 바로 미러로) / 길이 / 끝나면 / 도는 동안 (focus.js) / 모양 -->
+    <div class="set-page" data-page="focus">
+      <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>집중 타이머</b></div>
+      <div class="set-row">지금 <span id="fo-state" class="fo-state"></span></div>
       <div class="tr-add"><button id="fo-set-go" data-fo="go">시작</button><button data-fo="skip">건너뛰기</button><button data-fo="reset">초기화</button></div>
       <div class="set-row">집중
         <div class="step"><button data-fs="min" data-fv="-1" aria-label="집중 줄이기">−</button><span id="fs-min"></span><button data-fs="min" data-fv="1" aria-label="집중 늘리기">+</button></div>
@@ -416,47 +477,9 @@
         <div class="seg"><button data-fb="pin" data-fv="1">머묾</button><button data-fb="pin" data-fv="0">넘어감</button></div>
       </div>
       <p class="tr-msg">끝나면 알람처럼 울려요(소리는 미러 화면을 한 번 누른 뒤부터). '머묾'이면 도는 동안 자동으로 다른 위젯으로 넘어가지 않아요(손으로 밀면 넘어가요). 폰에서 시작·정지하면 10초쯤 안에 미러에 반영돼요.</p>
-    </div>
-    <div class="set-page" data-page="night">
-      <div class="set-row">야간 모드
-        <div class="seg" data-key="night"><button data-v="off">끄기</button><button data-v="dim">어둡게</button><button data-v="red">붉게</button></div>
-      </div>
-      <div class="set-row nt-row">야간 시작
-        <div class="step"><button data-nt="nightStart" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ns"></span><button data-nt="nightStart" data-d="1" aria-label="1시간 늦추기">+</button></div>
-      </div>
-      <div class="set-row nt-row">야간 끝
-        <div class="step"><button data-nt="nightEnd" data-d="-1" aria-label="1시간 앞당기기">−</button><span id="set-ne"></span><button data-nt="nightEnd" data-d="1" aria-label="1시간 늦추기">+</button></div>
-      </div>
-    </div>
-    <div class="set-page" data-page="transit">
-      <div id="tr-sec" class="tr-sec">
-        <div class="set-row">정류장·역
-          <div class="tr-add"><button data-add="bus">+ 버스</button><button data-add="sub">+ 지하철</button></div>
-        </div>
-        <ul id="tr-list" class="tr-list"></ul>
-        <div id="tr-find" hidden>
-          <div class="tr-bar"><input id="tr-q" enterkeyhint="search" autocomplete="off"><button id="tr-go">검색</button><button id="tr-near">내 주변</button></div>
-          <p id="tr-msg" class="tr-msg"></p>
-          <ul id="tr-res" class="tr-res"></ul>
-        </div>
-      </div>
-    </div>
-    <div class="set-page" data-page="photo">
-      <div id="ph-sec" class="tr-sec">
-        <div class="set-row">액자 사진
-          <div class="tr-add"><label class="ph-add" for="ph-file">+ 사진·동영상</label><input id="ph-file" type="file" accept="image/*,video/*" multiple hidden></div>
-        </div>
-        <!-- 위젯이 돌다가 사진 액자 차례가 오면 이만큼 보여 주고 다음 위젯으로 (다음 차례엔 이어서) -->
-        <div class="set-row">한 번에 볼 사진
-          <div class="seg" data-key="phPer"><button data-v="1">1장</button><button data-v="3">3장</button><button data-v="5">5장</button><button data-v="0">모두</button></div>
-        </div>
-        <!-- 이 기기가 '미러 설정하기'에 기억한 다른 미러 중 사진이 있는 미러와 앨범을 같이 쓰거나 이 미러만 따로 (photo.js) -->
-        <div id="ph-share-row" class="set-row ph-share-row" hidden>사진 앨범
-          <div id="ph-share" class="chips"></div>
-        </div>
-        <p id="ph-msg" class="tr-msg"></p>
-        <ul id="ph-list" class="ph-list"></ul>
-      </div>
+      <div class="set-row set-sub">모양</div>
+      <div class="th-list lg-list pl-list" data-pl="focus"></div>
+      <p class="tr-msg">디데이 위젯과 같이 바뀌어요.</p>
     </div>
     <div class="set-page" data-page="sync">
       <p class="tr-msg">폰 카메라로 QR을 찍으면 폰에서 이 미러 설정을 바꿀 수 있어요. 폰에서 '미러에 적용'을 누르면 10초쯤 안에 반영돼요. 열린 주소를 저장해 두면 나중에도 돼요.</p>
@@ -478,21 +501,21 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=98"></script>
-<script src="js/sync.js?v=98"></script>
-<script src="js/clock.js?v=98"></script>
-<script src="js/weather.js?v=98"></script>
-<script src="js/screen.js?v=98"></script>
-<script src="js/clock-modes.js?v=98"></script>
-<script src="js/settings.js?v=98"></script>
-<script src="js/transit.js?v=98"></script>
-<script src="js/photo.js?v=98"></script>
-<script src="js/calendar.js?v=98"></script>
-<script src="js/logo.js?v=98"></script>
-<script src="js/plate.js?v=98"></script>
-<script src="js/digi.js?v=98"></script>
-<script src="js/count.js?v=98"></script>
-<script src="js/focus.js?v=98"></script>
-<script src="js/main.js?v=98"></script>
+<script src="js/core.js?v=99"></script>
+<script src="js/sync.js?v=99"></script>
+<script src="js/clock.js?v=99"></script>
+<script src="js/weather.js?v=99"></script>
+<script src="js/screen.js?v=99"></script>
+<script src="js/clock-modes.js?v=99"></script>
+<script src="js/settings.js?v=99"></script>
+<script src="js/transit.js?v=99"></script>
+<script src="js/photo.js?v=99"></script>
+<script src="js/calendar.js?v=99"></script>
+<script src="js/logo.js?v=99"></script>
+<script src="js/plate.js?v=99"></script>
+<script src="js/digi.js?v=99"></script>
+<script src="js/count.js?v=99"></script>
+<script src="js/focus.js?v=99"></script>
+<script src="js/main.js?v=99"></script>
 </body>
 </html>

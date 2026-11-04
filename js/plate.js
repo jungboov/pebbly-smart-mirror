@@ -1,6 +1,6 @@
 // Pebbly Mirror — 양각 판: 디데이·집중 타이머 위젯의 양각·양각 블랙 테마
 // ===== 판 (logo.js의 조각 lgRaise·lgSink·색 LG_INK·그림자 lgShadow를 그대로 씀) =====
-// 테마(설정 › 테마 › 디데이·집중 타이머): 평면(미러 기본 흰 글자) · 양각(흰 판) · 양각 블랙(흑연색 판) — S.plate
+// 테마(설정 › 위젯 › 디데이·집중 타이머 › 모양, 또는 화면 › 스타일): 평면(미러 기본 흰 글자) · 양각(흰 판) · 양각 블랙(흑연색 판) — S.plate
 // 판 하나가 위젯 칸을 채움. 그림 단위는 rem의 1/4(태블릿에선 칸 픽셀의 절반)이라 로고 판과 배율이 비슷하고, 폰처럼 rem이 작은 화면에서도 글자 비율이 같음
 // 인쇄(판에 찍힌 작은 글자·눈금)는 그림자 없이 맨 위에 — 작은 글자가 번지지 않게
 const PLATE_THEMES = [['flat', '평면'], ['emboss', '양각'], ['embossk', '양각 블랙']];
@@ -38,13 +38,13 @@ const plSize = el => {
   return [Math.round(r.width / u), Math.round(r.height / u)];
 };
 
-// 설정 › 테마 카드: 작은 디데이 판(만난 지 412일)으로 보여 줌
-function plCards() {
+// 설정 › 위젯 › 디데이·집중 타이머 › 모양 카드: 작은 디데이 판(만난 지 412일)으로 보여 줌. where: 두 페이지 그림 id가 겹치지 않게
+function plCards(where = '') {
   const thumb = id => id === 'flat'
     ? `<svg viewBox="0 0 160 90" aria-hidden="true"><rect width="160" height="90" rx="10" fill="#000" stroke="#262626"/>`
       + `<text x="16" y="28" font-size="11" fill="#a3a3a3" style="font-weight:700">만난 지</text>`
       + `<text x="16" y="70" font-size="36" fill="#fff" style="font-family:var(--num);font-weight:900">412<tspan dx="4" font-size="11" fill="#a3a3a3" style="font-family:var(--brand);font-weight:700">일</tspan></text></svg>`
-    : plateSvg(160, 90, id, `th-pl-${id}-`, k => k.ink(plText(14, 22, 7, 'd-day', 500)) + k.up(plText(14, 38, 10, '만난 지', 700), .6)
+    : plateSvg(160, 90, id, `th-pl${where}-${id}-`, k => k.ink(plText(14, 22, 7, 'd-day', 500)) + k.up(plText(14, 38, 10, '만난 지', 700), .6)
       + k.up(plText(80, 74, 34, '412<tspan font-size="10" dx="2" style="font-weight:700">일</tspan>', 600, 'middle')) + k.up(plBrackets(160, 90)));
   return PLATE_THEMES.map(([id, name]) => `<button class="th-card${id === S.plate ? ' on' : ''}" data-plate-theme="${id}">${thumb(id)}<span>${name}</span></button>`).join('');
 }

@@ -1,6 +1,20 @@
-// Pebbly Mirror — 설정 화면: 열기·버튼, 위젯 탭
+// Pebbly Mirror — 설정 화면: 열기·버튼, 탭(화면·시계·위젯)과 위젯 페이지, 위젯 탭
 // ===== 설정 화면 =====
 let settingsAt = 0;
+// 페이지 → 켜 둘 탭. 위젯 페이지(교통·사진 액자·로고·디데이·집중 타이머)는 위젯 탭 목록에서 들어가서 위젯 탭이 켜져 있음, 폰으로 설정·미러 설정하기는 탭 없음
+const SET_TOP = { screen: 'screen', clock: 'clock', widgets: 'widgets', transit: 'widgets', photo: 'widgets', logo: 'widgets', count: 'widgets', focus: 'widgets' };
+const WG_PAGE = ['transit', 'photo', 'logo', 'count', 'focus'];   // 위젯 탭에서 눌러 들어가는 위젯
+function setTab(t) {
+  const card = $('settings').querySelector('.set-card');
+  card.dataset.tab = t;
+  card.querySelectorAll('.set-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === SET_TOP[t]));
+  card.querySelectorAll('.set-page').forEach(p => p.classList.toggle('on', p.dataset.page === t));
+  card.scrollTop = 0;
+  if (t === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
+}
+// 스타일(화면 탭): 시계(디지털)·로고·디데이·집중 타이머 모양을 한 번에. 평면은 로고는 그대로(로고 위젯은 판 모양뿐)
+const STYLES = { flat: { digi: '', plate: 'flat' }, emboss: { digi: 'emboss', plate: 'emboss', logoTheme: 'emboss' }, embossk: { digi: 'embossk', plate: 'embossk', logoTheme: 'embossk' } };
+const styleNow = () => S.analog ? '' : Object.keys(STYLES).find(id => Object.entries(STYLES[id]).every(([k, v]) => (S[k] || '') === v)) || '';
 function openSettings() {
   $('settings').hidden = false;
   settingsAt = performance.now();
@@ -14,15 +28,12 @@ $('settings').addEventListener('click', e => {
   if (performance.now() - settingsAt < 500) return;   // 열 때의 두 번째 탭이 바로 닫지 않게
   const b = e.target.closest('button');
   if (b && !b.isConnected) return;   // 위젯·사진 탭 안쪽 처리에서 목록을 다시 그려 떨어져 나간 버튼 (이미 처리됨)
-  if (b && b.dataset.tab) {
-    b.closest('.set-card').dataset.tab = b.dataset.tab;
-    if (b.dataset.tab === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
-    return;
-  }
-  if (b && b.classList.contains('set-sync')) { b.closest('.set-card').dataset.tab = 'sync'; syncOpen(); return; }
+  if (b && b.dataset.tab) { setTab(b.dataset.tab); return; }
+  if (b && b.dataset.back != null) { setTab('widgets'); return; }   // 위젯 페이지 › 위젯 목록으로
+  if (b && b.classList.contains('set-sync')) { setTab('sync'); syncOpen(); return; }
   if (b && b.id === 'sync-off') { syncOff(); return; }
   if (b && b.id === 'remote-apply') { remoteApply(); return; }
-  if (b && b.id === 'remote-open') { b.closest('.set-card').dataset.tab = 'remotes'; renderRemotes(); return; }
+  if (b && b.id === 'remote-open') { setTab('remotes'); renderRemotes(); return; }
   // 미러 이름 목록: 이름을 누르면 그 미러 설정 / 이름 정하기·바꾸기 / 이 폰 목록에서 지우기
   if (b && b.dataset.go) { remoteGo(b.dataset.go); return; }
   if (b && b.dataset.nameSave != null) { remoteRename(REMOTE, $('rm-name').value); return; }
@@ -49,6 +60,7 @@ $('settings').addEventListener('click', e => {
     S.analog = !(t.id === 'digital' || t.digi);
     if (S.analog) S.dialTheme = t.id; else S.digi = t.digi || '';
   }
+  else if (b && b.dataset.style) Object.assign(S, STYLES[b.dataset.style], { analog: false });   // 스타일: 시계는 디지털로
   else if (b && b.dataset.logoTheme) S.logoTheme = b.dataset.logoTheme;   // 로고 위젯 테마
   else if (b && b.dataset.plateTheme) S.plate = b.dataset.plateTheme;   // 디데이·집중 타이머 위젯 테마 (plate.js)
   else if (b && b.dataset.ls) S.logoSpin = LG_SPIN[Math.min(LG_SPIN.length - 1, Math.max(0, LG_SPIN.indexOf(S.logoSpin) + Number(b.dataset.ls)))];   // 숫자 다시 돌기 간격
@@ -60,31 +72,33 @@ $('settings').addEventListener('click', e => {
   applySettings();
 });
 
-// 테마 탭: 시계 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
+// 시계 탭: 테마 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
+// 같은 시계의 색 차이는 fam(묶음)으로 카드 하나에: 카드 아래 점(dot 색, v 이름)을 누르면 그 색으로. 카드는 고른 색(아니면 첫 색) 그림·이름
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
 // 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief — LCD 다크·양각 다크는 같은 그림에 색만)
 const CLOCK_THEMES = [
-  { id: 'digital', name: '디지털' },
-  { id: 'digitale', name: '디지털 양각', digi: 'emboss' },
-  { id: 'digitalek', name: '디지털 양각 블랙', digi: 'embossk' },
-  { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
-  { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'] },
-  { id: 'edge', name: '엣지', edge: true },
-  { id: 'edgem', name: '엣지 민트', edge: true },
-  { id: 'edger', name: '엣지 레인보우', edge: true },
+  { id: 'digital', name: '디지털', fam: 'digital', v: '평면', dot: '#000' },
+  { id: 'digitale', name: '디지털 양각', digi: 'emboss', fam: 'digital', v: '양각', dot: '#ebe5e3' },
+  { id: 'digitalek', name: '디지털 양각 블랙', digi: 'embossk', fam: 'digital', v: '양각 블랙', dot: '#3a3a3e' },
+  { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'], fam: 'rec', v: '블랙', dot: '#161616' },
+  { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'], fam: 'rec', v: '실버', dot: 'linear-gradient(135deg, #f2f2f2, #8b8b8b)' },
+  { id: 'edge', name: '엣지', edge: true, fam: 'edge', v: '화이트', dot: '#fff' },
+  { id: 'edgem', name: '엣지 민트', edge: true, fam: 'edge', v: '민트', dot: '#5cf2cf' },
+  { id: 'edger', name: '엣지 레인보우', edge: true, fam: 'edge', v: '레인보우', dot: 'conic-gradient(#ff3b30, #ffcc00, #34c759, #0a84ff, #bf5af2, #ff3b30)' },
   { id: 'line', name: '라인', modern: true },
   { id: 'sweep', name: '스윕', modern: true },
   { id: 'date', name: '데이트', modern: true },
   { id: 'flower', name: '플라워', flower: true },
   { id: 'rainbow', name: '블랙 타일', rainbow: true },
   { id: 'qp', name: '타일 캘린더', qp: true },
-  { id: 'lcd', name: 'LCD', lcd: true },
-  { id: 'lcdk', name: 'LCD 다크', lcd: true },
+  { id: 'lcd', name: 'LCD', lcd: true, fam: 'lcd', v: '라이트', dot: '#dcdee1' },
+  { id: 'lcdk', name: 'LCD 다크', lcd: true, fam: 'lcd', v: '다크', dot: '#2a2b2e' },
   { id: 'quartz', name: '쿼츠', quartz: true },
   { id: 'rotary', name: '로터리', rotary: true },
-  { id: 'relief', name: '양각', relief: true },
-  { id: 'reliefk', name: '양각 다크', relief: true },
+  { id: 'relief', name: '양각', relief: true, fam: 'relief', v: '라이트', dot: '#e3ddda' },
+  { id: 'reliefk', name: '양각 다크', relief: true, fam: 'relief', v: '다크', dot: '#2b2b2e' },
 ];
+const thFam = t => t.fam || t.id;
 // 작은 그림 (40×40): 디지털은 시·분 두 줄(양각은 판에 도드라진 숫자 — plate.js digiThumb), 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
 // 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리·양각도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts·reliefParts)
 function thThumb(t) {
@@ -148,13 +162,19 @@ function thThumb(t) {
 }
 function thRender() {
   const cur = S.analog ? S.dialTheme : (CLOCK_THEMES.find(t => t.digi && t.digi === S.digi) || CLOCK_THEMES[0]).id;
-  $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
+  $('th-list').innerHTML = [...new Set(CLOCK_THEMES.map(thFam))].map(f => {
+    const vs = CLOCK_THEMES.filter(t => thFam(t) === f), t = vs.find(x => x.id === cur) || vs[0];
+    return `<div class="th-fam${t.id === cur ? ' on' : ''}"><button class="th-pick" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`
+      + `<div class="th-dots">${vs.length < 2 ? '' : vs.map(x => `<button data-clock-theme="${x.id}" class="${x.id === t.id ? 'on' : ''}" style="--c:${x.dot}" aria-label="${x.name}" title="${x.v}"></button>`).join('')}</div></div>`;
+  }).join('');
   rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
   $('lg-list').innerHTML = lgCards();
-  $('pl-list').innerHTML = plCards();
+  document.querySelectorAll('.pl-list').forEach(el => { el.innerHTML = plCards(el.dataset.pl); });   // 디데이·집중 타이머 페이지 (같은 설정)
+  const st = styleNow();
+  document.querySelectorAll('[data-style]').forEach(b => b.classList.toggle('on', b.dataset.style === st));
 }
 
-// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
+// 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름(› 있는 건 누르면 그 위젯 페이지) / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
 // 보이는 시간을 정한 위젯은 그 시간에만 나오고, 시작 시각이 되면 바로 그 위젯으로 넘어감 (시간은 가로·세로 공통)
 const CHEV = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
 let wgEdit = 'L', wgTimeOpen = null;
@@ -171,14 +191,15 @@ function wgRender() {
   $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
     const on = !off.includes(n), ready = wgReady(n), t = S.wgTime[n], open = wgTimeOpen === n;
-    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : n === 'count' ? '아래 디데이에서 날짜를 등록하면 나와요' : '사진 탭에서 사진을 올리면 나와요',
+    const note = [ready ? '' : n === 'transit' ? '눌러서 정류장을 등록하면 나와요' : n === 'count' ? '눌러서 날짜를 등록하면 나와요' : '눌러서 사진을 올리면 나와요',
       n === 'focus' && !on ? '꺼 둬도 타이머가 도는 동안은 나와요' : '',
       t ? `${hourName(t[0])}~${hourName(t[1])}에만` : ''].filter(Boolean).map(x => `<small>${x}</small>`).join('');
     const edit = !open ? '' : '<div class="wg-time">' + (t
       ? [0, 1].map(k => `<button data-th="${k}" data-step="-1" aria-label="${k ? '끝' : '시작'} 1시간 앞당기기">−</button><b>${hourName(t[k])}</b>`
         + `<button data-th="${k}" data-step="1" aria-label="${k ? '끝' : '시작'} 1시간 늦추기">+</button>`).join('<i>~</i>') + '<button class="wg-always">항상</button>'
       : '<em>항상 보여요</em><button class="wg-set">시간 정하기</button>') + '</div>';
-    return `<li data-wg="${n}" class="${ready ? '' : 'wait'}"><span>${WG_NAMES[n]}${note}</span>`
+    const name = WG_PAGE.includes(n) ? `<button class="wg-name" data-open="${n}">${WG_NAMES[n]}<i>›</i>${note}</button>` : `<span>${WG_NAMES[n]}${note}</span>`;
+    return `<li data-wg="${n}" class="${ready ? '' : 'wait'}">${name}`
       + `<button data-tm class="${t ? 'timed' : ''}${open ? ' open' : ''}" aria-label="보이는 시간">${CLOCKI}</button>`
       + `<button data-mv="-1" aria-label="위로"${i ? '' : ' disabled'}>${CHEV('M6 15l6-6 6 6')}</button>`
       + `<button data-mv="1" aria-label="아래로"${i < order.length - 1 ? '' : ' disabled'}>${CHEV('M6 9l6 6 6-6')}</button>`
@@ -189,6 +210,7 @@ document.querySelector('[data-page="widgets"]').addEventListener('click', e => {
   const b = e.target.closest('button'), li = b && b.closest('li');
   if (!b || b.disabled) return;
   if (b.dataset.or) { wgEdit = b.dataset.or; wgRender(); return; }
+  if (b.dataset.open) { setTab(b.dataset.open); return; }   // 그 위젯 페이지로
   if (!li) return;
   const n = li.dataset.wg, cfg = wgCfg(wgEdit);
   if (b.dataset.tm != null) { wgTimeOpen = wgTimeOpen === n ? null : n; wgRender(); return; }
