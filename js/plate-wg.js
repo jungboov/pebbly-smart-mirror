@@ -110,9 +110,10 @@ function pwHourly(k, W, H) {
     o += k.up(pwIco(k, wmo(code)[1], day, cx(j) - is / 2, yi, is), first ? .8 : .5);
     o += k.up(plText(cx(j), yt, ts, Math.round(temps[j]) + '°', 500, 'middle'), first ? 1 : .75);
     o += k.up(pwDot(pts[j][0], pts[j][1], first ? 3.4 : 2.1), first ? 1 : .6);
-    const p = h.precipitation_probability[i] || 0, bx = cx(j) - 2.6, fh = bh * Math.max(p, 8) / 100;
+    // 강수확률 막대: 파낸 홈에 확률만큼 채움(양각은 솟고 음각은 칠) — 0%는 빈 홈, 조금이라도 있으면 동그라미 하나만큼은 보이게
+    const p = h.precipitation_probability[i] || 0, bx = cx(j) - 2.6, fh = Math.max(bh * p / 100, 5.2);
     o += k.sink(c => `<rect x="${pf(bx)}" y="${pf(yb0)}" width="5.2" height="${pf(bh)}" rx="2.6" fill="${c}"/>`);
-    o += k.up(c => `<rect x="${pf(bx)}" y="${pf(yb0 + bh - fh)}" width="5.2" height="${pf(fh)}" rx="2.6" fill="${c}"/>`, p >= 30 ? .7 : .35);
+    if (p > 0) o += k.fill(c => `<rect x="${pf(bx)}" y="${pf(yb0 + bh - fh)}" width="5.2" height="${pf(fh)}" rx="2.6" fill="${c}"/>`, p >= 30 ? .7 : .4);
     if (p >= 30) o += k.ink(plText(cx(j), H - 14, 8.5, p + '%', 600, 'middle'));
   });
   return o;
@@ -159,7 +160,7 @@ function pwAir(k, W, H) {
   };
   const moonBlock = (x, y, bw, big) => {   // y: 가운데 줄
     const p = moonPhase(Date.now()), name = MOON_NAMES.find(([lim]) => p < lim)[1], r = big ? 11 : 8;
-    let s = k.sink(pwDot(x + r, y, r)) + k.up(c => `<path transform="translate(${pf(x + r)} ${pf(y)})" d="${moonPath(p, r)}" fill="${c}"/>`, .7);
+    let s = k.sink(pwDot(x + r, y, r)) + k.fill(c => `<path transform="translate(${pf(x + r)} ${pf(y)})" d="${moonPath(p, r)}" fill="${c}"/>`, .7);
     s += k.tx(plText(x + r * 2 + 8, y + (big ? -1 : 4), big ? 13 : 11, name, 700), .5);
     s += k.ink(plText(big ? x + r * 2 + 8 : x + bw, y + (big ? 13 : 4), 9.5, big ? $('moon-next').textContent : $('moon-pct').textContent, 600, big ? 'start' : 'end'));
     return s;

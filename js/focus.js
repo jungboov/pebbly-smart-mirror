@@ -100,19 +100,19 @@ function foPlate(W, H, st) {
   const L = foLay(W, H), [cx, cy, r] = L.dial;
   return plateSvg(W, H, S.plate, 'fo-', k => {
     let o = k.ink(plText(L.label[0], L.label[1], 11, `focus · ${st.n}/${S.fo.every}`, 500)) + k.up(plBrackets(W, H));
-    // 원판: 파낸 홈 위에 남은 만큼 솟은 호(12시부터 시계 방향), 분 눈금 인쇄, 가운데 단계·남은 시간·끝 시각
+    // 원판: 파낸 홈에 남은 만큼 채운 호(양각은 솟고 음각은 칠, 12시부터 시계 방향), 분 눈금 인쇄, 가운데 단계·남은 시간·끝 시각
     const a = 2 * Math.PI * Math.min(st.frac, .9999), ex = cx + r * Math.sin(a), ey = cy - r * Math.cos(a), ticks = Math.min(60, st.dur / 60);
     o += k.sink(c => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="${r * .11}"/>`);
-    if (st.frac > 0) o += k.up(c => `<path d="M${cx} ${cy - r}A${r} ${r} 0 ${st.frac > .5 ? 1 : 0} 1 ${ex.toFixed(2)} ${ey.toFixed(2)}" fill="none" stroke="${c}" stroke-width="${r * .07}" stroke-linecap="round"/>`, .9);
+    if (st.frac > 0) o += k.fill(c => `<path d="M${cx} ${cy - r}A${r} ${r} 0 ${st.frac > .5 ? 1 : 0} 1 ${ex.toFixed(2)} ${ey.toFixed(2)}" fill="none" stroke="${c}" stroke-width="${r * .07}" stroke-linecap="round"/>`, .9);
     o += k.print(c => Array.from({ length: ticks }, (_, i) => { const t = i / ticks * 2 * Math.PI, s = Math.sin(t), q = Math.cos(t);
       return `<line x1="${(cx + r * .8 * s).toFixed(2)}" y1="${(cy - r * .8 * q).toFixed(2)}" x2="${(cx + r * .86 * s).toFixed(2)}" y2="${(cy - r * .86 * q).toFixed(2)}" stroke="${c}" stroke-width=".8"/>`; }).join(''));
     o += k.ink(plText(cx, cy - r * .3, r * .15, FO_PH[st.ph], 700, 'middle')) + k.up(plText(cx, cy + r * .17, r * .44, st.mmss, 600, 'middle'));
     o += k.ink(plText(cx, cy + r * .45, r * .11, st.endTxt, 600, 'middle'));
-    // 회차 점: 끝낸 건 솟고, 지금 것은 솟은 점 가운데에 인쇄 점, 남은 건 파냄
+    // 회차 점: 끝낸 건 채움(양각은 솟고 음각은 칠), 지금 것은 솟은(음각은 파낸) 점 가운데에 인쇄 점, 남은 건 파냄
     const [dx, dy, gap, dr] = L.dots;
     for (let i = 0; i < S.fo.every; i++) {
       const c = cc => `<circle cx="${dx + i * gap}" cy="${dy}" r="${dr}" fill="${cc}"/>`;
-      o += i < st.done ? k.up(c, .7) : i === st.done && st.ph === 'focus' ? k.up(c, 1) + k.print(cc => `<circle cx="${dx + i * gap}" cy="${dy}" r="${dr * .45}" fill="${cc}"/>`) : k.sink(c);
+      o += i < st.done ? k.fill(c, .7) : i === st.done && st.ph === 'focus' ? k.up(c, 1) + k.print(cc => `<circle cx="${dx + i * gap}" cy="${dy}" r="${dr * .45}" fill="${cc}"/>`) : k.sink(c);
     }
     // 버튼: 로고 [ 03 ]처럼 대괄호로 감싼 로고 글꼴 영어 [ start ] [ skip ] [ reset ] — 판에서 낮게 솟음 (도는지는 글자 start·pause·resume으로)
     // 누르는 건 위에 겹친 투명 버튼(foBuild, 자리는 L.keys 그대로)

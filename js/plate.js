@@ -8,8 +8,15 @@ const PLATE_THEMES = [['flat', '평면'], ['emboss', '라이트 양각'], ['debo
   ['embossw', '퓨어 화이트 양각'], ['debossw', '퓨어 화이트 음각'], ['embossd', '퓨어 다크 양각'], ['debossd', '퓨어 다크 음각']];
 // 퓨어 테마: 판(둥근 바탕)을 그리지 않고 화면 바탕에 바로. 퓨어 화이트면 시계 강조 화면 바탕을 흰색으로(html.pure-w — theme.css 색 변수를 밝게)
 const plWhite = t => t === 'embossw' || t === 'debossw';
-// 양각 테마에서 '파냄' 조각이 쓸 음각 색
-const PL_SINK = { emboss: 'deboss', embossk: 'debossk', embossw: 'debossw', embossd: 'debossd' };
+// 양각 테마에서 '파냄' 조각(k.sink — 강수 막대 홈·달 어두운 쪽·집중 타이머 원판 홈·회차 점·사진 테)의 색: 판보다 어두운 홈
+// (음각 테마 색을 쓰면 다크 판은 파낸 바닥이 판보다 밝아서 홈이 솟은 막대처럼, 솟은 채움이 구멍처럼 보였음)
+// face 바닥 · hi 위 왼쪽 안쪽 그림자 · lo 아래 오른쪽 가장자리 빛 (logo.js lgSink)
+const PL_GROOVE = {
+  emboss: { face: '#cbc2be', lo: '#ffffff', hi: '#756d69' },
+  embossk: { face: '#0d0d0f', lo: '#4c4c53', hi: '#000000' },
+  embossw: { face: '#d0d0d5', lo: '#ffffff', hi: '#85858c' },
+  embossd: { face: '#141417', lo: '#3c3c43', hi: '#000000' },
+};
 const plFlat = () => !LG_INK[S.plate];
 // 글자 조각: x, y(글자 바닥선), 크기, 내용, 굵기, 맞춤 → 색을 받아 <text>. 한글은 로고 글꼴에 없어서 Pretendard로
 const plText = (x, y, size, txt, w = 600, anchor = 'start') => c =>
@@ -28,22 +35,24 @@ function plTint(m, t, dark) {
 // 판 SVG. build(k)가 조각을 그려 문자열로 돌려줌
 //   k.up(조각, 높이 0~1, 색 기운) 양각 테마는 도드라짐·음각 테마는 파냄 · k.print(조각) 장식 인쇄 · k.ink(조각, 색 기운) 읽을 글자 인쇄
 //   k.tx(조각, 높이, 색 기운) 읽을 글자: 낮게 솟거나 파인 글자 위에 진한 인쇄 색 — 작은 글자도 흐리지 않게
-//   k.sink(조각) 양각 테마는 파냄·음각 테마는 인쇄(솟은 것과 구분되게) · k.clip(x, y, w, h) 그 네모 밖을 잘라 내는 clip-path 주소 · k.def(문자열) <defs>에 넣음
-//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자 · thumb: 설정 카드(퓨어 테마도 바탕색을 깔아 보여 줌)
-function plateSvg(W, H, ink, pre, build, thumb) {
-  const m = LG_INK[ink], printed = [], clips = [], dark = !!m.dark;
+//   k.sink(조각) 파낸 홈 — 양각 테마는 판보다 어둡게(그림자 없이 솟은 조각들 밑에 — 그림자를 받으면 홈이 솟아 보였음), 음각 테마도 파냄
+//   k.fill(조각, 높이, 색 기운) 홈을 채운 것(강수 막대·집중 타이머 진행·달 밝은 쪽): 양각 테마는 솟고, 음각 테마는 진한 칠(파낸 홈에 칠을 채운 듯) — 둘 다 빈 홈과 확실히 달라 보이게 · k.clip(x, y, w, h) 그 네모 밖을 잘라 내는 clip-path 주소 · k.def(문자열) <defs>에 넣음
+//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자 · thumb: 설정 카드(퓨어 테마도 바탕색을 깔아 보여 줌) · noBg: 바탕 없이(시계 판 — 바탕은 CSS .clock::before)
+function plateSvg(W, H, ink, pre, build, thumb, noBg) {
+  const m = LG_INK[ink], printed = [], sunk = [], clips = [], dark = !!m.dark;
   const k = { W, H, pre,
     up: (s, h = 1, t) => lgMark(s, t ? plTint(m, t, dark) : m, h),
     print: s => { printed.push(s(m.print)); return ''; },
     ink: (s, t) => { printed.push(s(t ? dvMix(PL_INK[ink], t, dark ? .55 : .6) : PL_INK[ink])); return ''; },
-    sink: s => m.side ? lgSink(s, LG_INK[PL_SINK[ink]]) : s(m.print),
+    sink: s => m.side ? (sunk.push(lgSink(s, PL_GROOVE[ink])), '') : lgSink(s, m),
+    fill: (s, h = 1, t) => m.side ? k.up(s, h, t) : k.ink(s, t),
     def: s => { clips.push(s); return ''; },
     tx: (s, h = .5, t) => k.up(s, h, t) + k.ink(s, t),
     clip: (x, y, w, h) => { const id = pre + 'c' + clips.length; clips.push(`<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath>`); return `url(#${id})`; } };
   const body = build(k);
   return `<svg class="pl" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>`
     + `<radialGradient id="${pre}b" cx=".4" cy=".35" r=".9"><stop offset="0" stop-color="${m.bg[0]}"/><stop offset="1" stop-color="${m.bg[1]}"/></radialGradient>${lgShadow(m, pre + 's')}${clips.join('')}</defs>`
-    + (m.bare && !thumb ? '' : `<rect width="${W}" height="${H}" rx="14" fill="url(#${pre}b)"/>`) + `<g${m.sh ? ` filter="url(#${pre}s)"` : ''}>${body}</g>${printed.join('')}</svg>`;
+    + ((m.bare && !thumb) || noBg ? '' : `<rect width="${W}" height="${H}" rx="14" fill="url(#${pre}b)"/>`) + sunk.join('') + `<g${m.sh ? ` filter="url(#${pre}s)"` : ''}>${body}</g>${printed.join('')}</svg>`;
 }
 // 위젯 칸 크기 → 판 그림 단위(rem/4). 칸이 안 보이면(상세 화면) 0
 // 판을 위아래로 쌓을지(세로로 길거나 정사각형에 가까운 칸: 가로 화면·폰 가로) — 아니면 왼쪽·오른쪽으로 나눔(가로로 긴 칸: 세로 화면)

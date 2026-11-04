@@ -4,12 +4,16 @@
 const CM = ['clock', 'sw', 'tm', 'al'];
 let cm = 0, cmAt = 0;
 const CM_VIEWS = ['clock-in', 'cm-sw', 'cm-tm', 'cm-al'];
-function showCm(i, dir, axis) {
+// 보이는 칸: 디지털 양각·음각의 시계는 SVG 판(#dg — HTML 시계는 자리만 잡고 숨김)
+const cmView = i => $(i === 0 && document.body.classList.contains('digi-pl') ? 'dg' : CM_VIEWS[i]);
+// dir·axis가 있으면 위젯처럼 넘어감(screen.js cp), from: 손으로 끌다 놓은 자리·속도
+function showCm(i, dir, axis, from) {
+  cp.stop();
   const old = cm;
   cm = (i + CM.length) % CM.length;
   document.body.dataset.cm = CM[cm];
   cmAt = Date.now();
-  if (dir && old !== cm) slide($(CM_VIEWS[old]), $(CM_VIEWS[cm]), dir, axis);
+  if (dir && old !== cm) cp.go(cmView(old), cmView(cm), dir, axis, from);
   renderCm();
 }
 function renderCm() {

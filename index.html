@@ -21,20 +21,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 로고 → 디데이 → 집중 타이머 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=105">
-<link rel="stylesheet" href="css/base.css?v=105">
-<link rel="stylesheet" href="css/clock.css?v=105">
-<link rel="stylesheet" href="css/weather.css?v=105">
-<link rel="stylesheet" href="css/detail.css?v=105">
-<link rel="stylesheet" href="css/standby.css?v=105">
-<link rel="stylesheet" href="css/transit.css?v=105">
-<link rel="stylesheet" href="css/photo.css?v=105">
-<link rel="stylesheet" href="css/calendar.css?v=105">
-<link rel="stylesheet" href="css/logo.css?v=105">
-<link rel="stylesheet" href="css/count.css?v=105">
-<link rel="stylesheet" href="css/focus.css?v=105">
-<link rel="stylesheet" href="css/standby-widgets.css?v=105">
-<link rel="stylesheet" href="css/settings.css?v=105">
+<link rel="stylesheet" href="css/theme.css?v=106">
+<link rel="stylesheet" href="css/base.css?v=106">
+<link rel="stylesheet" href="css/clock.css?v=106">
+<link rel="stylesheet" href="css/weather.css?v=106">
+<link rel="stylesheet" href="css/detail.css?v=106">
+<link rel="stylesheet" href="css/standby.css?v=106">
+<link rel="stylesheet" href="css/transit.css?v=106">
+<link rel="stylesheet" href="css/photo.css?v=106">
+<link rel="stylesheet" href="css/calendar.css?v=106">
+<link rel="stylesheet" href="css/logo.css?v=106">
+<link rel="stylesheet" href="css/count.css?v=106">
+<link rel="stylesheet" href="css/focus.css?v=106">
+<link rel="stylesheet" href="css/standby-widgets.css?v=106">
+<link rel="stylesheet" href="css/settings.css?v=106">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로: 공용 번호 인트로 [ 03 ] pebbly mirror (js/pebbly-intro.js — _brand/intro 원본의 사본, sync.py로 맞춤)
@@ -42,7 +42,7 @@
      부품을 바로 불러서 스크립트가 도는 즉시 첫 장면이 보임. 그동안 뒤에서 미러가 뜸, 누르면 바로 넘어감 (intro.js) -->
 <div id="intro" class="intro" aria-hidden="true"></div>
 <script src="js/pebbly-intro.js?v=312dee7d"></script>
-<script src="js/intro.js?v=105"></script>
+<script src="js/intro.js?v=106"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -126,7 +126,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=105" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=106" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -331,6 +331,8 @@
     <div class="set-head"><div class="set-title">설정</div>
       <div class="set-tabs"><button data-tab="screen" class="on">화면</button><button data-tab="theme">테마</button><button data-tab="widgets">위젯</button></div>
     </div>
+    <!-- 위 제목·탭과 아래 버튼 줄은 고정, 이 안만 스크롤 (settings.css .set-body) -->
+    <div class="set-body">
     <p class="remote-note">이 폰에서 <b>미러 설정</b>을 바꾸는 중이에요. 다 바꾼 뒤 아래 <b>미러에 적용</b>을 누르면 10초쯤 안에 반영되고, 미러가 받으면 여기에 알려 드려요.
       이 폰은 이 미러를 이름으로 기억해서, 다음엔 QR 없이 이 폰의 미러 설정 › <b>미러 설정하기</b>에서 이름을 누르면 열려요(주소 mirror.pebblylabs.com/?remote 는 마지막에 연 미러). <span id="remote-msg"></span></p>
     <!-- 폰(설정 중): 이 미러 이름 정하기(처음 열 때), 기억한 다른 미러로 바로 바꾸기 (sync.js renderRemotes) -->
@@ -491,6 +493,7 @@
     </div>
     <p class="set-hint">화면을 두 번 탭하면 이 설정이 열려요. 날씨 쪽을 밀면 날씨가, 시계 쪽을 밀면 스톱워치·타이머·알람이 나와요.</p>
     <a class="set-policy" href="privacy.html">개인정보처리방침</a><span id="set-ver" class="set-ver"></span>
+    </div>
     <!-- 폰(?remote=)에서는 '폰으로 설정' 대신 '미러에 적용' (바꾼 게 있을 때만 눌림)
          QR로 다른 미러를 연 적 있는 폰은 '미러 설정하기'에서 이름을 눌러 QR 없이 그 미러 설정을 엶 -->
     <div class="set-foot"><button class="set-sync">폰으로 설정</button><button id="remote-open" class="remote-open" hidden>미러 설정하기</button><button id="remote-apply" class="remote-apply" disabled>미러에 적용</button><button class="set-close">닫기</button></div>
@@ -498,22 +501,22 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=105"></script>
-<script src="js/sync.js?v=105"></script>
-<script src="js/clock.js?v=105"></script>
-<script src="js/weather.js?v=105"></script>
-<script src="js/screen.js?v=105"></script>
-<script src="js/clock-modes.js?v=105"></script>
-<script src="js/settings.js?v=105"></script>
-<script src="js/transit.js?v=105"></script>
-<script src="js/photo.js?v=105"></script>
-<script src="js/calendar.js?v=105"></script>
-<script src="js/logo.js?v=105"></script>
-<script src="js/plate.js?v=105"></script>
-<script src="js/digi.js?v=105"></script>
-<script src="js/count.js?v=105"></script>
-<script src="js/focus.js?v=105"></script>
-<script src="js/plate-wg.js?v=105"></script>
-<script src="js/main.js?v=105"></script>
+<script src="js/core.js?v=106"></script>
+<script src="js/sync.js?v=106"></script>
+<script src="js/clock.js?v=106"></script>
+<script src="js/weather.js?v=106"></script>
+<script src="js/screen.js?v=106"></script>
+<script src="js/clock-modes.js?v=106"></script>
+<script src="js/settings.js?v=106"></script>
+<script src="js/transit.js?v=106"></script>
+<script src="js/photo.js?v=106"></script>
+<script src="js/calendar.js?v=106"></script>
+<script src="js/logo.js?v=106"></script>
+<script src="js/plate.js?v=106"></script>
+<script src="js/digi.js?v=106"></script>
+<script src="js/count.js?v=106"></script>
+<script src="js/focus.js?v=106"></script>
+<script src="js/plate-wg.js?v=106"></script>
+<script src="js/main.js?v=106"></script>
 </body>
 </html>

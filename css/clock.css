@@ -221,9 +221,11 @@ body.sb.digi-pl .cm .al-list button.off{opacity:.55}
 body.sb.digi-pl .cm-pm{gap:.6rem}
 body.sb.digi-pl .cm-pm button{font-size:3.6rem;padding:.4rem .2rem}
 body.sb.digi-pl .cm-dots i{background:var(--dim)}
-/* 시계 화면: HTML 시계는 자리만 잡고 숨기고, 로고 판 구성의 SVG 판(digi.js)이 칸을 채움. 스톱워치·타이머·알람에선 판만 남고 HTML 숫자 */
+/* 시계 화면: HTML 시계는 자리만 잡고 숨기고, 로고 판 구성의 SVG 판(digi.js)이 칸을 채움. 스톱워치·타이머·알람에선 HTML 숫자
+   판 바탕은 늘 .clock::before 하나(SVG엔 바탕 없음) — 시계 쪽을 넘길 때 판은 그대로 있고 안의 숫자만 넘어가게. 넘어가는 동안 보이도록 숨김은 visibility로 */
 .dg{display:none}
-body.sb.digi-pl[data-cm="clock"] .dg{display:block;position:absolute;inset:0;pointer-events:none}
+body.sb.digi-pl .dg{display:block;position:absolute;inset:0;pointer-events:none;visibility:hidden}
+body.sb.digi-pl[data-cm="clock"] .dg{visibility:visible}
 body.sb.digi-pl[data-cm="clock"] #clock-in{visibility:hidden}
 /* 가로: 스톱워치 1/100초는 버튼 줄과 겹치지 않게 초 숫자 바로 아래 오른쪽(버튼 줄 위 빈 곳)에 */
 @media (orientation: landscape){

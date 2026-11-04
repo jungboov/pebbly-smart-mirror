@@ -9,7 +9,7 @@ function setTab(t) {
   card.dataset.tab = t;
   card.querySelectorAll('.set-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === SET_TOP[t]));
   card.querySelectorAll('.set-page').forEach(p => p.classList.toggle('on', p.dataset.page === t));
-  card.scrollTop = 0;
+  card.querySelector('.set-body').scrollTop = 0;   // 제목·탭·닫기 줄은 고정, 가운데만 스크롤
   if (t === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
 }
 // 스타일(화면 탭): 시계(디지털)·로고·위젯 모양을 한 번에 — 평면 · 라이트/다크 양각·음각 · 퓨어 화이트/다크 양각·음각(판 없이 화면 바탕에). 평면은 로고는 그대로(로고 위젯은 판 모양뿐)

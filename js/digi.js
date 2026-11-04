@@ -75,7 +75,7 @@ function dgRender() {
       o += k.ink(plText(r.x, r.cy + r.s * 1.55, 9, 'sec', 500, 'middle'));
     }
     return o;
-  });
+  }, false, true);   // 바탕 없이 — 판 바탕은 .clock::before (시계 쪽을 넘길 때 판은 그대로)
   dgLay = L; dgKey = [S.digi, W, H, S.date, S.secs, S.hour12, ymd(d)].join();
   dgShown = null;
   dgTick(d, false);

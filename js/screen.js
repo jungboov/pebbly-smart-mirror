@@ -171,7 +171,7 @@ function panelList(o) {
 }
 // dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 넘어감, from: 손으로 끌다 놓은 자리·속도에서 이어서
 function showPanel(p, dir, axis, from) {
-  pgStop();   // 넘어가던 중이면 끝 모습으로
+  wp.stop();   // 넘어가던 중이면 끝 모습으로
   const list = panelList(), old = panelName;
   if (!list.length) {   // 위젯을 모두 끔: 시계만
     panel = 0; panelName = '';
@@ -192,7 +192,7 @@ function showPanel(p, dir, axis, from) {
   if (panelName === 'logo' && old !== 'logo') lgSpin();   // 로고: 들어올 때마다 숫자 한 바퀴
   if (panelName === 'count' && old !== 'count') cdEnter();   // 디데이: 들어올 때마다 숫자 릴이 어제에서 한 칸
   if (panelName === 'focus') foRender(true);
-  if (dir && S.focus && old !== panelName) page(panelEl(old), panelEl(panelName), dir, axis, from);
+  if (dir && S.focus && old !== panelName) wp.go(panelEl(old), panelEl(panelName), dir, axis, from);
   schedulePanel();
 }
 function schedulePanel() {
@@ -212,100 +212,117 @@ function autoNext(held) {
 // 위젯 넘기기 (아이폰 위젯 묶음처럼): 지금 위젯이 민 쪽으로 나가며 조금 작아지고 흐려지며 번지고, 다음 위젯이 바로 뒤에 붙어 들어오며
 // 처음엔 흐릿하게 번져 보이다가 다 들어오면 또렷하게 (흰 글자뿐인 화면이라 흐려지기만으론 잘 안 보여서 번짐도). 두 위젯 모두 위젯 칸(+ 2rem) 밖은 잘라서 시계·헤더 위로 넘어가지 않음
 // 손으로 끄는 동안은 손가락을 따라오고(drag), 놓으면 그 속도 그대로 용수철처럼 마저 넘어가거나 제자리로. 자동 넘김도 같은 움직임
+// 시계 쪽(시계 → 스톱워치 → 타이머 → 알람)도 같은 모습 — 위젯 쪽(wp)과 시계 쪽(cp)은 따로 움직임
 // (CSS의 숨김 상태 위에 잠깐 덮어씌우는 모양이라 끝나면 지워서 원래 상태로)
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
-let pg = null, pgRaf = 0;   // 넘어가는 중인 { out 나가는 위젯, inn 들어오는 위젯, dir, axis, span 한 칸 거리, m 잘라 내는 여유(2rem), x 나가는 위젯 이동(px) }
-// 위젯 하나 놓기: t 이동(px), s 크기, o 불투명도, b 번짐(rem). 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 위젯 칸에 고정
-function pgPut(el, t, s, o, b) {
-  const { axis, m } = pg, w = el.offsetWidth, h = el.offsetHeight, [a, c] = axis === 'y' ? [h, w] : [w, h];
-  const lo = a / 2 - (a / 2 + m + t) / s, hi = a / 2 - (a / 2 + m - t) / s, side = c / 2 - (c / 2 + m) / s;
-  el.style.clipPath = axis === 'y' ? `inset(${lo}px ${side}px ${hi}px ${side}px)` : `inset(${side}px ${hi}px ${side}px ${lo}px)`;
-  el.style.transform = `translate${axis === 'y' ? 'Y' : 'X'}(${t}px) scale(${s})`;
-  el.style.opacity = o;
-  el.style.filter = b > .05 ? `blur(${b * m / 2}px)` : '';
-  el.style.visibility = 'visible';
-}
-function pgDraw() {
-  const { out, inn, dir, span, x } = pg, p = Math.min(1, Math.abs(x) / span);
-  pgPut(out, x, 1 - .08 * p, 1 - .8 * p, .6 * p);
-  if (inn) pgPut(inn, x + dir * span, .92 + .08 * p, .15 + .85 * p, .6 * (1 - p));
+// frame(rem): 잘라 내는 테두리 { el 기준 칸, m 여유(px), round 모서리(px) } — 없으면 넘어가는 칸 자신 + 2rem
+function pager(frame) {
+  // st: { out 나가는 칸, inn 들어오는 칸, dir, axis, span 한 칸 거리, m 여유, round, rem, x 나가는 칸 이동(px), box 칸마다 잘라 낼 테두리 [왼, 위, 오른, 아래, 폭, 높이] }
+  const P = { st: null, raf: 0 };
+  // 하나 놓기: t 이동(px), s 크기, o 불투명도, b 번짐(0~1). 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 제자리에 고정
+  const put = (el, t, s, o, b) => {
+    const { axis, m, round, rem } = P.st, [x0, y0, x1, y1, w, h] = P.st.box.get(el), y = axis === 'y';
+    const [a, c, r0, r1, q0, q1] = y ? [h, w, y0, y1, x0, x1] : [w, h, x0, x1, y0, y1];
+    const lo = a / 2 + (r0 - m - t - a / 2) / s, hi = a / 2 - (r1 + m - t - a / 2) / s;   // 움직이는 쪽 앞뒤
+    const c0 = c / 2 + (q0 - m - c / 2) / s, c1 = c / 2 - (q1 + m - c / 2) / s;   // 옆
+    const rd = round ? ` round ${round / s}px` : '';
+    el.style.clipPath = y ? `inset(${lo}px ${c1}px ${hi}px ${c0}px${rd})` : `inset(${c0}px ${hi}px ${c1}px ${lo}px${rd})`;
+    el.style.transform = `translate${y ? 'Y' : 'X'}(${t}px) scale(${s})`;
+    el.style.opacity = o;
+    el.style.filter = b > .05 ? `blur(${b * rem}px)` : '';
+    el.style.visibility = 'visible';
+  };
+  P.draw = () => {
+    const { out, inn, dir, span, x } = P.st, p = Math.min(1, Math.abs(x) / span);
+    put(out, x, 1 - .08 * p, 1 - .8 * p, .6 * p);
+    if (inn) put(inn, x + dir * span, .92 + .08 * p, .15 + .85 * p, .6 * (1 - p));
+  };
+  P.stop = () => {
+    cancelAnimationFrame(P.raf);
+    if (P.st) { pgClear(P.st.out); if (P.st.inn) pgClear(P.st.inn); P.st = null; }
+  };
+  P.start = (out, inn, dir, axis, x) => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), f = frame ? frame(rem) : null;
+    const fr = f && f.el.getBoundingClientRect();
+    const box = new Map([out, inn].filter(Boolean).map(el => {
+      if (!fr) return [el, [0, 0, el.offsetWidth, el.offsetHeight, el.offsetWidth, el.offsetHeight]];
+      const r = el.getBoundingClientRect();
+      return [el, [fr.left - r.left, fr.top - r.top, fr.right - r.left, fr.bottom - r.top, r.width, r.height]];
+    }));
+    const len = fr ? (axis === 'y' ? fr.height : fr.width) : (axis === 'y' ? out.offsetHeight : out.offsetWidth);
+    P.st = { out, inn, dir, axis, x, rem, box, m: f ? f.m : 2 * rem, round: f ? f.round : 0, span: len + 6 * rem };
+    P.draw();
+  };
+  // 용수철(임계 감쇠: 튕기지 않고 멈춤)로 x를 to까지. v 시작 속도(px/ms), w 빠르기(클수록 빨리 멈춤)
+  P.spring = (to, v, w, done) => {
+    cancelAnimationFrame(P.raf);
+    const t0 = performance.now(), A = P.st.x - to;
+    if (v * A < 0 && Math.abs(v) > w * Math.abs(A)) v = -w * A;   // 너무 세게 던져도 지나쳤다 돌아오지 않게
+    const B = v + w * A;
+    const step = now => {
+      if (!P.st) return;
+      const t = Math.max(0, now - t0), e = Math.exp(-w * t);
+      P.st.x = to + (A + B * t) * e;
+      if (Math.abs(P.st.x - to) < 1 && Math.abs((B - w * (A + B * t)) * e) < .02) { P.st.x = to; P.draw(); done(); return; }
+      P.draw();
+      P.raf = requestAnimationFrame(step);
+    };
+    P.raf = requestAnimationFrame(step);
+  };
+  // 이미 바뀐 칸으로 넘어가는 모습: 처음부터(자동·버튼) 또는 손으로 끌다 놓은 자리에서(from)
+  P.go = (outEl, inEl, dir, axis = 'x', from) => {
+    if (calm.matches || !outEl || !inEl) return;
+    P.start(outEl, inEl, dir, axis, from ? from.x : 0);
+    P.spring(-dir * P.st.span, from ? from.v : 0, from ? .012 : .009, P.stop);
+  };
+  return P;
 }
 const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.filter = el.style.visibility = ''; };
-function pgStop() {
-  cancelAnimationFrame(pgRaf);
-  if (pg) { pgClear(pg.out); if (pg.inn) pgClear(pg.inn); pg = null; }
-}
-function pgStart(out, inn, dir, axis, x) {
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  pg = { out, inn, dir, axis, x, m: 2 * rem, span: (axis === 'y' ? out.offsetHeight : out.offsetWidth) + 6 * rem };
-  pgDraw();
-}
-// 용수철(임계 감쇠: 튕기지 않고 멈춤)로 x를 to까지. v 시작 속도(px/ms), w 빠르기(클수록 빨리 멈춤)
-function pgSpring(to, v, w, done) {
-  cancelAnimationFrame(pgRaf);
-  const t0 = performance.now(), A = pg.x - to;
-  if (v * A < 0 && Math.abs(v) > w * Math.abs(A)) v = -w * A;   // 너무 세게 던져도 지나쳤다 돌아오지 않게
-  const B = v + w * A;
-  const step = now => {
-    if (!pg) return;
-    const t = Math.max(0, now - t0), e = Math.exp(-w * t);
-    pg.x = to + (A + B * t) * e;
-    if (Math.abs(pg.x - to) < 1 && Math.abs((B - w * (A + B * t)) * e) < .02) { pg.x = to; pgDraw(); done(); return; }
-    pgDraw();
-    pgRaf = requestAnimationFrame(step);
-  };
-  pgRaf = requestAnimationFrame(step);
-}
-// 이미 바뀐 위젯(showPanel)으로 넘어가는 모습: 처음부터(자동·버튼) 또는 손으로 끌다 놓은 자리에서(from)
-function page(outEl, inEl, dir, axis = 'x', from) {
-  if (calm.matches || !outEl || !inEl) return;
-  pgStart(outEl, inEl, dir, axis, from ? from.x : 0);
-  pgSpring(-dir * pg.span, from ? from.v : 0, from ? .012 : .009, pgStop);
-}
+// 시계 쪽: 디지털 양각·음각은 판(#dg 칸 = 판 자리) 안에서만 보이게 판 모서리만큼 둥글게 자름, 판 없는 퓨어·평면·아날로그는 시계 칸 + 2rem
+const wp = pager(), cp = pager(rem => {
+  const b = document.body.classList, pl = b.contains('digi-pl'), plate = pl && !b.contains('digi-bare');
+  return { el: pl ? $('dg') : $('clock'), m: plate ? 0 : 2 * rem, round: plate ? 3.6 * rem : 0 };
+});
 
-// 손으로 끌기: 위젯 쪽을 누른 채 움직이면 지금 위젯이 손가락을 따라오고, 그 방향 다음(이전) 위젯이 뒤따라 흐릿하게 보임
-// 놓을 때 화면의 8% 넘게 끌었거나 그쪽으로 튕기듯 놓으면 넘어가고, 아니면 제자리로. 위젯이 하나뿐이면 조금만 끌려 왔다 돌아감
-let drag = null;   // { axis, pts: 최근 [시각, 끈 거리] }
+// 손으로 끌기: 누른 채 움직이면 지금 칸이 손가락을 따라오고, 그 방향 다음(이전) 칸이 뒤따라 흐릿하게 보임
+// 위젯 쪽은 켠 위젯, 시계 쪽은 시계 → 스톱워치 → 타이머 → 알람
+// 놓을 때 화면의 8% 넘게 끌었거나 그쪽으로 튕기듯 놓으면 넘어가고, 아니면 제자리로. 칸이 하나뿐이면 조금만 끌려 왔다 돌아감
+let drag = null;   // { side: 'wg' 위젯 · 'cm' 시계, axis, pts: 최근 [시각, 끈 거리] }
+function dragSide() {
+  if (drag.side === 'cm') return { P: cp, n: CM.length, i: cm, el: cmView, go: showCm, rest: () => {} };
+  const list = panelList();
+  return { P: wp, n: list.length, i: panel, el: j => panelEl(list[j]), go: showPanel, rest: schedulePanel };
+}
 function dragMove(d) {
-  const list = panelList(), n = list.length, out = panelEl(panelName);
-  if (!n || !out) return;
-  const dir = d < 0 ? 1 : -1, inn = n > 1 ? panelEl(list[((panel + dir) % n + n) % n]) : null;
-  if (pg && (pg.out !== out || pg.inn !== inn)) pgStop();   // 끄는 방향이 바뀌면 반대쪽 위젯으로
-  if (!pg) pgStart(out, inn, dir, drag.axis, 0);
-  pg.x = inn ? d : d * .25;
-  cancelAnimationFrame(pgRaf);
-  pgRaf = requestAnimationFrame(pgDraw);
+  const { P, n, i, el } = dragSide(), out = n ? el(i) : null;
+  if (!out) return;
+  const dir = d < 0 ? 1 : -1, inn = n > 1 ? el(((i + dir) % n + n) % n) : null;
+  if (P.st && (P.st.out !== out || P.st.inn !== inn)) P.stop();   // 끄는 방향이 바뀌면 반대쪽 칸으로
+  if (!P.st) P.start(out, inn, dir, drag.axis, 0);
+  P.st.x = inn ? d : d * .25;
+  cancelAnimationFrame(P.raf);
+  P.raf = requestAnimationFrame(P.draw);
 }
 function dragEnd(d, t) {
-  const { pts } = drag;
+  const { P, i, go, rest } = dragSide(), { pts } = drag;
   drag = null;
   pts.push([t, d]);
   const last = pts[pts.length - 1], first = pts.find(q => last[0] - q[0] <= 100) || last;   // 놓기 직전 0.1초 속도
   const v = last[0] > first[0] ? (last[1] - first[1]) / (last[0] - first[0]) : 0;
-  if (!pg) { schedulePanel(); return; }
-  pg.x = pg.inn ? d : d * .25;
+  if (!P.st) { rest(); return; }
+  const st = P.st;
+  st.x = st.inn ? d : d * .25;
   const far = Math.abs(d) >= Math.min(innerWidth, innerHeight) * .08;
-  if (pg.inn && (Math.abs(v) > .3 ? v * d > 0 : far)) { showPanel(panel + pg.dir, pg.dir, pg.axis, { x: pg.x, v }); return; }
-  dragBack(pg.inn ? v : v * .25);
+  if (st.inn && (Math.abs(v) > .3 ? v * d > 0 : far)) { go(i + st.dir, st.dir, st.axis, { x: st.x, v }); return; }
+  dragBack(P, rest, st.inn ? v : v * .25);
 }
 // 제자리로: 놓은 속도로 돌아가고, 자동 넘김은 처음부터
-function dragBack(v) {
-  pgSpring(0, v, .012, () => { pgStop(); schedulePanel(); });
-}
-
-// 시계 쪽(스톱워치·타이머·알람) 미끄러지기: 나가는 쪽은 민 방향으로 빠지며 사라지고, 들어오는 쪽은 반대편에서 들어옴
-function slide(outEl, inEl, dir, axis = 'x') {
-  if (calm.matches || !outEl || !inEl) return;
-  const t = v => `translate${axis === 'y' ? 'Y' : 'X'}(${v}rem)`;
-  const ease = 'cubic-bezier(.2,.75,.2,1)';
-  outEl.animate([{ opacity: 1, visibility: 'visible', transform: t(0) }, { opacity: 0, visibility: 'visible', transform: t(-dir * 10) }],
-    { duration: 380, easing: ease });
-  inEl.animate([{ opacity: 0, transform: t(dir * 12) }, { opacity: 1, transform: t(0) }],
-    { duration: 520, easing: ease });
+function dragBack(P, rest, v) {
+  P.spring(0, v, .012, () => { P.stop(); rest(); });
 }
 
 // ===== 터치 =====
-// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전 (위젯 쪽은 손가락을 따라 끌림, 위 dragMove)
+// 밀기: 왼쪽·위로 밀면 다음, 오른쪽·아래로 밀면 이전 (위젯 쪽·시계 쪽 모두 손가락을 따라 끌림, 위 dragMove)
 //   시계 쪽에서 밀면 시계 → 스톱워치 → 타이머 → 알람 (시계 강조 화면), 나머지는 날씨 위젯 (사진 액자에서 좌우로 밀면 사진)
 // 두 번 탭(더블클릭): 설정 열기. 버튼을 누를 때는 둘 다 안 함
 let touchStart = null, lastTap = 0;
@@ -315,19 +332,22 @@ document.addEventListener('pointerdown', e => {
   const inClock = S.focus && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   touchStart = { x: e.clientX, y: e.clientY, clock: inClock, id: e.pointerId };
 });
-// 위젯 쪽을 누른 채 12px 넘게 움직이면 끌기 시작 (그 전엔 탭으로 봄). 사진 액자 좌우는 사진 넘기기라 끌지 않음
+// 위젯 쪽·시계 쪽을 누른 채 12px 넘게 움직이면 끌기 시작 (그 전엔 탭으로 봄). 사진 액자 좌우는 사진 넘기기라 끌지 않음
 document.addEventListener('pointermove', e => {
   const s = touchStart;
-  if (!s || s.clock || e.pointerId !== s.id || !S.focus || !panelName || !$('settings').hidden) return;
+  if (!s || e.pointerId !== s.id || !S.focus || (!s.clock && !panelName) || !$('settings').hidden) return;
   const dx = e.clientX - s.x, dy = e.clientY - s.y;
   if (!drag) {
     if (Math.hypot(dx, dy) < 12) return;
     const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-    if (panelName === 'photo' && axis === 'x' && photos.length > 1) return;
-    pgStop();   // 넘어가던 중이면 끝 모습에서 잡음
-    clearTimeout(panelTimer);   // 끄는 동안 자동 넘김 멈춤
-    phWaitOff();
-    drag = { axis, pts: [] };
+    if (s.clock) cp.stop();   // 넘어가던 중이면 끝 모습에서 잡음
+    else {
+      if (panelName === 'photo' && axis === 'x' && photos.length > 1) return;
+      wp.stop();
+      clearTimeout(panelTimer);   // 끄는 동안 자동 넘김 멈춤
+      phWaitOff();
+    }
+    drag = { side: s.clock ? 'cm' : 'wg', axis, pts: [] };
   }
   const d = drag.axis === 'x' ? dx : dy;
   drag.pts.push([e.timeStamp, d]);
@@ -337,8 +357,9 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointercancel', () => {
   touchStart = null;
   if (!drag) return;
+  const { P, rest } = dragSide();
   drag = null;
-  if (pg) dragBack(0); else schedulePanel();
+  if (P.st) dragBack(P, rest, 0); else rest();
 });
 document.addEventListener('pointerup', e => {
   const s = touchStart;
