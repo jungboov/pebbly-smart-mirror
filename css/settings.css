@@ -188,3 +188,5 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
   .set-page.on > *{grid-column:1 / -1}
   .set-page.on > .set-row:not(.set-sub){grid-column:auto}
 }
+/* 설정 아래 개인정보처리방침 옆: 지금 떠 있는 판 번호 (새 버전을 받았는지 확인용) */
+.set-ver{align-self:flex-start;margin-top:-1.6rem;font-size:2.2rem;color:var(--text-dim);font-variant-numeric:tabular-nums}

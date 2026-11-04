@@ -26,6 +26,25 @@ function scheduleReload() {
   }, next - now);
 }
 
+// ===== 새 배포 받기 =====
+// 켜 둔 화면(미러·폴드처럼 계속 열어 두는 앱)은 새로고침 전까지 예전 코드라서, 10분마다 그리고 앱을 다시 볼 때(백그라운드에서 돌아올 때)
+// 서버의 화면 파일에서 판 번호(main.js ?v=)를 보고 다르면 인트로 없이 새로고침. 설정을 여는 중·폰에서 미러 설정 중·스톱워치·타이머가 돌거나 알람이 울리는 중엔 미룸
+// (?ver= 요청은 서비스 워커가 저장본을 주지 않고 그대로 인터넷으로 보냄 — sw.js)
+const APP_V = (document.querySelector('script[src*="js/main.js"]').getAttribute('src').match(/v=([^&]+)/) || [])[1] || '';
+let verAt = 0;
+async function checkVersion() {
+  if (REMOTE || Date.now() - verAt < 60e3 || !navigator.onLine) return;
+  verAt = Date.now();
+  try {
+    const html = await (await fetch('/?ver=' + Date.now(), { cache: 'no-store' })).text();
+    const v = (html.match(/js\/main\.js\?v=([^"&]+)/) || [])[1];
+    if (!v || v === APP_V) return;
+    if (!$('settings').hidden || sw.run || tm.run || !$('ring').hidden) { verAt = 0; return; }   // 다음 확인 때 다시
+    try { sessionStorage.setItem('quietStart', '1'); } catch (e) {}
+    location.reload();
+  } catch (e) {}
+}
+
 // ===== 시작 =====
 (function init() {
   applyMode();
@@ -69,4 +88,7 @@ function scheduleReload() {
   setInterval(loadAir, CONFIG.airEvery);
   keepAwake();
   scheduleReload();
+  setInterval(checkVersion, 10 * 60e3);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
+  $('set-ver').textContent = APP_V ? 'v' + APP_V : '';   // 설정 아래: 지금 떠 있는 판 번호
 })();

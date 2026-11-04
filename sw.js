@@ -32,7 +32,7 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
-  if (req.method !== 'GET') return;
+  if (req.method !== 'GET' || url.searchParams.has('ver')) return;   // 새 배포 확인(main.js checkVersion)은 늘 인터넷으로
   if (url.origin === location.origin && !url.pathname.startsWith('/api/')) {
     if (req.mode === 'navigate') e.respondWith(page(req, url, e));
     else if (/^\/(css|js)\//.test(url.pathname) && url.searchParams.has('v')) e.respondWith(pinned(req, url));

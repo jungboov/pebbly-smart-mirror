@@ -77,7 +77,7 @@ function plApply() {
 // 스톱워치·타이머·알람 숫자와 버튼도 같이. 아날로그 시계를 고르면 꺼짐
 const plRgba = (hex, a) => `rgba(${[1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(',')},${a})`;
 function digiApply() {
-  const m = LG_INK[S.digi], on = !S.analog && !!m, st = $('clock').style;
+  const m = LG_INK[S.digi], on = S.focus && !S.analog && !!m, st = $('clock').style;   // 양각은 시계 강조 화면에서만 — 상세 화면에서 켜 두면 숫자 폭을 양각 글꼴로 재서 평면 숫자가 잘렸음
   if (document.body.classList.contains('digi-pl') !== on) {   // 글꼴이 바뀌어서 숫자 폭을 다시 잼 (MuseoModerno를 받은 뒤 한 번 더)
     document.body.classList.toggle('digi-pl', on);
     // 글꼴이 바뀌면(양각 MuseoModerno ↔ 평면 Orbitron) 숫자 폭을 다시 재고 숫자 칸 폭도 바로 바꿈 — 칸을 안 바꾸면 평면으로 돌아왔을 때 넓은 숫자가 좁은 칸에서 겹치거나 잘렸음
