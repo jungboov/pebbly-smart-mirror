@@ -80,9 +80,11 @@ function digiApply() {
   const m = LG_INK[S.digi], on = !S.analog && !!m, st = $('clock').style;
   if (document.body.classList.contains('digi-pl') !== on) {   // 글꼴이 바뀌어서 숫자 폭을 다시 잼 (MuseoModerno를 받은 뒤 한 번 더)
     document.body.classList.toggle('digi-pl', on);
-    measureDigits();
+    // 글꼴이 바뀌면(양각 MuseoModerno ↔ 평면 Orbitron) 숫자 폭을 다시 재고 숫자 칸 폭도 바로 바꿈 — 칸을 안 바꾸면 평면으로 돌아왔을 때 넓은 숫자가 좁은 칸에서 겹치거나 잘렸음
+    const refit = () => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(s => s.refresh()); fitClock(); };
+    refit();
     renderCm();   // 스톱워치·타이머·알람 버튼 글자(양각은 영어)
-    if (on) document.fonts.load('600 100px MuseoModerno', '0123456789:').then(() => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(s => s.refresh()); fitClock(); }).catch(() => {});
+    document.fonts.load(on ? '600 100px MuseoModerno' : '900 100px Orbitron', '0123456789:').then(refit).catch(() => {});
   }
   document.body.classList.toggle('digi-bare', on && !!m.bare);   // 퓨어: 시계 칸 뒤 판을 깔지 않음
   if (!on) return;

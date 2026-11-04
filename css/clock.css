@@ -25,6 +25,8 @@
 .roll.peek .strip{transform:translateY(calc((var(--p, 0) * -1 + .35) * var(--lh)))}
 /* Orbitron 숫자는 높이 .72em·내림 0 → 줄 높이 .82em이면 잘리지 않으면서 위아래 여백이 거의 없음 */
 .clock .roll{--lh:.82em}
+/* 시·분·초 숫자는 칸이 모자라도 두 줄로 꺾지 않음 — 꺾이면 시계 칸이 두 배로 길어져 화면 밖으로 넘침(옆으로 조금 넘치는 편이 덜 깨짐, 크기는 fitClock이 바로잡음) */
+#hh, #mm, #sgroup{white-space:nowrap}
 
 /* ── 시계: 시·분·초 한 줄. 1행 라벨 / 2행 숫자, 칸 너비에 맞춰 JS가 --clock 크기를 계산 ── */
 .clock{grid-area:clock;min-width:0;padding-bottom:5.5rem}

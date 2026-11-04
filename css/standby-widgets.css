@@ -208,6 +208,9 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.ds-top .clock-in{height:100%;margin-top:0;grid-template-columns:auto auto;grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"ds ds" "lh hh" "lm mm" ". ss"}
   body.sb.ds-top.no-sec .clock-in{grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"ds ds" "lh hh" "lm mm"}
   body.sb.ds-top .ds{writing-mode:horizontal-tb;transform:none;justify-self:stretch;align-self:start;margin:0 0 3rem;contain:inline-size}
+  /* 날짜를 끄면(설정) 오른쪽 날짜 칸을 빼서 칸 사이(2rem)도 없앰 — 남겨 두면 시계 폭(fitClock)보다 2rem 넓어져 시 두 자리가 두 줄로 꺾이고 시계 칸이 화면 아래로 넘쳤음(폴드8) */
+  body.sb.no-date .clock-in{grid-template-columns:auto auto;grid-template-areas:"lh hh" "lm mm" ". ss"}
+  body.sb.no-date.no-sec .clock-in{grid-template-areas:"lh hh" "lm mm"}
 }
 /* 세로 '시계 크게': 폰처럼 시계가 폭에 막히면 날짜를 시계 위 가로 줄로 (날짜는 왼쪽, 요일은 오른쪽 끝) — 옆 날짜 칸만큼 시계가 커짐 (fitClock이 고름) */
 @media (orientation: portrait){
