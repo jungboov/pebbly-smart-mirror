@@ -27,6 +27,7 @@ function scheduleReload() {
 }
 
 // ===== 새 배포 받기 =====
+// 켤 때도 확인: 켤 때 인터넷이 0.8초 넘게 늦으면 서비스 워커가 저장해 둔 옛 화면을 먼저 띄워서, 앱을 껐다 켜도 옛 판이 남았음(10분 뒤에야 확인)
 // 켜 둔 화면(미러·폴드처럼 계속 열어 두는 앱)은 새로고침 전까지 예전 코드라서, 10분마다 그리고 앱을 다시 볼 때(백그라운드에서 돌아올 때)
 // 서버의 화면 파일에서 판 번호(main.js ?v=)를 보고 다르면 인트로 없이 새로고침. 설정을 여는 중·폰에서 미러 설정 중·스톱워치·타이머가 돌거나 알람이 울리는 중엔 미룸
 // (?ver= 요청은 서비스 워커가 저장본을 주지 않고 그대로 인터넷으로 보냄 — sw.js)
@@ -40,7 +41,14 @@ async function checkVersion() {
     const v = (html.match(/js\/main\.js\?v=([^"&]+)/) || [])[1];
     if (!v || v === APP_V) return;
     if (!$('settings').hidden || sw.run || tm.run || !$('ring').hidden) { verAt = 0; return; }   // 다음 확인 때 다시
-    try { sessionStorage.setItem('quietStart', '1'); } catch (e) {}
+    let tried = null;
+    try { tried = sessionStorage.getItem('verTried'); } catch (e) {}
+    if (tried === v) return;   // 이 판으로 한 번 새로고침했는데도 옛 판이면 되풀이하지 않음
+    try { sessionStorage.setItem('verTried', v); sessionStorage.setItem('quietStart', '1'); } catch (e) {}
+    // 받아 온 새 화면을 서비스 워커 저장본에도 넣어 둠 — 새로고침 때 인터넷이 늦어도(0.8초 넘게) 저장본이 새 판이라 새 판으로 뜸
+    try {
+      for (const k of await caches.keys()) if (k.startsWith('mirror-')) await (await caches.open(k)).put('/', new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }));
+    } catch (e) {}
     location.reload();
   } catch (e) {}
 }
@@ -88,6 +96,7 @@ async function checkVersion() {
   setInterval(loadAir, CONFIG.airEvery);
   keepAwake();
   scheduleReload();
+  setTimeout(checkVersion, 1500);   // 켜자마자(옛 저장본으로 떴을 수 있음)
   setInterval(checkVersion, 10 * 60e3);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
   $('set-ver').textContent = APP_V ? 'v' + APP_V : '';   // 설정 아래: 지금 떠 있는 판 번호
