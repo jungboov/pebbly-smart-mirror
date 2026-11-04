@@ -12,8 +12,8 @@ function setTab(t) {
   card.scrollTop = 0;
   if (t === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
 }
-// 스타일(화면 탭): 시계(디지털)·로고·위젯 모양을 한 번에 — 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각. 평면은 로고는 그대로(로고 위젯은 판 모양뿐)
-const STYLES = { flat: { digi: '', plate: 'flat' }, ...Object.fromEntries(['emboss', 'deboss', 'embossk', 'debossk'].map(t => [t, { digi: t, plate: t, logoTheme: t }])) };
+// 스타일(화면 탭): 시계(디지털)·로고·위젯 모양을 한 번에 — 평면 · 라이트/다크 양각·음각 · 퓨어 화이트/다크 양각·음각(판 없이 화면 바탕에). 평면은 로고는 그대로(로고 위젯은 판 모양뿐)
+const STYLES = { flat: { digi: '', plate: 'flat' }, ...Object.fromEntries(['emboss', 'deboss', 'embossk', 'debossk', 'embossw', 'debossw', 'embossd', 'debossd'].map(t => [t, { digi: t, plate: t, logoTheme: t }])) };
 const styleNow = () => S.analog ? '' : Object.keys(STYLES).find(id => Object.entries(STYLES[id]).every(([k, v]) => (S[k] || '') === v)) || '';
 function openSettings() {
   $('settings').hidden = false;
@@ -82,6 +82,11 @@ const CLOCK_THEMES = [
   { id: 'digitald', name: '디지털 라이트 음각', digi: 'deboss', fam: 'digital', v: '라이트 음각', dot: 'linear-gradient(135deg, #a39b97, #ebe5e3 55%, #fff)' },
   { id: 'digitalek', name: '디지털 다크 양각', digi: 'embossk', fam: 'digital', v: '다크 양각', dot: 'linear-gradient(135deg, #77777e, #2a2a2d 50%, #000)' },
   { id: 'digitaldk', name: '디지털 다크 음각', digi: 'debossk', fam: 'digital', v: '다크 음각', dot: 'linear-gradient(135deg, #000, #2a2a2d 50%, #6a6a70)' },
+  // 퓨어: 판 없이 화면 바탕(흰색·검정)에 바로 — 퓨어 화이트는 시계 강조 화면 바탕이 흰색
+  { id: 'dpw', name: '디지털 퓨어 화이트 양각', digi: 'embossw', fam: 'digitalp', v: '퓨어 화이트 양각', dot: 'radial-gradient(circle at 35% 30%, #fff 45%, #c9c9ce)' },
+  { id: 'dpwd', name: '디지털 퓨어 화이트 음각', digi: 'debossw', fam: 'digitalp', v: '퓨어 화이트 음각', dot: 'radial-gradient(circle at 65% 70%, #fff 40%, #a9a9b0)' },
+  { id: 'dpd', name: '디지털 퓨어 다크 양각', digi: 'embossd', fam: 'digitalp', v: '퓨어 다크 양각', dot: 'radial-gradient(circle at 35% 30%, #5a5a60, #000 60%)' },
+  { id: 'dpdd', name: '디지털 퓨어 다크 음각', digi: 'debossd', fam: 'digitalp', v: '퓨어 다크 음각', dot: 'radial-gradient(circle at 65% 70%, #55555c, #000 60%)' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'], fam: 'rec', v: '블랙', dot: '#161616' },
   { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'], fam: 'rec', v: '실버', dot: 'linear-gradient(135deg, #f2f2f2, #8b8b8b)' },
   { id: 'edge', name: '엣지', edge: true, fam: 'edge', v: '화이트', dot: '#fff' },

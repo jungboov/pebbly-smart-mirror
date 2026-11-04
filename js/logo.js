@@ -8,11 +8,17 @@
 // 판 [가운데, 가장자리], 윗면, 옆면 [바닥, 위], 왼쪽 위 빛 테, 낮은 숫자 인쇄 색, 그림자 [색, 진하기] / 음각: 바닥면, 아래 오른쪽 가장자리 빛, 위 왼쪽 안쪽 그림자
 const LG_INK = {
   emboss: { bg: ['#ebe5e3', '#d3cbc8'], top: '#f7f3f1', side: ['#8a827e', '#d2cbc8'], hi: '#ffffff', print: '#b6ada9', sh: ['#2b211e', .34] },
-  embossk: { bg: ['#2a2a2d', '#121214'], top: '#4b4b51', side: ['#000000', '#26262a'], hi: '#a3a3aa', print: '#3a3a3e', sh: ['#000000', .85] },
+  embossk: { bg: ['#2a2a2d', '#121214'], top: '#4b4b51', side: ['#000000', '#26262a'], hi: '#a3a3aa', print: '#3a3a3e', sh: ['#000000', .85], dark: 1 },
   deboss: { bg: ['#ebe5e3', '#d3cbc8'], face: '#cbc2be', lo: '#ffffff', hi: '#756d69', print: '#b6ada9' },
-  debossk: { bg: ['#2a2a2d', '#121214'], face: '#626269', lo: '#9a9aa2', hi: '#08080a', print: '#3a3a3e' },   // 파낸 바닥을 판보다 밝게 — 멀리서도 읽히게(칠을 채운 음각)
+  debossk: { bg: ['#2a2a2d', '#121214'], face: '#626269', lo: '#9a9aa2', hi: '#08080a', print: '#3a3a3e', dark: 1 },   // 파낸 바닥을 판보다 밝게 — 멀리서도 읽히게(칠을 채운 음각)
+  // 퓨어: 판 없이(bare) 화면 바탕 자체가 재료 — 퓨어 화이트는 흰 바탕(화면도 흰색, plate.js plPure), 퓨어 다크는 지금 검은 바탕
+  embossw: { bg: ['#ffffff', '#ffffff'], top: '#ffffff', side: ['#b9b9be', '#ececee'], hi: '#ffffff', print: '#d4d4d8', sh: ['#1b2230', .3], bare: 1 },
+  debossw: { bg: ['#ffffff', '#ffffff'], face: '#d0d0d5', lo: '#ffffff', hi: '#85858c', print: '#d4d4d8', bare: 1 },
+  embossd: { bg: ['#000000', '#000000'], top: '#3e3e44', side: ['#000000', '#1d1d20'], hi: '#9a9aa2', print: '#29292d', sh: ['#000000', .9], bare: 1, dark: 1 },
+  debossd: { bg: ['#000000', '#000000'], face: '#55555c', lo: '#85858d', hi: '#000000', print: '#29292d', bare: 1, dark: 1 },
 };
-const LG_THEMES = [['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각']];
+const LG_THEMES = [['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각'],
+  ['embossw', '퓨어 화이트 양각'], ['debossw', '퓨어 화이트 음각'], ['embossd', '퓨어 다크 양각'], ['debossd', '퓨어 다크 음각']];
 const LG_FONT = "font-family:var(--logo)";
 let lgNW = 0;   // pebbly labs 폭(27 글자 크기) — 글꼴을 받은 뒤 잼
 const lgNameW = () => {
@@ -48,8 +54,8 @@ function lgReel(v, p) {
   }
   return s;
 }
-// 판 전체 SVG (pre: 같은 화면에 여러 개를 그릴 때 겹치지 않는 id 앞글자)
-function logoSvg(v, pre, p = 3) {
+// 판 전체 SVG (pre: 같은 화면에 여러 개를 그릴 때 겹치지 않는 id 앞글자, thumb: 설정 카드 — 퓨어 테마도 바탕색을 깔아 보여 줌)
+function logoSvg(v, pre, p = 3, thumb) {
   const m = LG_INK[v], W = 110 + lgNameW() + 14, VW = W + 46, id = n => pre + n;
   const draw = s => m.side ? lgRaise(s, m) : lgSink(s, m);
   const frame = c => `<rect x="20" y="16.6" width="56" height="2.8" fill="${c}"/><rect x="20" y="100.6" width="56" height="2.8" fill="${c}"/>`
@@ -61,7 +67,7 @@ function logoSvg(v, pre, p = 3) {
   return `<svg viewBox="0 0 ${VW.toFixed(1)} 120" style="--lg-r:${(VW / 120).toFixed(3)}" aria-hidden="true"><defs>`
     + `<radialGradient id="${id('b')}" cx=".4" cy=".35" r=".9"><stop offset="0" stop-color="${m.bg[0]}"/><stop offset="1" stop-color="${m.bg[1]}"/></radialGradient>${sh}`
     + `<clipPath id="${id('c')}"><rect x="20" y="22" width="56" height="76"/></clipPath></defs>`
-    + `<rect width="${VW.toFixed(1)}" height="120" rx="14" fill="url(#${id('b')})"/><g${m.sh ? ` filter="url(#${id('s')})"` : ''}>${draw(frame)}${draw(name)}`
+    + (m.bare && !thumb ? '' : `<rect width="${VW.toFixed(1)}" height="120" rx="14" fill="url(#${id('b')})"/>`) + `<g${m.sh ? ` filter="url(#${id('s')})"` : ''}>${draw(frame)}${draw(name)}`
     + `<g id="${id('reel')}" clip-path="url(#${id('c')})">${lgReel(v, p)}</g></g></svg>`;
 }
 // 숫자 다시 돌기(설정 › 테마 › 로고 위젯): 한 바퀴 멈춘 뒤 몇 초마다 다시 — 0이면 나타날 때만
@@ -99,6 +105,6 @@ function lgSpin(wait = 300) {
 }
 // 설정 › 테마 › 로고 위젯 카드 (settings.js thRender)
 const lgCards = () => LG_THEMES.map(([id, name]) =>
-  `<button class="th-card${id === S.logoTheme ? ' on' : ''}" data-logo-theme="${id}">${logoSvg(id, `th-lg-${id}-`)}<span>${name}</span></button>`).join('');
+  `<button class="th-card${id === S.logoTheme ? ' on' : ''}" data-logo-theme="${id}">${logoSvg(id, `th-lg-${id}-`, 3, true)}<span>${name}</span></button>`).join('');
 // 글꼴을 받으면 이름 폭을 다시 재서 다시 그림
 document.fonts.load("400 27px MuseoModerno", 'pebbly labs').then(() => { lgNW = 0; lgTheme = ''; if (typeof S !== 'undefined') { lgApply(); if ($('lg-list').children.length) $('lg-list').innerHTML = lgCards(); } }).catch(() => {});

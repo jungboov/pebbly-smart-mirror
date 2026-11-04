@@ -287,7 +287,7 @@ function pwCal(k, W, H) {
 // ── 사진 액자: 판에 낸 창(파낸 테) 안에 사진 — 사진 칸(.ph-box)을 창 자리로 옮김
 function pwPhoto(k, W, H) {
   let o = pwHead(k, W, 'photo' + $('ph-count').textContent);
-  const x = 18, y = 40, w = W - 18 - 38, h = H - 40 - 16, m = LG_INK[S.plate], dark = S.plate.endsWith('k');
+  const x = 18, y = 40, w = W - 18 - 38, h = H - 40 - 16, m = LG_INK[S.plate], dark = !!m.dark;
   o += k.sink(c => `<rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="6" fill="none" stroke="${c}" stroke-width="3"/>`);
   k.print(() => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${dvMix(m.bg[1], '#000000', dark ? .5 : .72)}"/>`);
   Object.assign($('photo').querySelector('.ph-box').style, { position: 'absolute', flex: 'none', zIndex: 1,

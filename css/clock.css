@@ -185,6 +185,8 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 body.sb.digi-pl .clock{isolation:isolate;padding:3.2rem}
 body.sb.digi-pl .clock::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:3.6rem;
   background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.4rem 1rem 2.4rem var(--sh2)}
+/* 퓨어(판 없이 화면 바탕에 바로): 시계 칸 뒤 판을 깔지 않음 */
+body.sb.digi-bare .clock::before{display:none}
 body.sb.digi-pl .clock-in, body.sb.digi-pl .cm{font-family:var(--logo);font-weight:600}
 /* 도드라진 숫자: 빛 테(왼쪽 위) + 옆면 6겹(오른쪽 아래, 바닥 쪽이 어둡게) + 가까운·먼 그림자 — 위젯 판 큰 숫자(412)와 같은 비율 */
 body.sb.digi-pl .clock-in, body.sb.digi-pl .cm b{color:var(--top);text-shadow:-.004em -.004em 0 var(--hi),

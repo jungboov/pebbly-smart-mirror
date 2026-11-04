@@ -52,3 +52,41 @@
   --mark:"MuseoModerno","Pretendard Variable",Pretendard,sans-serif;
   --logo:"MuseoModerno","Pretendard Variable",Pretendard,sans-serif;
 }
+
+/* 퓨어 화이트(설정 › 위젯 모양·시계 테마·스타일, plate.js plApply가 html.pure-w): 시계 강조 화면 바탕을 흰색으로 — 평면 글자·선·점도 색 변수를 따라 어둡게
+   설정 창도 같이 밝아짐. 아날로그 시계판은 제 색 그대로 */
+html.pure-w{
+  --bg:#fff;
+  --text:#111;
+  --text-muted:#5c5c5c;
+  --text-dim:#9b9b9b;
+  --line:#e8e8e8;
+  --grid:#f4f4f4;
+  --card-bd:#e2e2e2;
+  --rain:#2f7fd6;
+  --sunrise:#e8891c;
+  --sunset:#3d86e0;
+  --good:#2f7fd6;
+  --normal:#1f9d5c;
+  --bad:#e07a12;
+  --worst:#dc3c3c;
+  --sat:#2f7fd6;
+  --sun:#e0457b;
+  --panel:#f7f7f7;
+  --panel-2:#ececec;
+  --track:#e4e4e4;
+  --off:#e6e6e6;
+  --dot:#d2d2d2;
+  --node-bd:#dedede;
+  --arc:#bdbdbd;
+  --horizon:#dddddd;
+  --accent:#111;
+  --on-accent:#fff;
+  --glow:0,0,0;
+  --scrim:rgba(255,255,255,.75);
+  --ring-bg:rgba(255,255,255,.9);
+  --note-bg:rgba(47,127,214,.1);
+  --temp-hi:#111;
+  --temp-lo:#8a8a8a;
+  --moon-lit:#c9b56a;
+}

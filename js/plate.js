@@ -4,7 +4,12 @@
 // 양각은 조각이 도드라지고(옆면·그림자), 음각은 같은 조각을 판에 파냄 — 그리는 쪽은 k.up 하나로(테마가 정함)
 // 판 하나가 위젯 칸을 채움. 그림 단위는 rem의 1/4(태블릿에선 칸 픽셀의 절반)이라 로고 판과 배율이 비슷하고, 폰처럼 rem이 작은 화면에서도 글자 비율이 같음
 // 인쇄(판에 찍힌 작은 글자·눈금)는 그림자 없이 맨 위에 — 작은 글자가 번지지 않게
-const PLATE_THEMES = [['flat', '평면'], ['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각']];
+const PLATE_THEMES = [['flat', '평면'], ['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각'],
+  ['embossw', '퓨어 화이트 양각'], ['debossw', '퓨어 화이트 음각'], ['embossd', '퓨어 다크 양각'], ['debossd', '퓨어 다크 음각']];
+// 퓨어 테마: 판(둥근 바탕)을 그리지 않고 화면 바탕에 바로. 퓨어 화이트면 시계 강조 화면 바탕을 흰색으로(html.pure-w — theme.css 색 변수를 밝게)
+const plWhite = t => t === 'embossw' || t === 'debossw';
+// 양각 테마에서 '파냄' 조각이 쓸 음각 색
+const PL_SINK = { emboss: 'deboss', embossk: 'debossk', embossw: 'debossw', embossd: 'debossd' };
 const plFlat = () => !LG_INK[S.plate];
 // 글자 조각: x, y(글자 바닥선), 크기, 내용, 굵기, 맞춤 → 색을 받아 <text>. 한글은 로고 글꼴에 없어서 Pretendard로
 const plText = (x, y, size, txt, w = 600, anchor = 'start') => c =>
@@ -14,7 +19,7 @@ const plBrackets = (W, H) => c => `<path d="M${W - 30} 14H${W - 14}V30M${W - 30}
 const plBars = (x, w, y1, y2) => c => `<rect x="${x}" y="${y1}" width="${w}" height="2.8" fill="${c}"/><rect x="${x}" y="${y2}" width="${w}" height="2.8" fill="${c}"/>`;
 const plDash = (x1, y1, x2, y2) => c => `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.25" stroke-dasharray="4 4"/>`;
 // 판에 인쇄한 읽을 글자(제목·날짜·버튼 글자·안내) 색 — 장식(눈금·낮은 숫자)보다 진하게
-const PL_INK = { emboss: '#8c837f', deboss: '#8c837f', embossk: '#8e8e95', debossk: '#8e8e95' };
+const PL_INK = { emboss: '#8c837f', deboss: '#8c837f', embossk: '#8e8e95', debossk: '#8e8e95', embossw: '#8e8e95', debossw: '#8e8e95', embossd: '#7a7a82', debossd: '#7a7a82' };
 // 색 기운(달력 일요일·공휴일 빨강, 토요일 파랑): 조각 윗면·파낸 바닥·인쇄 색에 섞음 (다크 판은 더 많이)
 function plTint(m, t, dark) {
   const a = dark ? .55 : .5, mix = c => c && dvMix(c, t, a);
@@ -24,21 +29,21 @@ function plTint(m, t, dark) {
 //   k.up(조각, 높이 0~1, 색 기운) 양각 테마는 도드라짐·음각 테마는 파냄 · k.print(조각) 장식 인쇄 · k.ink(조각, 색 기운) 읽을 글자 인쇄
 //   k.tx(조각, 높이, 색 기운) 읽을 글자: 낮게 솟거나 파인 글자 위에 진한 인쇄 색 — 작은 글자도 흐리지 않게
 //   k.sink(조각) 양각 테마는 파냄·음각 테마는 인쇄(솟은 것과 구분되게) · k.clip(x, y, w, h) 그 네모 밖을 잘라 내는 clip-path 주소 · k.def(문자열) <defs>에 넣음
-//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자
-function plateSvg(W, H, ink, pre, build) {
-  const m = LG_INK[ink], printed = [], clips = [], dark = ink.endsWith('k');
+//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자 · thumb: 설정 카드(퓨어 테마도 바탕색을 깔아 보여 줌)
+function plateSvg(W, H, ink, pre, build, thumb) {
+  const m = LG_INK[ink], printed = [], clips = [], dark = !!m.dark;
   const k = { W, H, pre,
     up: (s, h = 1, t) => lgMark(s, t ? plTint(m, t, dark) : m, h),
     print: s => { printed.push(s(m.print)); return ''; },
     ink: (s, t) => { printed.push(s(t ? dvMix(PL_INK[ink], t, dark ? .55 : .6) : PL_INK[ink])); return ''; },
-    sink: s => m.side ? lgSink(s, LG_INK[dark ? 'debossk' : 'deboss']) : s(m.print),
+    sink: s => m.side ? lgSink(s, LG_INK[PL_SINK[ink]]) : s(m.print),
     def: s => { clips.push(s); return ''; },
     tx: (s, h = .5, t) => k.up(s, h, t) + k.ink(s, t),
     clip: (x, y, w, h) => { const id = pre + 'c' + clips.length; clips.push(`<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath>`); return `url(#${id})`; } };
   const body = build(k);
   return `<svg class="pl" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>`
     + `<radialGradient id="${pre}b" cx=".4" cy=".35" r=".9"><stop offset="0" stop-color="${m.bg[0]}"/><stop offset="1" stop-color="${m.bg[1]}"/></radialGradient>${lgShadow(m, pre + 's')}${clips.join('')}</defs>`
-    + `<rect width="${W}" height="${H}" rx="14" fill="url(#${pre}b)"/><g${m.sh ? ` filter="url(#${pre}s)"` : ''}>${body}</g>${printed.join('')}</svg>`;
+    + (m.bare && !thumb ? '' : `<rect width="${W}" height="${H}" rx="14" fill="url(#${pre}b)"/>`) + `<g${m.sh ? ` filter="url(#${pre}s)"` : ''}>${body}</g>${printed.join('')}</svg>`;
 }
 // 위젯 칸 크기 → 판 그림 단위(rem/4). 칸이 안 보이면(상세 화면) 0
 // 판을 위아래로 쌓을지(세로로 길거나 정사각형에 가까운 칸: 가로 화면·폰 가로) — 아니면 왼쪽·오른쪽으로 나눔(가로로 긴 칸: 세로 화면)
@@ -55,12 +60,14 @@ function plCards(where = '') {
       + `<text x="16" y="28" font-size="11" fill="#a3a3a3" style="font-weight:700">만난 지</text>`
       + `<text x="16" y="70" font-size="36" fill="#fff" style="font-family:var(--num);font-weight:900">412<tspan dx="4" font-size="11" fill="#a3a3a3" style="font-family:var(--brand);font-weight:700">일</tspan></text></svg>`
     : plateSvg(160, 90, id, `th-pl${where}-${id}-`, k => k.ink(plText(14, 22, 7, 'd-day', 500)) + k.up(plText(14, 38, 10, '만난 지', 700), .6)
-      + k.up(plText(80, 74, 34, '412<tspan font-size="10" dx="2" style="font-weight:700">일</tspan>', 600, 'middle')) + k.up(plBrackets(160, 90)));
+      + k.up(plText(80, 74, 34, '412<tspan font-size="10" dx="2" style="font-weight:700">일</tspan>', 600, 'middle')) + k.up(plBrackets(160, 90)), true);
   return PLATE_THEMES.map(([id, name]) => `<button class="th-card${id === S.plate ? ' on' : ''}" data-plate-theme="${id}">${thumb(id)}<span>${name}</span></button>`).join('');
 }
 // 테마·화면 크기가 바뀌면 두 위젯을 다시 그림 (applySettings·화면 회전)
 function plApply() {
   if (!PLATE_THEMES.some(t => t[0] === S.plate)) S.plate = 'flat';
+  // 퓨어 화이트(위젯 모양이나 디지털 시계)면 시계 강조 화면 바탕을 흰색으로 — 평면 글자도 색 변수를 따라 어둡게
+  document.documentElement.classList.toggle('pure-w', S.focus && (plWhite(S.plate) || (!S.analog && plWhite(S.digi))));
   cdRender(); foBuild(); cdSetRender(); digiApply(); pwDraw();
 }
 
@@ -77,6 +84,7 @@ function digiApply() {
     renderCm();   // 스톱워치·타이머·알람 버튼 글자(양각은 영어)
     if (on) document.fonts.load('600 100px MuseoModerno', '0123456789:').then(() => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(s => s.refresh()); fitClock(); }).catch(() => {});
   }
+  document.body.classList.toggle('digi-bare', on && !!m.bare);   // 퓨어: 시계 칸 뒤 판을 깔지 않음
   if (!on) return;
   let v;
   if (m.side) {
@@ -93,6 +101,6 @@ function digiApply() {
   for (const [k, c] of Object.entries(v)) st.setProperty(k, c);
 }
 // 설정 › 시계 › 테마 카드의 작은 그림: 판에 도드라진(음각은 파낸) 10 / 08
-const digiThumb = (id, ink) => plateSvg(80, 80, ink, `th-${id}-`, k => k.up(c => `<g fill="${c}" font-weight="600" font-size="27" text-anchor="end" style="font-family:var(--logo)"><text x="62" y="38">10</text><text x="62" y="68">08</text></g>`));
+const digiThumb = (id, ink) => plateSvg(80, 80, ink, `th-${id}-`, k => k.up(c => `<g fill="${c}" font-weight="600" font-size="27" text-anchor="end" style="font-family:var(--logo)"><text x="62" y="38">10</text><text x="62" y="68">08</text></g>`), true);
 let plResize = 0;
 window.addEventListener('resize', () => { clearTimeout(plResize); plResize = setTimeout(() => { cdRender(); foBuild(); pwDraw(); }, 250); });
