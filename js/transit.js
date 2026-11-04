@@ -170,4 +170,5 @@ function renderBoard() {
     return `<div class="tr-item"><div class="tr-head">${esc(it.station)}역<small>${esc(it.label)}</small></div>`
       + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')))}</span></div></div>`;
   }).join('') + (board ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
+  window.pwDraw?.('transit');   // 양각·음각 위젯 판 (plate-wg.js)
 }

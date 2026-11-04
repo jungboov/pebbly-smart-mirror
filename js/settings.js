@@ -12,8 +12,8 @@ function setTab(t) {
   card.scrollTop = 0;
   if (t === 'photo') phLoadOthers();   // 사진 앨범 같이 쓰기: 다른 미러 앨범 확인
 }
-// 스타일(화면 탭): 시계(디지털)·로고·디데이·집중 타이머 모양을 한 번에. 평면은 로고는 그대로(로고 위젯은 판 모양뿐)
-const STYLES = { flat: { digi: '', plate: 'flat' }, emboss: { digi: 'emboss', plate: 'emboss', logoTheme: 'emboss' }, embossk: { digi: 'embossk', plate: 'embossk', logoTheme: 'embossk' } };
+// 스타일(화면 탭): 시계(디지털)·로고·위젯 모양을 한 번에 — 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각. 평면은 로고는 그대로(로고 위젯은 판 모양뿐)
+const STYLES = { flat: { digi: '', plate: 'flat' }, ...Object.fromEntries(['emboss', 'deboss', 'embossk', 'debossk'].map(t => [t, { digi: t, plate: t, logoTheme: t }])) };
 const styleNow = () => S.analog ? '' : Object.keys(STYLES).find(id => Object.entries(STYLES[id]).every(([k, v]) => (S[k] || '') === v)) || '';
 function openSettings() {
   $('settings').hidden = false;
@@ -55,14 +55,14 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.chip) S[b.dataset.chip] = !S[b.dataset.chip];
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
-  else if (b && b.dataset.clockTheme) {   // 디지털(평면·양각·양각 블랙)이면 S.digi, 아날로그면 S.dialTheme
+  else if (b && b.dataset.clockTheme) {   // 디지털(평면·양각·음각)이면 S.digi, 아날로그면 S.dialTheme
     const t = CLOCK_THEMES.find(x => x.id === b.dataset.clockTheme) || CLOCK_THEMES[0];
     S.analog = !(t.id === 'digital' || t.digi);
     if (S.analog) S.dialTheme = t.id; else S.digi = t.digi || '';
   }
   else if (b && b.dataset.style) Object.assign(S, STYLES[b.dataset.style], { analog: false });   // 스타일: 시계는 디지털로
   else if (b && b.dataset.logoTheme) S.logoTheme = b.dataset.logoTheme;   // 로고 위젯 테마
-  else if (b && b.dataset.plateTheme) S.plate = b.dataset.plateTheme;   // 디데이·집중 타이머 위젯 테마 (plate.js)
+  else if (b && b.dataset.plateTheme) S.plate = b.dataset.plateTheme;   // 위젯 모양 (plate.js — 로고 말고 모든 위젯)
   else if (b && b.dataset.ls) S.logoSpin = LG_SPIN[Math.min(LG_SPIN.length - 1, Math.max(0, LG_SPIN.indexOf(S.logoSpin) + Number(b.dataset.ls)))];   // 숫자 다시 돌기 간격
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
@@ -78,8 +78,10 @@ $('settings').addEventListener('click', e => {
 // 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief — LCD 다크·양각 다크는 같은 그림에 색만)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털', fam: 'digital', v: '평면', dot: '#000' },
-  { id: 'digitale', name: '디지털 양각', digi: 'emboss', fam: 'digital', v: '양각', dot: '#ebe5e3' },
-  { id: 'digitalek', name: '디지털 양각 블랙', digi: 'embossk', fam: 'digital', v: '양각 블랙', dot: '#3a3a3e' },
+  { id: 'digitale', name: '디지털 라이트 양각', digi: 'emboss', fam: 'digital', v: '라이트 양각', dot: 'linear-gradient(135deg, #fff, #ebe5e3 45%, #a39b97)' },
+  { id: 'digitald', name: '디지털 라이트 음각', digi: 'deboss', fam: 'digital', v: '라이트 음각', dot: 'linear-gradient(135deg, #a39b97, #ebe5e3 55%, #fff)' },
+  { id: 'digitalek', name: '디지털 다크 양각', digi: 'embossk', fam: 'digital', v: '다크 양각', dot: 'linear-gradient(135deg, #77777e, #2a2a2d 50%, #000)' },
+  { id: 'digitaldk', name: '디지털 다크 음각', digi: 'debossk', fam: 'digital', v: '다크 음각', dot: 'linear-gradient(135deg, #000, #2a2a2d 50%, #6a6a70)' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'], fam: 'rec', v: '블랙', dot: '#161616' },
   { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'], fam: 'rec', v: '실버', dot: 'linear-gradient(135deg, #f2f2f2, #8b8b8b)' },
   { id: 'edge', name: '엣지', edge: true, fam: 'edge', v: '화이트', dot: '#fff' },

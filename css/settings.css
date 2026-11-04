@@ -29,7 +29,7 @@ body.remote .set-loc{display:none}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
 .seg button{padding:1.4rem 2.8rem}
 .seg button.on{background:var(--accent);color:var(--on-accent);font-weight:700}
-/* 따로 켜고 끄는 칩 여러 개 (표시: 초 / 날짜 / 상세 주소) */
+/* 따로 켜고 끄는 칩 여러 개 (표시: 날짜 / 상세 주소, 스타일 5개는 줄을 바꿔 오른쪽 정렬) */
 .chips{display:flex;gap:1rem}
 .set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}
 .set-card .chips button.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
@@ -165,3 +165,6 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .cd-form input[type=date]{flex:none;color-scheme:dark}
 .set-card .cd-form .tr-save{padding:1.2rem 3.4rem;color:var(--on-accent);border-color:var(--accent)}
 .cd-form .chips{flex-wrap:wrap}
+/* 화면 › 스타일: 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각 (칸이 좁으면 칩 줄이 이름 아래로) */
+.set-style{flex-wrap:wrap;gap:1.6rem 3rem}
+.set-style .chips{flex-wrap:wrap;justify-content:flex-end;margin-left:auto}

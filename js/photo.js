@@ -320,6 +320,7 @@ function phShow(dir) {
   phWaitOff();
   const p = photos[phIdx];
   $('ph-count').textContent = n > 1 ? ` · ${phIdx + 1} / ${n}` : '';
+  window.pwDraw?.('photo');   // 판 제목의 순번
   if (phCur && phCur.dataset.id === p.id) { if (p.v) phPlay(phCur, !!dir); return; }
   const pool = p.v ? [$('ph-va'), $('ph-vb')] : [$('ph-a'), $('ph-b')], next = pool[pool[0] === phCur ? 1 : 0];
   const show = () => {

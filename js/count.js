@@ -4,7 +4,7 @@
 // 첫 항목을 크게, 아래(세로 화면은 오른쪽)에 다음 기념일(100일 단위·n주년 중 가까운 것)과 나머지 항목을 3줄까지.
 // 다 안 들어가면 위젯이 나올 때마다 크게 보이는 항목이 차례로 바뀜
 // 큰 숫자는 릴: 어제·내일 값이 위아래로 반쯤 비치고, 위젯이 나타날 때와 자정에 한 칸 굴러 오늘 값에 멈춤 (움직임 줄이기를 켠 기기는 안 구름)
-// 테마: 평면 · 양각 · 양각 블랙 (plate.js, S.plate)
+// 테마: 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각 (plate.js, S.plate — 설정 › 위젯 › 모양)
 const cdParse = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
 const cdDays = (a, b) => Math.round((new Date(b.getFullYear(), b.getMonth(), b.getDate()) - new Date(a.getFullYear(), a.getMonth(), a.getDate())) / 864e5);
 const cdAdd = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -111,7 +111,7 @@ function cdEmboss(el, d, s, roll) {
     reelAt = { x, cy, size, clip: k.clip(0, cy - size * .61, W, size * 1.22) };
     return o + `<g id="cd-reel" clip-path="${reelAt.clip}">${cdReelSvg(k, x, cy, size, m0, d, roll ? -1 : 0)}</g>`;
   });
-  cdLay = { ...reelAt, k: { up: (sh, h) => lgRaise(sh, LG_INK[S.plate], h) } };
+  cdLay = { ...reelAt, k: { up: (sh, h) => lgMark(sh, LG_INK[S.plate], h) } };
   if (roll) cdRoll(m0, d);
 }
 // 양각 릴 구르기: 0.9초 동안 점점 느려지며 어제 → 오늘 (로고 릴처럼 릴 묶음만 다시 그림)

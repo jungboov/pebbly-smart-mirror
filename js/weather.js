@@ -336,6 +336,7 @@ function renderWeather() {
   renderSun();
   renderAlert();
   fitClock();   // 세로 시계 강조 화면은 위젯 높이에 따라 시계 크기가 정해짐
+  window.pwDraw?.('now', 'hourly', 'daily');   // 양각·음각 위젯 판 (plate-wg.js)
 }
 
 // 자외선 지수 단계 (기상청 기준) → [단계, 등급색]
@@ -465,6 +466,7 @@ function renderSun() {
   $('sun-dot').setAttribute('cx', up ? x : -10);
   $('sun-dot').setAttribute('cy', up ? y : -10);
   $('sun-done').setAttribute('d', f > 0 ? `M8 48A42 42 0 0 1 ${x} ${y}` : '');
+  window.pwDraw?.('air');
 }
 
 // 환경부 기준 4단계 (좋음/보통/나쁨/매우나쁨)
@@ -486,6 +488,7 @@ function renderAir() {
   setAq('pm10', a.pm10, gradePm10);
   setAq('pm25', a.pm25, gradePm25);
   PANELS[3].dataset.src = a.station ? `${a.station} 측정소` : '예측값';   // 시계 강조 'air' 위젯 제목
+  window.pwDraw?.('air');
 }
 
 // 위치 이름: 상세 주소를 켰고 알면 도로명 주소, 아니면 구·동

@@ -25,4 +25,5 @@ function renderCal(d = new Date()) {
     break;
   }
   $('cal-foot').innerHTML = foot;
+  window.pwDraw?.('cal');   // 양각·음각 위젯 판 (plate-wg.js)
 }

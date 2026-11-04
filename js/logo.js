@@ -1,7 +1,7 @@
 // Pebbly Mirror — 로고 위젯
 // ===== 로고: 양각·음각 pebbly labs 판 (시계 강조 화면 위젯) =====
 // 스파인(위아래 막대 · [ 03 ] 숫자 릴) | 점선 | pebbly labs | 꺾쇠 ┐┘ — 헤더 로고와 같은 짜임(인트로 로고 360×120 단위), 글꼴도 로고와 같은 MuseoModerno
-// 테마(설정 › 테마 › 로고 위젯): 양각(흰 판에 도드라짐) · 양각 다크(흑연색) · 음각(흰 판을 파냄) · 음각 다크
+// 테마(설정 › 위젯 › 로고): 라이트 양각(흰 판에 도드라짐) · 라이트 음각(흰 판을 파냄) · 다크 양각(흑연색) · 다크 음각
 // 도드라진 조각은 양각 시계판처럼 옆면(오른쪽 아래로, 바닥 쪽이 어둡게)·왼쪽 위 빛 테·그림자, 파낸 조각은 아래 오른쪽 가장자리 빛·위 왼쪽 안쪽 그림자
 // 위젯이 나타날 때마다 숫자 릴이 한 바퀴(100칸) 점점 느려지며 돌아 다시 03에 멈춤(인트로와 같은 1.7초), 위젯이 화면에 있는 동안은 설정한 초마다 다시
 // 가운데 숫자만 높이 솟고 위아래는 낮게(음각은 위아래가 인쇄)
@@ -12,7 +12,7 @@ const LG_INK = {
   deboss: { bg: ['#ebe5e3', '#d3cbc8'], face: '#d4ccc9', lo: '#ffffff', hi: '#7c7470', print: '#b6ada9' },
   debossk: { bg: ['#2a2a2d', '#121214'], face: '#161618', lo: '#606066', hi: '#000000', print: '#3a3a3e' },
 };
-const LG_THEMES = [['emboss', '양각'], ['embossk', '양각 다크'], ['deboss', '음각'], ['debossk', '음각 다크']];
+const LG_THEMES = [['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각']];
 const LG_FONT = "font-family:var(--logo)";
 let lgNW = 0;   // pebbly labs 폭(27 글자 크기) — 글꼴을 받은 뒤 잼
 const lgNameW = () => {
@@ -30,6 +30,9 @@ function lgRaise(shape, m, h = 1) {
   return s + shape(dvMix(m.print, m.top, h));
 }
 const lgSink = (shape, m) => `<g transform="translate(.35 .45)">${shape(m.lo)}</g><g transform="translate(-.35 -.45)">${shape(m.hi)}</g>${shape(m.face)}`;
+// 테마 따라: 양각 테마는 h만큼 도드라지고, 음각 테마는 파냄(h가 아주 낮으면 판에 옅게 인쇄 — 릴의 앞뒤 숫자가 가운데 숫자보다 진하지 않게)
+// 디데이·집중 타이머·디지털 시계·위젯 판이 같이 씀
+const lgMark = (shape, m, h = 1) => m.side ? lgRaise(shape, m, h) : h > .3 ? lgSink(shape, m) : shape(dvMix(m.bg[0], m.print, .2 + h * 1.4));
 // 도드라진 조각 묶음의 그림자: 가까운 진한 그림자 + 오른쪽 아래로 퍼지는 옅은 그림자 (양각 테마만, 디데이·집중 타이머 판도 씀)
 const lgShadow = (m, fid) => m.sh ? `<filter id="${fid}" x="-10%" y="-20%" width="120%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation=".7"/><feOffset dx=".5" dy="1.3" result="a"/>`
   + `<feFlood flood-color="${m.sh[0]}" flood-opacity="${m.sh[1]}"/><feComposite in2="a" operator="in" result="s1"/><feGaussianBlur in="SourceAlpha" stdDeviation="2.4"/><feOffset dx="1.6" dy="3.6" result="b"/>`

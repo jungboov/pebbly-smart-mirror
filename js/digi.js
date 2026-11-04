@@ -22,7 +22,7 @@ function dgReel(r, kind, d, p) {
   let o = '';
   for (let i = Math.floor(p) - 1; i <= Math.ceil(p) + 1; i++) {
     const dd = i - p, near = Math.max(0, 1 - Math.abs(dd)), sz = r.s * (.5 + .5 * near);
-    o += lgRaise(c => `<text x="${r.x.toFixed(1)}" y="${(r.cy + dd * step + sz * .36).toFixed(1)}" font-size="${sz.toFixed(1)}" fill="${c}" text-anchor="middle" style="font-family:var(--logo);font-weight:${near > .5 ? 600 : 500}">${dgVal(kind, d, i)}</text>`, m, .25 + .75 * near);
+    o += lgMark(c => `<text x="${r.x.toFixed(1)}" y="${(r.cy + dd * step + sz * .36).toFixed(1)}" font-size="${sz.toFixed(1)}" fill="${c}" text-anchor="middle" style="font-family:var(--logo);font-weight:${near > .5 ? 600 : 500}">${dgVal(kind, d, i)}</text>`, m, .25 + .75 * near);
   }
   return o;
 }

@@ -16,25 +16,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
 <!-- 로고(02 [ 03 ] 04 · pebbly mirror · 시계판의 pebbly labs · PEBBLY LABS)·인트로·양각 디데이·집중 타이머 판(d-day 412 D-12 · focus 18:42 2/4): MuseoModerno — 쓰는 글자(숫자·괄호·빈칸·로고 글자·- + : / ·)만 받음 (몇 KB) -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400;500;600&text=0123456789%5B%5D%20abcdefhiklmnoprstuwyABDELPSY-%2B%3A%2F%C2%B7&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400;500;600&text=0123456789%5B%5D%20abcdefghijklmnopqrstuvwxyzABDELPSY-%2B%3A%2F%C2%B7%C2%B0%25.%2C&display=block">
 <!-- 로터리 시계판 숫자·날짜: 좁은 BenchNine — 숫자와 영어 달·요일 이름에 쓰는 글자만 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 로고 → 디데이 → 집중 타이머 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=99">
-<link rel="stylesheet" href="css/base.css?v=99">
-<link rel="stylesheet" href="css/clock.css?v=99">
-<link rel="stylesheet" href="css/weather.css?v=99">
-<link rel="stylesheet" href="css/detail.css?v=99">
-<link rel="stylesheet" href="css/standby.css?v=99">
-<link rel="stylesheet" href="css/transit.css?v=99">
-<link rel="stylesheet" href="css/photo.css?v=99">
-<link rel="stylesheet" href="css/calendar.css?v=99">
-<link rel="stylesheet" href="css/logo.css?v=99">
-<link rel="stylesheet" href="css/count.css?v=99">
-<link rel="stylesheet" href="css/focus.css?v=99">
-<link rel="stylesheet" href="css/standby-widgets.css?v=99">
-<link rel="stylesheet" href="css/settings.css?v=99">
+<link rel="stylesheet" href="css/theme.css?v=100">
+<link rel="stylesheet" href="css/base.css?v=100">
+<link rel="stylesheet" href="css/clock.css?v=100">
+<link rel="stylesheet" href="css/weather.css?v=100">
+<link rel="stylesheet" href="css/detail.css?v=100">
+<link rel="stylesheet" href="css/standby.css?v=100">
+<link rel="stylesheet" href="css/transit.css?v=100">
+<link rel="stylesheet" href="css/photo.css?v=100">
+<link rel="stylesheet" href="css/calendar.css?v=100">
+<link rel="stylesheet" href="css/logo.css?v=100">
+<link rel="stylesheet" href="css/count.css?v=100">
+<link rel="stylesheet" href="css/focus.css?v=100">
+<link rel="stylesheet" href="css/standby-widgets.css?v=100">
+<link rel="stylesheet" href="css/settings.css?v=100">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로: 공용 번호 인트로 [ 03 ] pebbly mirror (js/pebbly-intro.js — _brand/intro 원본의 사본, sync.py로 맞춤)
@@ -42,7 +42,7 @@
      부품을 바로 불러서 스크립트가 도는 즉시 첫 장면이 보임. 그동안 뒤에서 미러가 뜸, 누르면 바로 넘어감 (intro.js) -->
 <div id="intro" class="intro" aria-hidden="true"></div>
 <script src="js/pebbly-intro.js?v=8e44084a"></script>
-<script src="js/intro.js?v=99"></script>
+<script src="js/intro.js?v=100"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -126,7 +126,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=99" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=100" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -340,9 +340,9 @@
       <div class="set-row set-loc">위치
         <span class="set-place"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="foot"></span></span>
       </div>
-      <!-- 스타일: 시계(디지털)·로고·디데이·집중 타이머 모양을 한 번에 (settings.js STYLES). 하나씩 따로 바꿔서 섞이면 아무것도 안 켜짐 -->
-      <div class="set-row">스타일
-        <div class="seg"><button data-style="flat">평면</button><button data-style="emboss">양각</button><button data-style="embossk">양각 블랙</button></div>
+      <!-- 스타일: 시계(디지털)·로고·위젯 모양을 한 번에 (settings.js STYLES). 하나씩 따로 바꿔서 섞이면 아무것도 안 켜짐 -->
+      <div class="set-row set-style">스타일
+        <div class="chips"><button data-style="flat">평면</button><button data-style="emboss">라이트 양각</button><button data-style="deboss">라이트 음각</button><button data-style="embossk">다크 양각</button><button data-style="debossk">다크 음각</button></div>
       </div>
       <div class="set-row">시계 강조
         <div class="seg" data-key="focus"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
@@ -391,6 +391,10 @@
       </div>
       <p id="wg-hint" class="tr-msg"></p>
       <ul id="wg-list" class="wg-list"></ul>
+      <!-- 모양: 로고 말고 모든 위젯(날씨·교통·사진 액자·달력·디데이·집중 타이머) — 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각 (plate.js plCards, S.plate) -->
+      <div class="set-row set-sub">모양</div>
+      <div class="th-list lg-list pl-list" data-pl="wg"></div>
+      <p class="tr-msg">로고 말고 모든 위젯이 같이 바뀌어요(로고는 로고 페이지에서). 양각은 글자가 판에서 도드라지고, 음각은 판에 파여요.</p>
     </div>
     <!-- 위젯 페이지: 맨 위 ‹ 위젯(목록으로) + 이름 -->
     <div class="set-page" data-page="transit">
@@ -434,7 +438,7 @@
       </div>
       <p class="tr-msg">나타날 때 숫자가 한 바퀴 돌고, 보이는 동안 정한 초마다 다시 돌아요(끔이면 나타날 때만). 로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요.</p>
     </div>
-    <!-- 디데이: 항목(count.js) / 모양(plate.js plCards — 집중 타이머와 같은 설정 S.plate) -->
+    <!-- 디데이: 항목(count.js). 모양은 위젯 탭 맨 아래(모든 위젯 같이) -->
     <div class="set-page" data-page="count">
       <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>디데이</b></div>
       <!-- 디데이 항목: 목록(위로·고치기·지우기) / 추가·고치기 칸 (count.js) -->
@@ -452,11 +456,8 @@
         <p id="cd-msg" class="tr-msg"></p>
         <div class="tr-add"><button id="cd-save" class="tr-save">저장</button><button id="cd-cancel">취소</button></div>
       </div>
-      <div class="set-row set-sub">모양</div>
-      <div class="th-list lg-list pl-list" data-pl="count"></div>
-      <p class="tr-msg">집중 타이머 위젯과 같이 바뀌어요.</p>
     </div>
-    <!-- 집중 타이머: 지금 상태와 시작·건너뛰기·초기화(폰에서 누르면 바로 미러로) / 길이 / 끝나면 / 도는 동안 (focus.js) / 모양 -->
+    <!-- 집중 타이머: 지금 상태와 시작·건너뛰기·초기화(폰에서 누르면 바로 미러로) / 길이 / 끝나면 / 도는 동안 (focus.js) -->
     <div class="set-page" data-page="focus">
       <div class="set-back"><button data-back aria-label="위젯 목록으로">‹ 위젯</button><b>집중 타이머</b></div>
       <div class="set-row">지금 <span id="fo-state" class="fo-state"></span></div>
@@ -477,9 +478,6 @@
         <div class="seg"><button data-fb="pin" data-fv="1">머묾</button><button data-fb="pin" data-fv="0">넘어감</button></div>
       </div>
       <p class="tr-msg">끝나면 알람처럼 울려요(소리는 미러 화면을 한 번 누른 뒤부터). '머묾'이면 도는 동안 자동으로 다른 위젯으로 넘어가지 않아요(손으로 밀면 넘어가요). 폰에서 시작·정지하면 10초쯤 안에 미러에 반영돼요.</p>
-      <div class="set-row set-sub">모양</div>
-      <div class="th-list lg-list pl-list" data-pl="focus"></div>
-      <p class="tr-msg">디데이 위젯과 같이 바뀌어요.</p>
     </div>
     <div class="set-page" data-page="sync">
       <p class="tr-msg">폰 카메라로 QR을 찍으면 폰에서 이 미러 설정을 바꿀 수 있어요. 폰에서 '미러에 적용'을 누르면 10초쯤 안에 반영돼요. 열린 주소를 저장해 두면 나중에도 돼요.</p>
@@ -501,21 +499,22 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=99"></script>
-<script src="js/sync.js?v=99"></script>
-<script src="js/clock.js?v=99"></script>
-<script src="js/weather.js?v=99"></script>
-<script src="js/screen.js?v=99"></script>
-<script src="js/clock-modes.js?v=99"></script>
-<script src="js/settings.js?v=99"></script>
-<script src="js/transit.js?v=99"></script>
-<script src="js/photo.js?v=99"></script>
-<script src="js/calendar.js?v=99"></script>
-<script src="js/logo.js?v=99"></script>
-<script src="js/plate.js?v=99"></script>
-<script src="js/digi.js?v=99"></script>
-<script src="js/count.js?v=99"></script>
-<script src="js/focus.js?v=99"></script>
-<script src="js/main.js?v=99"></script>
+<script src="js/core.js?v=100"></script>
+<script src="js/sync.js?v=100"></script>
+<script src="js/clock.js?v=100"></script>
+<script src="js/weather.js?v=100"></script>
+<script src="js/screen.js?v=100"></script>
+<script src="js/clock-modes.js?v=100"></script>
+<script src="js/settings.js?v=100"></script>
+<script src="js/transit.js?v=100"></script>
+<script src="js/photo.js?v=100"></script>
+<script src="js/calendar.js?v=100"></script>
+<script src="js/logo.js?v=100"></script>
+<script src="js/plate.js?v=100"></script>
+<script src="js/digi.js?v=100"></script>
+<script src="js/count.js?v=100"></script>
+<script src="js/focus.js?v=100"></script>
+<script src="js/plate-wg.js?v=100"></script>
+<script src="js/main.js?v=100"></script>
 </body>
 </html>
