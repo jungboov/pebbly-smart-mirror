@@ -21,7 +21,7 @@ const plFlat = () => !LG_INK[S.plate];
 // 글자 조각: x, y(글자 바닥선), 크기, 내용, 굵기, 맞춤 → 색을 받아 <text>. 한글은 로고 글꼴에 없어서 Pretendard로
 const plText = (x, y, size, txt, w = 600, anchor = 'start') => c =>
   `<text x="${+x.toFixed(2)}" y="${+y.toFixed(2)}" font-size="${+size.toFixed(2)}" fill="${c}" text-anchor="${anchor}" style="font-family:var(--logo);font-weight:${w}">${txt}</text>`;
-// 꺾쇠 ┐┘ (로고처럼 오른쪽 끝 위아래) · 숫자 창 위아래 막대(로고 스파인)
+// 꺾쇠 ┐┘ (로고처럼 오른쪽 끝 위아래 — 디지털 시계 판만, 위젯 판엔 없음) · 숫자 창 위아래 막대(로고 스파인)
 const plBrackets = (W, H) => c => `<path d="M${W - 30} 14H${W - 14}V30M${W - 30} ${H - 14}H${W - 14}V${H - 30}" fill="none" stroke="${c}" stroke-width="2"/>`;
 const plBars = (x, w, y1, y2) => c => `<rect x="${x}" y="${y1}" width="${w}" height="2.8" fill="${c}"/><rect x="${x}" y="${y2}" width="${w}" height="2.8" fill="${c}"/>`;
 const plDash = (x1, y1, x2, y2) => c => `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.25" stroke-dasharray="4 4"/>`;
@@ -69,7 +69,7 @@ function plCards(where = '') {
       + `<text x="16" y="28" font-size="11" fill="#a3a3a3" style="font-weight:700">만난 지</text>`
       + `<text x="16" y="70" font-size="36" fill="#fff" style="font-family:var(--num);font-weight:900">412<tspan dx="4" font-size="11" fill="#a3a3a3" style="font-family:var(--brand);font-weight:700">일</tspan></text></svg>`
     : plateSvg(160, 90, id, `th-pl${where}-${id}-`, k => k.ink(plText(14, 22, 7, 'd-day', 500)) + k.up(plText(14, 38, 10, '만난 지', 700), .6)
-      + k.up(plText(80, 74, 34, '412<tspan font-size="10" dx="2" style="font-weight:700">일</tspan>', 600, 'middle')) + k.up(plBrackets(160, 90)), true);
+      + k.up(plText(80, 74, 34, '412<tspan font-size="10" dx="2" style="font-weight:700">일</tspan>', 600, 'middle')), true);
   return PLATE_THEMES.map(([id, name]) => `<button class="th-card${id === S.plate ? ' on' : ''}" data-plate-theme="${id}">${thumb(id)}<span>${name}</span></button>`).join('');
 }
 // 테마·화면 크기가 바뀌면 두 위젯을 다시 그림 (applySettings·화면 회전)

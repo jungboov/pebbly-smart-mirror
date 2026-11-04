@@ -3,7 +3,7 @@
 // 위젯 모양(설정 › 위젯 › 모양, S.plate)이 평면이 아니면 시계 강조 화면에서 이 위젯들도 디데이·집중 타이머처럼 판으로 그림 (plate.js plateSvg)
 //   라이트 양각·다크 양각은 도드라지고, 라이트 음각·다크 음각은 판을 파냄 — 조각마다 k.up 하나로 테마를 따름
 // 원래(평면) 글자는 자리만 잡고 숨기고, 판(.pw)을 칸 위에 덮음. 사진 액자는 판에 창을 내고 그 안에 사진
-// 구성은 로고·디데이 판과 같음: 왼쪽 위 작은 인쇄 제목(now · 부천) · 오른쪽 위아래 꺾쇠 ┐┘ · 점선 · 숫자는 로고 글꼴(MuseoModerno)
+// 구성은 디데이 판과 같음: 왼쪽 위 작은 인쇄 제목(now · 부천) · 점선 · 숫자는 로고 글꼴(MuseoModerno). 여백은 왼쪽·오른쪽 모두 20(예전 오른쪽 꺾쇠 ┐┘는 뺌)
 // 다시 그림: 날씨·공기·해·교통·달력·사진 순번을 그린 끝에(pwDraw), 테마·화면 크기가 바뀔 때(plApply), 로고 글꼴을 받은 뒤
 const PW_EL = { now: '.wmain', hourly: '.hourly', daily: '.wave', air: '.cards', transit: '.transit', cal: '.cal', photo: '.photo' };
 const pwOn = () => !plFlat() && document.body.classList.contains('sb');
@@ -31,8 +31,8 @@ function pwIco(k, kind, day, x, y, s, sw = 1.4) {
     : (ICONS[kind] || ICONS.cloud).replace(' class="dots"', ` stroke-width="${(sw * 24 / s * 1.9).toFixed(2)}"`);
   return pwPath(body, x, y, s, sw);
 }
-// 모든 판에 같은 것: 왼쪽 위 인쇄 제목(칸 폭에 맞춰 줄임) + 오른쪽 꺾쇠
-const pwHead = (k, W, txt) => k.ink(plText(20, 28, pwFit(txt, 11, W - 70, 500), esc(txt), 500)) + k.up(plBrackets(W, k.H));
+// 모든 판에 같은 것: 왼쪽 위 인쇄 제목(칸 폭에 맞춰 줄임)
+const pwHead = (k, W, txt) => k.ink(plText(20, 28, pwFit(txt, 11, W - 40, 500), esc(txt), 500));
 // 기온 → 판 높이: 칸 가운데 기준, 1°당 높이는 최고·최저 차이가 작아도 8°가 칸 80%가 되게(최대 1°당 10 — 몇 도 차이가 판 가득 출렁이지 않게)
 function pwTempY(temps, y0, y1) {
   const t = temps.map(Math.round), lo = Math.min(...t), hi = Math.max(...t), mid = (hi + lo) / 2;
@@ -50,7 +50,7 @@ function pwNow(k, W, H) {
   const w = state.weather, c = w && w.current;
   let o = pwHead(k, W, `now · ${placeLabel()}`);
   if (!c) return o + k.ink(plText(20, H / 2, 12, '날씨를 불러오는 중', 600));
-  const tall = plTall(W, H), flat = W > H * 1.55, x1 = W - 38, kind = wmo(c.weather_code)[1], day = c.is_day === 1;
+  const tall = plTall(W, H), flat = W > H * 1.55, x1 = W - 20, kind = wmo(c.weather_code)[1], day = c.is_day === 1;
   const temp = $('w-temp').textContent, feel = $('w-feel').textContent, desc = $('w-title').textContent, diff = $('w-diff').textContent;
   // 정보 칸들: x0~x1, y0~y1 안에 cols × rows
   const stats = (x0, xe, y0, y1, cols, rows) => {
@@ -98,7 +98,7 @@ function pwHourly(k, W, H) {
   if (i0 < 0) return o;
   const idx = range(Math.min(CONFIG.standbyHours, h.time.length - i0), j => i0 + j), n = idx.length;
   const temps = idx.map((i, j) => j === 0 ? w.current.temperature_2m : h.temperature_2m[i]);
-  const x1 = W - 38, cw = (x1 - 20) / n, cx = j => 20 + cw * (j + .5);
+  const x1 = W - 20, cw = (x1 - 20) / n, cx = j => 20 + cw * (j + .5);
   const is = Math.min(cw * .44, 22, H * .09), ts = Math.min(cw * .36, 17), yi = 58, yt = yi + is + 6 + ts * .78;
   const bh = plTall(W, H) ? Math.min(40, H * .1) : Math.min(22, H * .08), yb0 = H - 26 - bh, p0 = yt + 12, p1 = yb0 - 12;   // 세로로 긴 판은 막대를 길게 — 채운 만큼이 잘 보이게
   const ys = pwTempY(temps, p0, p1), pts = idx.map((_, j) => [cx(j), ys[j]]);
@@ -125,7 +125,7 @@ function pwDaily(k, W, H) {
   let o = pwHead(k, W, 'daily');
   const w = state.weather, days = w ? waveDays(w) : [], n = days.length;
   if (!n) return o;
-  const d = w.daily, today = ymd(new Date()), x1 = W - 38, cw = (x1 - 20) / n, cx = j => 20 + cw * (j + .5);
+  const d = w.daily, today = ymd(new Date()), x1 = W - 20, cw = (x1 - 20) / n, cx = j => 20 + cw * (j + .5);
   const ts = Math.min(cw * .32, 15), yt = 52 + 8 + ts * .8, nr = Math.min(cw * .27, 12, H * .045);
   const yp = H - 16, p0 = yt + 16 + nr, p1 = yp - 18 - nr;
   const ys = pwTempY(days.map(([, i]) => d.temperature_2m_max[i]), p0, p1), pts = days.map((_, j) => [cx(j), ys[j]]);
@@ -149,7 +149,7 @@ function pwDaily(k, W, H) {
 // ── 공기·해·달: 미세먼지·초미세먼지(이름 / 큰 수치 / 등급 색 점) · 해(일출·일몰, 점선 반원에 지나온 길이 솟고 해 점) · 달(파낸 원에 밝은 쪽이 솟음)
 function pwAir(k, W, H) {
   let o = pwHead(k, W, `air · ${PANELS[3].dataset.src || '예측값'}`);
-  const a = state.air, x1 = W - 38, tall = plTall(W, H);
+  const a = state.air, x1 = W - 20, tall = plTall(W, H);
   const pmBlock = (x, y, bw, bh, name, v, gr) => {
     const g = v == null ? null : GRADES[gr(v)], val = v == null ? '-' : String(Math.round(v));
     const vs = pwFit(val, Math.min(bh * .46, 50), bw - 4, 500);
@@ -201,7 +201,7 @@ function pwTransit(k, W, H) {
   const at = boardAt ? new Date(boardAt) : null;
   let o = pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : ''));
   if (!S.transit.length) return o;
-  const x1 = W - 38, past = (Date.now() - boardAt) / 6e4;
+  const x1 = W - 20, past = (Date.now() - boardAt) / 6e4;
   const when = (min, text, st) => {
     if (min == null) return { t: text || '-', soon: false };
     const m = Math.round(min - past);
@@ -257,7 +257,7 @@ function pwCal(k, W, H) {
   const d = new Date(), y = d.getFullYear(), m = d.getMonth(), today = ymd(d);
   let o = pwHead(k, W, `calendar · ${y}년 ${m + 1}월`);
   const lead = new Date(y, m, 1).getDay(), weeks = Math.ceil((lead + new Date(y, m + 1, 0).getDate()) / 7);
-  const x1 = W - 38, cw = (x1 - 20) / 7, yf = H - 15, g0 = 60, ch = (yf - 16 - g0) / weeks, ns = Math.min(ch * .5, cw * .46, 18);
+  const x1 = W - 20, cw = (x1 - 20) / 7, yf = H - 15, g0 = 60, ch = (yf - 16 - g0) / weeks, ns = Math.min(ch * .5, cw * .46, 18);
   const tint = (c, hol) => hol || c.getDay() === 0 ? PW_RED : c.getDay() === 6 ? PW_BLUE : null;
   WEEK.forEach((wd, i) => { o += k.ink(plText(20 + cw * (i + .5), 52, 9, wd, 700, 'middle'), i === 0 ? PW_RED : i === 6 ? PW_BLUE : null); });
   for (let i = 0; i < weeks * 7; i++) {
@@ -288,7 +288,7 @@ function pwCal(k, W, H) {
 // ── 사진 액자: 판에 낸 창(파낸 테) 안에 사진 — 사진 칸(.ph-box)을 창 자리로 옮김
 function pwPhoto(k, W, H) {
   let o = pwHead(k, W, 'photo' + $('ph-count').textContent);
-  const x = 18, y = 40, w = W - 18 - 38, h = H - 40 - 16, m = LG_INK[S.plate], dark = !!m.dark;
+  const x = 18, y = 40, w = W - 18 - 18, h = H - 40 - 16, m = LG_INK[S.plate], dark = !!m.dark;
   o += k.sink(c => `<rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="6" fill="none" stroke="${c}" stroke-width="3"/>`);
   k.print(() => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${dvMix(m.bg[1], '#000000', dark ? .5 : .72)}"/>`);
   Object.assign($('photo').querySelector('.ph-box').style, { position: 'absolute', flex: 'none', zIndex: 1,

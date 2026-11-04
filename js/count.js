@@ -88,24 +88,24 @@ function cdEmboss(el, d, s, roll) {
   if (!W) return;
   let reelAt;
   el.innerHTML = plateSvg(W, H, S.plate, 'cd-', k => {
-    let o = k.ink(plText(20, 28, 11, `d-day · ${S.counts.length}`, 500)) + k.up(plBrackets(W, H));
+    let o = k.ink(plText(20, 28, 11, `d-day · ${S.counts.length}`, 500));
     const row = (r, x, y, xr, fs, fn) => k.up(plText(x, y, fs, r.name, 700), r.ms ? .35 : .5)
       + k.up(plText(xr, y + fs * .1, fn, r.num + (r.unit ? `<tspan font-size="${fn / 2}" dx="2" style="font-weight:700">${r.unit}</tspan>` : ''), 600, 'end'), r.ms ? .45 : .85);
     let x, cy, size, x0, x1;
     if (tall) {   // 가로 화면 칸(세로로 긴 판): 이름 / 숫자 창 / 날짜 / 점선 / 줄들
-      size = Math.min(76, W / 3.3, H / 4.4); x = W / 2 - 4; cy = 66 + size * 1.1; x0 = 20; x1 = W - 54;
+      size = Math.min(76, W / 3.3, H / 4.4); x = W / 2; cy = 66 + size * 1.1; x0 = 20; x1 = W - 40;
       o += k.up(plText(20, 64, 19, esc(m0.name), 700), .7);
       o += k.ink(plText(20, cy + size * .61 + 20, 10.5, m0.mode === 'since' ? cdFmt(cdParse(m0.date)) + '부터' : cdFmt(cdTarget(m0, d)), 600));
       const y0 = cy + size * .61 + 34, rh = Math.min(44, (H - 36 - y0) / 3);   // 칸이 길어도 줄 사이는 너무 벌어지지 않게
       if (s.rows.length) o += k.up(plDash(20, y0, W - 20, y0), .5);
-      s.rows.forEach((r, i) => { o += row(r, 20, y0 + rh * (i + .5) + 6, W - 40, 14, 22); });
+      s.rows.forEach((r, i) => { o += row(r, 20, y0 + rh * (i + .5) + 6, W - 20, 14, 22); });
     } else {      // 세로 화면 칸(가로로 긴 판): 왼쪽 이름·숫자 창 | 점선 | 오른쪽 줄들
-      const xr = s.rows.length ? W * .54 : W - 30;
-      size = Math.min(64, (xr - 30) / 3, H / 2.7); x = xr / 2 + 4; cy = H * .6; x0 = 20; x1 = xr - 36;
+      const xr = s.rows.length ? W * .54 : W, xe = s.rows.length ? xr - 16 : W - 20;   // xe: 숫자 창 오른쪽 끝
+      size = Math.min(64, (xe - 14) / 3, H / 2.7); x = (20 + xe) / 2 + 2; cy = H * .6; x0 = 20; x1 = xe - 20;
       o += k.up(plText(20, 52, 16, esc(m0.name), 700), .7);
       if (s.rows.length) o += k.up(plDash(xr, 16, xr, H - 16), .5);
       const rh = (H - 40) / 3;
-      s.rows.forEach((r, i) => { o += row(r, xr + 16, 20 + rh * (i + .5) + 5, W - 40, 12, 18); });
+      s.rows.forEach((r, i) => { o += row(r, xr + 16, 20 + rh * (i + .5) + 5, W - 20, 12, 18); });
     }
     o += k.up(plBars(x0, x1, cy - size * .62, cy + size * .62 - 2.8), .6);
     reelAt = { x, cy, size, clip: k.clip(0, cy - size * .61, W, size * 1.22) };

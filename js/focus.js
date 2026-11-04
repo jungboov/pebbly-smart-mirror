@@ -89,17 +89,17 @@ function foKeys(x, y, avail, fs0, col) {
 function foLay(W, H) {
   if (plTall(W, H)) {
     const r = Math.min(W / 2 - 34, (H - 178) / 2), cy = 48 + r, y1 = cy + r + 26;
-    return { tall: true, label: [20, 28], dial: [W / 2, cy, r], dots: [26, y1, 20, 5.5], ...foKeys(20, y1 + 17, W - 60, 12) };
+    return { tall: true, label: [20, 28], dial: [W / 2, cy, r], dots: [26, y1, 20, 5.5], ...foKeys(20, y1 + 17, W - 40, 12) };
   }
   const wr = Math.max(150, W * .42), r = Math.min((H - 36) / 2, (W - wr - 44) / 2), cx = 20 + r, x0 = cx + r + 24;   // 오른쪽 칸(버튼·안내) 자리를 먼저 남김
   // 버튼은 회차 점과 아래 안내 세 줄 사이에 위아래로 쌓을 수 있으면 쌓고(글자 9 이상), 낮은 판이면 한 줄로
-  const fsCol = Math.min(12, (W - 40 - x0) / 4.7, (H - 66 - 74) / 7.2);
-  return { tall: false, label: [x0, 30], dial: [cx, H / 2, r], dots: [x0 + 6, 54, 18, 5], x0, ...(fsCol >= 9 ? foKeys(x0, 74, W - 40 - x0, fsCol, true) : foKeys(x0, H / 2 - 10, W - 40 - x0, 11)) };
+  const fsCol = Math.min(12, (W - 20 - x0) / 4.7, (H - 66 - 74) / 7.2);
+  return { tall: false, label: [x0, 30], dial: [cx, H / 2, r], dots: [x0 + 6, 54, 18, 5], x0, ...(fsCol >= 9 ? foKeys(x0, 74, W - 20 - x0, fsCol, true) : foKeys(x0, H / 2 - 10, W - 20 - x0, 11)) };
 }
 function foPlate(W, H, st) {
   const L = foLay(W, H), [cx, cy, r] = L.dial;
   return plateSvg(W, H, S.plate, 'fo-', k => {
-    let o = k.ink(plText(L.label[0], L.label[1], 11, `focus · ${st.n}/${S.fo.every}`, 500)) + k.up(plBrackets(W, H));
+    let o = k.ink(plText(L.label[0], L.label[1], 11, `focus · ${st.n}/${S.fo.every}`, 500));
     // 원판: 파낸 홈에 남은 만큼 채운 호(양각은 솟고 음각은 칠, 12시부터 시계 방향), 분 눈금 인쇄, 가운데 단계·남은 시간·끝 시각
     const a = 2 * Math.PI * Math.min(st.frac, .9999), ex = cx + r * Math.sin(a), ey = cy - r * Math.cos(a), ticks = Math.min(60, st.dur / 60);
     o += k.sink(c => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="${r * .11}"/>`);
@@ -122,7 +122,7 @@ function foPlate(W, H, st) {
       o += k.up(t, .6) + k.ink(t);   // 솟은 글자 윗면을 진한 인쇄 색으로 — 흰 판에서도 작은 글자가 읽힘
     });
     const plan = `집중 ${S.fo.min} · 휴식 ${S.fo.rest}`;
-    if (L.tall) o += k.ink(plText(W - 40, dy + 4, 10, plan, 600, 'end')) + k.ink(plText(20, H - 18, 10.5, `다음 ${st.next}`, 600)) + k.ink(plText(W - 40, H - 18, 10.5, `오늘 집중 ${foToday()}분`, 600, 'end'));
+    if (L.tall) o += k.ink(plText(W - 20, dy + 4, 10, plan, 600, 'end')) + k.ink(plText(20, H - 18, 10.5, `다음 ${st.next}`, 600)) + k.ink(plText(W - 20, H - 18, 10.5, `오늘 집중 ${foToday()}분`, 600, 'end'));
     else o += k.ink(plText(L.x0, H - 56, 10, `다음 ${st.next}`, 600)) + k.ink(plText(L.x0, H - 40, 10, plan, 600)) + k.ink(plText(L.x0, H - 24, 10, `오늘 집중 ${foToday()}분`, 600));
     return o;
   });
