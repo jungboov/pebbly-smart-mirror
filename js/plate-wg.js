@@ -250,7 +250,7 @@ function pwTransit(k, W, H) {
   return o;
 }
 
-// ── 달력: 요일 / 날짜(지난 날은 낮게, 앞뒤 달은 인쇄, 오늘은 솟은 고리) — 일요일·공휴일 빨강, 토요일 파랑 기운 / 아래 다음 공휴일·D-
+// ── 달력: 요일 / 날짜(지난 날은 낮게, 앞뒤 달은 인쇄, 오늘은 로고 [ 03 ]처럼 대괄호로 감쌈) — 일요일·공휴일 빨강, 토요일 파랑 기운 / 아래 다음 공휴일·D-
 const PW_RED = '#d0141d', PW_BLUE = '#2b5cc8';
 function pwCal(k, W, H) {
   const d = new Date(), y = d.getFullYear(), m = d.getMonth(), today = ymd(d);
@@ -263,7 +263,11 @@ function pwCal(k, W, H) {
     const c = new Date(y, m, 1 - lead + i), iso = ymd(c), hol = holidayName(iso), mine = c.getMonth() === m;
     const cx = 20 + cw * (i % 7 + .5), cy = g0 + ch * (Math.floor(i / 7) + .5), t = tint(c, mine && hol), now = iso === today;
     const num = plText(cx, cy + ns * .36, ns, c.getDate(), 600, 'middle');
-    if (now) o += k.up(c2 => `<circle cx="${pf(cx)}" cy="${pf(cy)}" r="${pf(Math.min(ch, cw) * .44)}" fill="none" stroke="${c2}" stroke-width="1.6"/>`, .8);
+    if (now) {   // [ 4 ] — 괄호는 숫자 양옆에 숫자 폭만큼 벌려서(두 자리도 칸 안에)
+      const bx = pwW(c.getDate(), ns, 600) / 2 + ns * .55, bs = ns;
+      o += k.up(c2 => `<g fill="${c2}" font-size="${pf(bs)}" text-anchor="middle" style="font-family:var(--logo);font-weight:600">`
+        + `<text x="${pf(cx - bx)}" y="${pf(cy + bs * .34)}">[</text><text x="${pf(cx + bx)}" y="${pf(cy + bs * .34)}">]</text></g>`, .8, t);
+    }
     o += k.up(num, !mine ? .12 : now ? 1 : iso < today ? .4 : .8, t);
   }
   for (let i = 1; i <= 400; i++) {   // 다음 공휴일 (오늘 빼고, 1년 안). 연휴는 첫날

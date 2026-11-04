@@ -9,8 +9,8 @@
 const LG_INK = {
   emboss: { bg: ['#ebe5e3', '#d3cbc8'], top: '#f7f3f1', side: ['#8a827e', '#d2cbc8'], hi: '#ffffff', print: '#b6ada9', sh: ['#2b211e', .34] },
   embossk: { bg: ['#2a2a2d', '#121214'], top: '#4b4b51', side: ['#000000', '#26262a'], hi: '#a3a3aa', print: '#3a3a3e', sh: ['#000000', .85] },
-  deboss: { bg: ['#ebe5e3', '#d3cbc8'], face: '#d4ccc9', lo: '#ffffff', hi: '#7c7470', print: '#b6ada9' },
-  debossk: { bg: ['#2a2a2d', '#121214'], face: '#161618', lo: '#606066', hi: '#000000', print: '#3a3a3e' },
+  deboss: { bg: ['#ebe5e3', '#d3cbc8'], face: '#cbc2be', lo: '#ffffff', hi: '#756d69', print: '#b6ada9' },
+  debossk: { bg: ['#2a2a2d', '#121214'], face: '#626269', lo: '#9a9aa2', hi: '#08080a', print: '#3a3a3e' },   // 파낸 바닥을 판보다 밝게 — 멀리서도 읽히게(칠을 채운 음각)
 };
 const LG_THEMES = [['emboss', '라이트 양각'], ['deboss', '라이트 음각'], ['embossk', '다크 양각'], ['debossk', '다크 음각']];
 const LG_FONT = "font-family:var(--logo)";
