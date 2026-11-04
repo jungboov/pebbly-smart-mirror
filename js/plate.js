@@ -37,7 +37,7 @@ function plTint(m, t, dark) {
 //   k.tx(조각, 높이, 색 기운) 읽을 글자: 낮게 솟거나 파인 글자 위에 진한 인쇄 색 — 작은 글자도 흐리지 않게
 //   k.sink(조각) 파낸 홈 — 양각 테마는 판보다 어둡게(그림자 없이 솟은 조각들 밑에 — 그림자를 받으면 홈이 솟아 보였음), 음각 테마도 파냄
 //   k.fill(조각, 높이, 색 기운) 홈을 채운 것(강수 막대·집중 타이머 진행·달 밝은 쪽): 양각 테마는 솟고, 음각 테마는 진한 칠(파낸 홈에 칠을 채운 듯) — 둘 다 빈 홈과 확실히 달라 보이게 · k.clip(x, y, w, h) 그 네모 밖을 잘라 내는 clip-path 주소 · k.def(문자열) <defs>에 넣음
-//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자 · thumb: 설정 카드(퓨어 테마도 바탕색을 깔아 보여 줌) · noBg: 바탕 없이(시계 판 — 바탕은 CSS .clock::before)
+//   pre(k.pre): 같은 화면에 판이 여럿일 때 겹치지 않는 id 앞글자 · thumb: 설정 카드(퓨어 테마도 바탕색을 깔아 보여 줌) · noBg: 바탕 없이(시계 판 — 바탕은 CSS .dg)
 function plateSvg(W, H, ink, pre, build, thumb, noBg) {
   const m = LG_INK[ink], printed = [], sunk = [], clips = [], dark = !!m.dark;
   const k = { W, H, pre,

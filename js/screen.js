@@ -215,18 +215,17 @@ function autoNext(held) {
 // 시계 쪽(시계 → 스톱워치 → 타이머 → 알람)도 같은 모습 — 위젯 쪽(wp)과 시계 쪽(cp)은 따로 움직임
 // (CSS의 숨김 상태 위에 잠깐 덮어씌우는 모양이라 끝나면 지워서 원래 상태로)
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
-// frame(rem): 잘라 내는 테두리 { el 기준 칸, m 여유(px), round 모서리(px) } — 없으면 넘어가는 칸 자신 + 2rem
+// frame(rem): 잘라 내는 테두리 { el 기준 칸, m 여유(px) } — 없으면 넘어가는 칸 자신 + 2rem
 function pager(frame) {
-  // st: { out 나가는 칸, inn 들어오는 칸, dir, axis, span 한 칸 거리, m 여유, round, rem, x 나가는 칸 이동(px), box 칸마다 잘라 낼 테두리 [왼, 위, 오른, 아래, 폭, 높이] }
+  // st: { out 나가는 칸, inn 들어오는 칸, dir, axis, span 한 칸 거리, m 여유, rem, x 나가는 칸 이동(px), box 칸마다 잘라 낼 테두리 [왼, 위, 오른, 아래, 폭, 높이] }
   const P = { st: null, raf: 0 };
   // 하나 놓기: t 이동(px), s 크기, o 불투명도, b 번짐(0~1). 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 제자리에 고정
   const put = (el, t, s, o, b) => {
-    const { axis, m, round, rem } = P.st, [x0, y0, x1, y1, w, h] = P.st.box.get(el), y = axis === 'y';
+    const { axis, m, rem } = P.st, [x0, y0, x1, y1, w, h] = P.st.box.get(el), y = axis === 'y';
     const [a, c, r0, r1, q0, q1] = y ? [h, w, y0, y1, x0, x1] : [w, h, x0, x1, y0, y1];
     const lo = a / 2 + (r0 - m - t - a / 2) / s, hi = a / 2 - (r1 + m - t - a / 2) / s;   // 움직이는 쪽 앞뒤
     const c0 = c / 2 + (q0 - m - c / 2) / s, c1 = c / 2 - (q1 + m - c / 2) / s;   // 옆
-    const rd = round ? ` round ${round / s}px` : '';
-    el.style.clipPath = y ? `inset(${lo}px ${c1}px ${hi}px ${c0}px${rd})` : `inset(${c0}px ${hi}px ${c1}px ${lo}px${rd})`;
+    el.style.clipPath = y ? `inset(${lo}px ${c1}px ${hi}px ${c0}px)` : `inset(${c0}px ${hi}px ${c1}px ${lo}px)`;
     el.style.transform = `translate${y ? 'Y' : 'X'}(${t}px) scale(${s})`;
     el.style.opacity = o;
     el.style.filter = b > .05 ? `blur(${b * rem}px)` : '';
@@ -250,7 +249,7 @@ function pager(frame) {
       return [el, [fr.left - r.left, fr.top - r.top, fr.right - r.left, fr.bottom - r.top, r.width, r.height]];
     }));
     const len = fr ? (axis === 'y' ? fr.height : fr.width) : (axis === 'y' ? out.offsetHeight : out.offsetWidth);
-    P.st = { out, inn, dir, axis, x, rem, box, m: f ? f.m : 2 * rem, round: f ? f.round : 0, span: len + 6 * rem };
+    P.st = { out, inn, dir, axis, x, rem, box, m: f ? f.m : 2 * rem, span: len + 6 * rem };
     P.draw();
   };
   // 용수철(임계 감쇠: 튕기지 않고 멈춤)로 x를 to까지. v 시작 속도(px/ms), w 빠르기(클수록 빨리 멈춤)
@@ -278,11 +277,9 @@ function pager(frame) {
   return P;
 }
 const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.filter = el.style.visibility = ''; };
-// 시계 쪽: 디지털 양각·음각은 판(#dg 칸 = 판 자리) 안에서만 보이게 판 모서리만큼 둥글게 자름, 판 없는 퓨어·평면·아날로그는 시계 칸 + 2rem
-const wp = pager(), cp = pager(rem => {
-  const b = document.body.classList, pl = b.contains('digi-pl'), plate = pl && !b.contains('digi-bare');
-  return { el: pl ? $('dg') : $('clock'), m: plate ? 0 : 2 * rem, round: plate ? 3.6 * rem : 0 };
-});
+// 시계 쪽: 시계·스톱워치·타이머·알람이 판째(디지털 양각·음각은 칸마다 판) 넘어감 — 잘라 내는 테두리는 판 자리(#dg 칸, 평면·아날로그는 시계 칸) + 2rem
+// (.cm은 판보다 안쪽이라 제 칸 기준이면 판이 잘림)
+const wp = pager(), cp = pager(rem => ({ el: $(document.body.classList.contains('digi-pl') ? 'dg' : 'clock'), m: 2 * rem }));
 
 // 손으로 끌기: 누른 채 움직이면 지금 칸이 손가락을 따라오고, 그 방향 다음(이전) 칸이 뒤따라 흐릿하게 보임
 // 위젯 쪽은 켠 위젯, 시계 쪽은 시계 → 스톱워치 → 타이머 → 알람

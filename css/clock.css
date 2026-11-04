@@ -185,10 +185,12 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
    숫자·날짜·라벨은 위젯 판과 같은 글꼴(MuseoModerno)로, 도드라짐도 위젯 판과 같은 비율(얕은 옆면 + 부드러운 그림자) — 색은 plate.js digiApply가 --변수로 넣음
    스톱워치·타이머·알람 숫자와 버튼도 같이. 세로 반반의 한 줄(늘인 숫자) 배치는 쓰지 않고 세 줄로 */
 body.sb.digi-pl .clock{isolation:isolate;padding:3.2rem}
-body.sb.digi-pl .clock::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:3.6rem;
-  background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.4rem 1rem 2.4rem var(--sh2)}
-/* 퓨어(판 없이 화면 바탕에 바로): 시계 칸 뒤 판을 깔지 않음 */
-body.sb.digi-bare .clock::before{display:none}
+/* 판: 시계(SVG 판 칸 .dg)와 스톱워치·타이머·알람(.cm — 판보다 3.2rem 안쪽이라 ::after를 그만큼 밖으로)마다 따로 — 넘길 때 위젯 판처럼 판째 넘어감 */
+body.sb.digi-pl .dg, body.sb.digi-pl .cm::after{border-radius:3.6rem;background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.4rem 1rem 2.4rem var(--sh2)}
+body.sb.digi-pl .cm{isolation:isolate}
+body.sb.digi-pl .cm::after{content:'';position:absolute;inset:-3.2rem;z-index:-1}
+/* 퓨어(판 없이 화면 바탕에 바로): 판을 깔지 않음 */
+body.sb.digi-bare .dg, body.sb.digi-bare .cm::after{background:none;box-shadow:none}
 body.sb.digi-pl .clock-in, body.sb.digi-pl .cm{font-family:var(--logo);font-weight:600}
 /* 도드라진 숫자: 빛 테(왼쪽 위) + 옆면 6겹(오른쪽 아래, 바닥 쪽이 어둡게) + 가까운·먼 그림자 — 위젯 판 큰 숫자(412)와 같은 비율 */
 body.sb.digi-pl .clock-in, body.sb.digi-pl .cm b{color:var(--top);text-shadow:-.004em -.004em 0 var(--hi),
@@ -222,7 +224,7 @@ body.sb.digi-pl .cm-pm{gap:.6rem}
 body.sb.digi-pl .cm-pm button{font-size:3.6rem;padding:.4rem .2rem}
 body.sb.digi-pl .cm-dots i{background:var(--dim)}
 /* 시계 화면: HTML 시계는 자리만 잡고 숨기고, 로고 판 구성의 SVG 판(digi.js)이 칸을 채움. 스톱워치·타이머·알람에선 HTML 숫자
-   판 바탕은 늘 .clock::before 하나(SVG엔 바탕 없음) — 시계 쪽을 넘길 때 판은 그대로 있고 안의 숫자만 넘어가게. 넘어가는 동안 보이도록 숨김은 visibility로 */
+   판 바탕은 .dg 자신(위, SVG엔 바탕 없음) — 넘어가는 동안 보이도록 숨김은 visibility로 */
 .dg{display:none}
 body.sb.digi-pl .dg{display:block;position:absolute;inset:0;pointer-events:none;visibility:hidden}
 body.sb.digi-pl[data-cm="clock"] .dg{visibility:visible}
@@ -234,7 +236,6 @@ body.sb.digi-pl[data-cm="clock"] #clock-in{visibility:hidden}
 @media (orientation: portrait){
   body.sb.digi-pl .clock{padding-bottom:6rem}
   body.sb.digi-pl .dg{bottom:2.8rem}
-  body.sb.digi-pl .clock::before{bottom:2.8rem}
   body.sb.digi-pl .cm{bottom:6rem}
   body.sb.digi-pl:not([data-cm="clock"]) .cm-dots{top:1.1rem}
   /* 스톱워치 1/100초: 아래 버튼 줄과 겹치지 않게 초 오른쪽 아래에 (시계의 초처럼) */
