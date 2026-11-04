@@ -139,3 +139,18 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .set-card .th-card{display:flex;flex-direction:column;align-items:center;gap:1.6rem;padding:2.2rem 1.6rem 2rem;border:2px solid var(--card-bd);border-radius:2.6rem;font-size:2.8rem}
 .th-card svg{display:block;width:100%;max-width:16rem;aspect-ratio:1}
 .set-card .th-card.on{border-color:var(--accent);color:var(--text);font-weight:700}
+/* 위젯 탭 › 디데이·집중 타이머: 위젯 목록 아래 묶음 제목은 위에 여백·선 */
+.set-sub{margin-top:2rem;padding-top:3rem;border-top:1px solid var(--card-bd);color:var(--text)}
+.fo-state{font-size:2.8rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.set-card #fo-set-go.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+/* 디데이 목록: 이름 값(작게 날짜) | ↑ 고치기 지우기 · 추가·고치기 칸 */
+.cd-set-list b{margin-left:1rem;font-weight:700;font-variant-numeric:tabular-nums}
+.cd-btns{display:flex;gap:1rem;flex:none}
+.set-card .cd-set-list button:disabled{opacity:.2;cursor:default}
+.cd-form{display:flex;flex-direction:column;gap:1.8rem;padding:2.4rem;border:1px solid var(--card-bd);border-radius:2.4rem}
+.cd-form[hidden]{display:none}
+.cd-form .tr-bar{flex-wrap:wrap}
+.cd-form #cd-name{flex-basis:100%}
+.cd-form input[type=date]{flex:none;color-scheme:dark}
+.set-card .cd-form .tr-save{padding:1.2rem 3.4rem;color:var(--on-accent);border-color:var(--accent)}
+.cd-form .chips{flex-wrap:wrap}

@@ -30,6 +30,10 @@ function lgRaise(shape, m, h = 1) {
   return s + shape(dvMix(m.print, m.top, h));
 }
 const lgSink = (shape, m) => `<g transform="translate(.35 .45)">${shape(m.lo)}</g><g transform="translate(-.35 -.45)">${shape(m.hi)}</g>${shape(m.face)}`;
+// 도드라진 조각 묶음의 그림자: 가까운 진한 그림자 + 오른쪽 아래로 퍼지는 옅은 그림자 (양각 테마만, 디데이·집중 타이머 판도 씀)
+const lgShadow = (m, fid) => m.sh ? `<filter id="${fid}" x="-10%" y="-20%" width="120%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation=".7"/><feOffset dx=".5" dy="1.3" result="a"/>`
+  + `<feFlood flood-color="${m.sh[0]}" flood-opacity="${m.sh[1]}"/><feComposite in2="a" operator="in" result="s1"/><feGaussianBlur in="SourceAlpha" stdDeviation="2.4"/><feOffset dx="1.6" dy="3.6" result="b"/>`
+  + `<feFlood flood-color="${m.sh[0]}" flood-opacity="${m.sh[1] * .8}"/><feComposite in2="b" operator="in" result="s2"/><feMerge><feMergeNode in="s2"/><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : '';
 // 숫자 릴: p는 가운데 숫자(3이면 03에 멈춘 모습), 위아래로 22 간격, 가운데에서 멀수록 작고 낮게
 function lgReel(v, p) {
   const m = LG_INK[v], k0 = Math.floor(p);
@@ -50,9 +54,7 @@ function logoSvg(v, pre, p = 3) {
     + `<path d="M92 18V102" stroke="${c}" stroke-width="1.25" stroke-dasharray="4 4"/>`
     + `<path d="M${W} 18H${W + 14}V32M${W} 102H${W + 14}V88" fill="none" stroke="${c}" stroke-width="2"/>`;
   const name = c => `<text x="110" y="60" font-size="27" fill="${c}" dominant-baseline="central" style="${LG_FONT};font-weight:400">pebbly labs</text>`;
-  const sh = m.sh ? `<filter id="${id('s')}" x="-10%" y="-20%" width="120%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation=".7"/><feOffset dx=".5" dy="1.3" result="a"/>`
-    + `<feFlood flood-color="${m.sh[0]}" flood-opacity="${m.sh[1]}"/><feComposite in2="a" operator="in" result="s1"/><feGaussianBlur in="SourceAlpha" stdDeviation="2.4"/><feOffset dx="1.6" dy="3.6" result="b"/>`
-    + `<feFlood flood-color="${m.sh[0]}" flood-opacity="${m.sh[1] * .8}"/><feComposite in2="b" operator="in" result="s2"/><feMerge><feMergeNode in="s2"/><feMergeNode in="s1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : '';
+  const sh = lgShadow(m, id('s'));
   return `<svg viewBox="0 0 ${VW.toFixed(1)} 120" style="--lg-r:${(VW / 120).toFixed(3)}" aria-hidden="true"><defs>`
     + `<radialGradient id="${id('b')}" cx=".4" cy=".35" r=".9"><stop offset="0" stop-color="${m.bg[0]}"/><stop offset="1" stop-color="${m.bg[1]}"/></radialGradient>${sh}`
     + `<clipPath id="${id('c')}"><rect x="20" y="22" width="56" height="76"/></clipPath></defs>`

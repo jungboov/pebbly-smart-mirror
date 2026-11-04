@@ -1,0 +1,40 @@
+/* Pebbly Mirror — 집중 타이머 위젯 (칸 채우기·양각 판은 count.css) */
+/* ── 평면 ── 남은 시간 원판(줄어드는 호·분 눈금·단계·남은 시간·끝 시각) / 회차 점·길이 / 버튼 / 다음 단계·오늘 집중
+   가로 화면은 위아래로, 세로 화면은 원판 왼쪽·나머지 오른쪽 */
+.fo-wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:3rem}
+.fo-dial{position:relative;width:min(100%, 100cqh - 33rem);aspect-ratio:1;container-type:inline-size;flex:none}
+.fo-dial svg{position:absolute;inset:0;width:100%;height:100%}
+.fo-track{fill:none;stroke:var(--track);stroke-width:2.2}
+.fo-tick{stroke:var(--text-dim);stroke-width:.5}
+.fo-arc{fill:none;stroke:var(--text);stroke-width:2.2;stroke-linecap:round;transition:stroke-dasharray .5s linear}
+.fo-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw}
+.fo-ph{font-size:7cqw;font-weight:700;color:var(--text-muted);line-height:1}
+.fo-t{display:flex;font-family:var(--num);font-weight:900;font-size:21cqw;line-height:.82}
+.fo-t i{display:inline-block;width:.834em;text-align:center;font-style:normal}
+.fo-t i.c{width:.42em}
+.fo-end{font-size:5cqw;font-weight:600;color:var(--text-dim);line-height:1}
+.fo-side{width:100%;display:flex;flex-direction:column;gap:2.4rem}
+.fo-cyc{display:flex;align-items:center;gap:1.4rem;font-size:2.6rem;font-weight:600;color:var(--text-dim)}
+.fo-dots{display:flex;gap:1.4rem}
+.fo-dots i{width:2.2rem;height:2.2rem;border-radius:50%;border:2px solid var(--text-dim)}
+.fo-dots i.done{background:var(--text-muted);border-color:var(--text-muted)}
+.fo-dots i.now{border-color:var(--text);background:conic-gradient(var(--text) 0 var(--p, 0%), transparent 0)}
+.fo-plan{margin-left:auto}
+.fo-ctl{display:flex;gap:1.4rem}
+.fo-ctl button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3rem;line-height:1;
+  color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 2.8rem;white-space:nowrap;cursor:pointer}
+.fo-ctl button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.fo-foot{display:flex;align-items:baseline;gap:1.4rem;padding-top:2rem;border-top:1px solid var(--line);
+  font-size:2.8rem;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.fo-foot > span{font-weight:400;color:var(--text-dim)}
+.fo-foot em{margin-left:auto;font-style:normal;color:var(--text-dim)}
+.fo-foot em b{font-family:var(--num);color:var(--text)}
+@media (orientation: portrait){
+  .fo-wrap{flex-direction:row;align-items:center;gap:5rem}
+  .fo-dial{width:auto;height:100%;max-height:calc(100cqh - 5.6rem)}
+  .fo-side{flex:1;min-width:0;gap:2.2rem}
+  .fo-ctl button{font-size:2.8rem;padding:1.4rem 2.4rem}
+}
+/* ── 양각 ── 판 위 키를 누르는 투명 버튼 (자리는 focus.js foLay) */
+.pl-box{position:absolute;inset:0}
+.fo-hit button{position:absolute;padding:0;border:0;border-radius:999px;background:none;cursor:pointer}

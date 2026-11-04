@@ -94,6 +94,8 @@ function applySettings() {
   const shown = panelList();
   PANELS.forEach((el, i) => el.classList.toggle('wg-off', S.focus && !shown.includes(PANEL_NAMES[i])));
   document.body.classList.toggle('no-panel', S.focus && !shown.length);
+  foApply();
+  plApply();   // 디데이·집중 타이머 다시 그림 (위젯 칸이 정해진 뒤)
   renderBoard();
   setupH1();
   renderClock(new Date());
@@ -154,17 +156,18 @@ async function loadHolidays(y) {
 // 시계 강조: 켠 위젯을 설정 순서대로 (교통은 정류장을 등록해야, 사진 액자는 사진을 올려야 나옴) / 상세 세로: 시간별 ↔ 일별
 // S.rotate초마다 자동(0이면 자동 넘김 끔), 화면을 밀면 바로 넘김. 사진 액자는 넘어올 때마다 다음 사진
 let panel = 0, panelName = 'now', panelTimer;
-const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자', cal: '달력', logo: '로고' };
+const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일별 예보', air: '공기·해·달', transit: '교통', photo: '사진 액자', cal: '달력', logo: '로고', count: '디데이', focus: '집중 타이머' };
 // o: 'L' 가로·'P' 세로 (없으면 지금 화면 방향)
 const portraitMQ = matchMedia('(orientation: portrait)');
 const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
 const wgCfg = (o = wgNow()) => S[o === 'P' ? 'wgP' : 'wgL'];
 const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NAMES.includes(n)), ...PANEL_NAMES])];   // 새 위젯은 뒤에
-const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'photo' ? photos.length > 0 : true;
+const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'photo' ? photos.length > 0 : n === 'count' ? S.counts.length > 0 : true;
 function panelList(o) {
   if (!S.focus) return PANEL_NAMES.slice(0, 4);
   const h = new Date().getHours();
-  return wgOrder(o).filter(n => wgReady(n) && !wgCfg(o).off.includes(n) && (!S.wgTime[n] || inHours(S.wgTime[n], h)));   // 다 끄면 빈 목록 = 시계만
+  // 다 끄면 빈 목록 = 시계만. 집중 타이머는 꺼 뒀거나 보이는 시간이 아니어도 도는(멈춘) 동안은 나옴
+  return wgOrder(o).filter(n => wgReady(n) && ((n === 'focus' && S.foRun) || (!wgCfg(o).off.includes(n) && (!S.wgTime[n] || inHours(S.wgTime[n], h)))));
 }
 // dir: 1 다음 / -1 이전 (없으면 효과 없이 바꿈), axis: 'x' 가로·'y' 세로로 넘어감, from: 손으로 끌다 놓은 자리·속도에서 이어서
 function showPanel(p, dir, axis, from) {
@@ -187,6 +190,8 @@ function showPanel(p, dir, axis, from) {
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
   else if (old === 'photo') phLeave();   // 동영상 멈춤
   if (panelName === 'logo' && old !== 'logo') lgSpin();   // 로고: 들어올 때마다 숫자 한 바퀴
+  if (panelName === 'count' && old !== 'count') cdEnter();   // 디데이: 들어올 때마다 숫자 릴이 어제에서 한 칸
+  if (panelName === 'focus') foRender(true);
   if (dir && S.focus && old !== panelName) page(panelEl(old), panelEl(panelName), dir, axis, from);
   schedulePanel();
 }
@@ -198,6 +203,7 @@ function schedulePanel() {
 // 사진 액자는 한 번 올 때 정한 장수(설정 > 사진)만큼 사진을 넘긴 뒤 다음 위젯으로, 다음 차례엔 이어서
 // 동영상은 끝까지 본 뒤에 (phHold: 끝나면 autoNext(true))
 function autoNext(held) {
+  if (panelName === 'focus' && foOn() && S.fo.pin) { schedulePanel(); return; }   // 집중 타이머가 도는 동안은 머묾 (손으로 밀면 넘어감)
   if (panelName === 'photo' && !held && phHold()) return;
   if (panelName === 'photo' && phMore()) { phShow(1); phVisit++; schedulePanel(); return; }
   showPanel(panel + 1, 1, innerWidth > innerHeight ? 'y' : 'x');

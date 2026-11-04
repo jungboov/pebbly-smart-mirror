@@ -54,9 +54,9 @@ const setM1 = roller($('m1'), range(6), true);
 const setM2 = roller($('m2'), range(10), true);
 const setS = roller($('s'), range(60, pad));
 
-// 날씨 위젯 4개 + 교통·사진 액자·달력·로고 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
-const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'photo', 'cal', 'logo'];
-const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#photo', '#cal', '#logo'].map(s => document.querySelector(s));
+// 날씨 위젯 4개 + 교통·사진 액자·달력·로고·디데이·집중 타이머 위젯 (시계 강조 화면에서 같은 자리에 겹쳐 돌아감)
+const PANEL_NAMES = ['now', 'hourly', 'daily', 'air', 'transit', 'photo', 'cal', 'logo', 'count', 'focus'];
+const PANELS = ['.wmain', '#hourly', '#wave', '.cards', '#transit', '#photo', '#cal', '#logo', '#count', '#focus'].map(s => document.querySelector(s));
 const panelEl = name => PANELS[PANEL_NAMES.indexOf(name)];
 
 // 시계 글자 크기 계산 (폰트 로드·화면 회전·날씨 표시 때마다 다시 맞춤)
@@ -1128,6 +1128,7 @@ function tickClock() {
   }
   checkAlarm(d);
   cmIdleCheck();
+  cdTick(d);   // 디데이: 자정에 숫자 릴이 한 칸
   document.body.classList.toggle('night', isNight(d.getHours()));
   document.body.classList.toggle('night-dim', nightStyle() === 'dim');
   document.body.classList.toggle('night-red', nightStyle() === 'red');

@@ -15,24 +15,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap">
-<!-- 로고(02 [ 03 ] 04 · pebbly mirror · 시계판의 pebbly labs · PEBBLY LABS)·인트로: MuseoModerno — 쓰는 글자(숫자·괄호·빈칸·로고 글자)만 받음 (몇 KB) -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400;500;600&text=0123456789%5B%5D%20abeilmoprsyABELPSY&display=block">
+<!-- 로고(02 [ 03 ] 04 · pebbly mirror · 시계판의 pebbly labs · PEBBLY LABS)·인트로·양각 디데이·집중 타이머 판(d-day 412 D-12 · focus 18:42 2/4): MuseoModerno — 쓰는 글자(숫자·괄호·빈칸·로고 글자·- + : / ·)만 받음 (몇 KB) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400;500;600&text=0123456789%5B%5D%20abcdefilmoprsuyABDELPSY-%2B%3A%2F%C2%B7&display=block">
 <!-- 로터리 시계판 숫자·날짜: 좁은 BenchNine — 숫자와 영어 달·요일 이름에 쓰는 글자만 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BenchNine&text=%20.0123456789%3AADFJMNOPSTWabcdeghilmnoprstuvy&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
-<link rel="stylesheet" href="css/theme.css?v=93">
-<link rel="stylesheet" href="css/base.css?v=93">
-<link rel="stylesheet" href="css/clock.css?v=93">
-<link rel="stylesheet" href="css/weather.css?v=93">
-<link rel="stylesheet" href="css/detail.css?v=93">
-<link rel="stylesheet" href="css/standby.css?v=93">
-<link rel="stylesheet" href="css/transit.css?v=93">
-<link rel="stylesheet" href="css/photo.css?v=93">
-<link rel="stylesheet" href="css/calendar.css?v=93">
-<link rel="stylesheet" href="css/logo.css?v=93">
-<link rel="stylesheet" href="css/standby-widgets.css?v=93">
-<link rel="stylesheet" href="css/settings.css?v=93">
+<!-- ?v=: 기기에 남은 옛 파일을 건너뛰게 하는 판 번호 (파일은 _headers로 매번 새 버전 확인). 스타일: 테마 색 → 기본 → 시계 → 날씨 → 상세 화면 → 시계 강조 → 교통 → 사진 액자 → 달력 → 로고 → 디데이 → 집중 타이머 → 시계 강조 위젯 → 설정 (순서대로 겹침) -->
+<link rel="stylesheet" href="css/theme.css?v=94">
+<link rel="stylesheet" href="css/base.css?v=94">
+<link rel="stylesheet" href="css/clock.css?v=94">
+<link rel="stylesheet" href="css/weather.css?v=94">
+<link rel="stylesheet" href="css/detail.css?v=94">
+<link rel="stylesheet" href="css/standby.css?v=94">
+<link rel="stylesheet" href="css/transit.css?v=94">
+<link rel="stylesheet" href="css/photo.css?v=94">
+<link rel="stylesheet" href="css/calendar.css?v=94">
+<link rel="stylesheet" href="css/logo.css?v=94">
+<link rel="stylesheet" href="css/count.css?v=94">
+<link rel="stylesheet" href="css/focus.css?v=94">
+<link rel="stylesheet" href="css/standby-widgets.css?v=94">
+<link rel="stylesheet" href="css/settings.css?v=94">
 </head>
 <body class="idle" data-panel="now">
 <!-- 시작 인트로: 공용 번호 인트로 [ 03 ] pebbly mirror (js/pebbly-intro.js — _brand/intro 원본의 사본, sync.py로 맞춤)
@@ -40,7 +42,7 @@
      부품을 바로 불러서 스크립트가 도는 즉시 첫 장면이 보임. 그동안 뒤에서 미러가 뜸, 누르면 바로 넘어감 (intro.js) -->
 <div id="intro" class="intro" aria-hidden="true"></div>
 <script src="js/pebbly-intro.js?v=8e44084a"></script>
-<script src="js/intro.js?v=93"></script>
+<script src="js/intro.js?v=94"></script>
 <main id="stage" class="stage">
   <header class="head">
     <div class="brand">
@@ -124,7 +126,7 @@
         <svg class="dm dm-hands" viewBox="-100 -122 200 244"><g id="dm-h"></g><g id="dm-m"></g><g id="dm-hub"></g></svg>
         <svg id="dm-sec" class="dm dm-sec" viewBox="-100 -122 200 244"></svg>
         <!-- 플라워(data-face="flower"): 보석 꽃 그림(가운데 웃는 얼굴이 판 가운데 — 이 테마를 고를 때 받음) / 시침·분침(그림자) / 초침. 바늘은 200×200 단위·가운데 0,0이고 clock.js(flowerHands)가 그림 -->
-        <img class="df df-img" src="img/flower.webp?v=93" alt="" loading="lazy" decoding="async">
+        <img class="df df-img" src="img/flower.webp?v=94" alt="" loading="lazy" decoding="async">
         <svg class="df" viewBox="-100 -100 200 200"><defs id="df-defs"></defs><g filter="url(#df-sh)"><g id="df-h"></g><g id="df-m"></g><g id="df-hub"></g></g></svg>
         <svg id="df-sec" class="df df-sec" viewBox="-100 -100 200 200"></svg>
         <!-- 블랙 타일(data-face="rainbow"): 검은 타일 다이얼·시 눈금·작은 다이얼 3개·날짜 창 / (6시 쪽) 작은 초침 / 작은 다이얼 시·분 바늘·시침·분침(그림자) / 초침
@@ -298,6 +300,12 @@
   <!-- 로고: 양각·음각 pebbly labs 판, 나타날 때마다 [ 03 ] 숫자가 한 바퀴 돌아 03에 멈춤. 테마는 설정 › 테마 › 로고 위젯 (logo.js) -->
   <section id="logo" class="logo"><div id="lg-box" class="lg-box"></div></section>
 
+  <!-- 디데이: 첫 항목을 크게(숫자 릴, 나타날 때·자정에 한 칸 구름), 다음 기념일과 나머지 항목. 항목은 설정 › 위젯 › 디데이, 테마는 설정 › 테마 (count.js) -->
+  <section id="count" class="count"></section>
+
+  <!-- 집중 타이머: 남은 시간 원판·회차 점·시작/정지·건너뛰기·초기화. 길이·폰 리모컨은 설정 › 위젯 › 집중 타이머 (focus.js) -->
+  <section id="focus" class="focus"></section>
+
   <div id="sb-dots" class="sb-dots" aria-hidden="true"></div>
 </main>
 
@@ -359,6 +367,9 @@
         <div class="step"><button data-ls="-1" aria-label="간격 줄이기">−</button><span id="set-lgspin"></span><button data-ls="1" aria-label="간격 늘리기">+</button></div>
       </div>
       <p class="tr-msg">로고 위젯은 시계 강조 화면에서 다른 위젯과 번갈아 보여요(위젯 탭에서 끄기·순서). 나타날 때 숫자가 한 바퀴 돌고, 보이는 동안 정한 초마다 다시 돌아요(끔이면 나타날 때만).</p>
+      <!-- 디데이·집중 타이머 위젯 테마: 평면(미러 기본) · 양각 · 양각 블랙 (plate.js plCards) -->
+      <div class="set-row">디데이·집중 타이머 위젯</div>
+      <div id="pl-list" class="th-list lg-list"></div>
     </div>
     <div class="set-page" data-page="widgets">
       <div class="set-row">화면 방향
@@ -369,6 +380,40 @@
       </div>
       <p id="wg-hint" class="tr-msg"></p>
       <ul id="wg-list" class="wg-list"></ul>
+      <!-- 디데이 항목: 목록(위로·고치기·지우기) / 추가·고치기 칸 (count.js) -->
+      <div class="set-row set-sub">디데이
+        <div class="tr-add"><button id="cd-add">+ 추가</button></div>
+      </div>
+      <p id="cd-empty" class="tr-msg">'만난 지 412일'처럼 지난 날을 세거나, '출시까지 D-12'처럼 남은 날을 세요. 맨 위 항목이 크게 보여요.</p>
+      <ul id="cd-list" class="tr-list cd-set-list"></ul>
+      <div id="cd-form" class="cd-form" hidden>
+        <div class="tr-bar"><input id="cd-name" maxlength="16" enterkeyhint="done" placeholder="이름 (예: 만난 지, 출시까지)"><input id="cd-date" type="date"></div>
+        <div class="set-row">세기
+          <div class="seg"><button data-cdm="since">지난 날</button><button data-cdm="until">남은 날</button></div>
+        </div>
+        <div class="chips"><button data-cdo="first">첫날을 1일로</button><button data-cdo="yearly">매년 (생일·기념일)</button></div>
+        <p id="cd-msg" class="tr-msg"></p>
+        <div class="tr-add"><button id="cd-save" class="tr-save">저장</button><button id="cd-cancel">취소</button></div>
+      </div>
+      <!-- 집중 타이머: 지금 상태와 시작·건너뛰기·초기화(폰에서 누르면 바로 미러로) / 길이 / 끝나면 / 도는 동안 (focus.js) -->
+      <div class="set-row set-sub">집중 타이머 <span id="fo-state" class="fo-state"></span></div>
+      <div class="tr-add"><button id="fo-set-go" data-fo="go">시작</button><button data-fo="skip">건너뛰기</button><button data-fo="reset">초기화</button></div>
+      <div class="set-row">집중
+        <div class="step"><button data-fs="min" data-fv="-1" aria-label="집중 줄이기">−</button><span id="fs-min"></span><button data-fs="min" data-fv="1" aria-label="집중 늘리기">+</button></div>
+      </div>
+      <div class="set-row">휴식
+        <div class="step"><button data-fs="rest" data-fv="-1" aria-label="휴식 줄이기">−</button><span id="fs-rest"></span><button data-fs="rest" data-fv="1" aria-label="휴식 늘리기">+</button></div>
+      </div>
+      <div class="set-row">긴 휴식 (4번째 뒤)
+        <div class="step"><button data-fs="long" data-fv="-1" aria-label="긴 휴식 줄이기">−</button><span id="fs-long"></span><button data-fs="long" data-fv="1" aria-label="긴 휴식 늘리기">+</button></div>
+      </div>
+      <div class="set-row">끝나면
+        <div class="seg"><button data-fb="auto" data-fv="1">다음 바로 시작</button><button data-fb="auto" data-fv="0">멈춤</button></div>
+      </div>
+      <div class="set-row">도는 동안
+        <div class="seg"><button data-fb="pin" data-fv="1">머묾</button><button data-fb="pin" data-fv="0">넘어감</button></div>
+      </div>
+      <p class="tr-msg">끝나면 알람처럼 울려요(소리는 미러 화면을 한 번 누른 뒤부터). '머묾'이면 도는 동안 자동으로 다른 위젯으로 넘어가지 않아요(손으로 밀면 넘어가요). 폰에서 시작·정지하면 10초쯤 안에 미러에 반영돼요.</p>
     </div>
     <div class="set-page" data-page="night">
       <div class="set-row">야간 모드
@@ -431,17 +476,20 @@
 </div>
 
 <!-- 스크립트: 순서대로 실행 (앞 파일의 값·함수를 뒤 파일이 씀). 시작은 main.js -->
-<script src="js/core.js?v=93"></script>
-<script src="js/sync.js?v=93"></script>
-<script src="js/clock.js?v=93"></script>
-<script src="js/weather.js?v=93"></script>
-<script src="js/screen.js?v=93"></script>
-<script src="js/clock-modes.js?v=93"></script>
-<script src="js/settings.js?v=93"></script>
-<script src="js/transit.js?v=93"></script>
-<script src="js/photo.js?v=93"></script>
-<script src="js/calendar.js?v=93"></script>
-<script src="js/logo.js?v=93"></script>
-<script src="js/main.js?v=93"></script>
+<script src="js/core.js?v=94"></script>
+<script src="js/sync.js?v=94"></script>
+<script src="js/clock.js?v=94"></script>
+<script src="js/weather.js?v=94"></script>
+<script src="js/screen.js?v=94"></script>
+<script src="js/clock-modes.js?v=94"></script>
+<script src="js/settings.js?v=94"></script>
+<script src="js/transit.js?v=94"></script>
+<script src="js/photo.js?v=94"></script>
+<script src="js/calendar.js?v=94"></script>
+<script src="js/logo.js?v=94"></script>
+<script src="js/plate.js?v=94"></script>
+<script src="js/count.js?v=94"></script>
+<script src="js/focus.js?v=94"></script>
+<script src="js/main.js?v=94"></script>
 </body>
 </html>

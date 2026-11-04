@@ -46,6 +46,7 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
   else if (b && b.dataset.clockTheme) { const t = b.dataset.clockTheme; S.analog = t !== 'digital'; if (S.analog) S.dialTheme = t; }
   else if (b && b.dataset.logoTheme) S.logoTheme = b.dataset.logoTheme;   // 로고 위젯 테마
+  else if (b && b.dataset.plateTheme) S.plate = b.dataset.plateTheme;   // 디데이·집중 타이머 위젯 테마 (plate.js)
   else if (b && b.dataset.ls) S.logoSpin = LG_SPIN[Math.min(LG_SPIN.length - 1, Math.max(0, LG_SPIN.indexOf(S.logoSpin) + Number(b.dataset.ls)))];   // 숫자 다시 돌기 간격
   else {
     if (e.target === $('settings') || (b && b.classList.contains('set-close'))) $('settings').hidden = true;
@@ -143,6 +144,7 @@ function thRender() {
   $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
   rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
   $('lg-list').innerHTML = lgCards();
+  $('pl-list').innerHTML = plCards();
 }
 
 // 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름 / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만
@@ -162,7 +164,8 @@ function wgRender() {
   $('wg-hint').textContent = `${wgEdit === 'P' ? '세로' : '가로'} 화면에서 켠 위젯이 이 순서대로 넘어가요. 모두 끄면 시계만 크게 보여요. 지금 화면은 ${wgNow() === 'P' ? '세로' : '가로'}예요. (시계 강조 화면에만 적용)`;
   $('wg-list').innerHTML = order.map((n, i) => {
     const on = !off.includes(n), ready = wgReady(n), t = S.wgTime[n], open = wgTimeOpen === n;
-    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : '사진 탭에서 사진을 올리면 나와요',
+    const note = [ready ? '' : n === 'transit' ? '교통 탭에서 정류장을 등록하면 나와요' : n === 'count' ? '아래 디데이에서 날짜를 등록하면 나와요' : '사진 탭에서 사진을 올리면 나와요',
+      n === 'focus' && !on ? '꺼 둬도 타이머가 도는 동안은 나와요' : '',
       t ? `${hourName(t[0])}~${hourName(t[1])}에만` : ''].filter(Boolean).map(x => `<small>${x}</small>`).join('');
     const edit = !open ? '' : '<div class="wg-time">' + (t
       ? [0, 1].map(k => `<button data-th="${k}" data-step="-1" aria-label="${k ? '끝' : '시작'} 1시간 앞당기기">−</button><b>${hourName(t[k])}</b>`
