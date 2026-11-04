@@ -75,9 +75,13 @@ function foState() {
 }
 
 // 양각 판 자리: 세로로 긴 판(가로 화면)은 위에 원판, 아래 회차·버튼·안내 / 가로로 긴 판(세로 화면)은 왼쪽 원판, 오른쪽에 나머지
-// [ 계속 ] [ 건너뛰기 ] [ 초기화 ] 글자 버튼 자리: 글자 길이(한글 .95em·괄호와 빈칸 1.1em)대로, 칸이 넉넉하면 양 끝까지 고르게 벌리고 좁으면 글자를 줄임
-function foKeys(x, y, avail, fs0) {
-  const em = [2, 4, 3].map(n => 1.1 + .95 * n), need = em.reduce((a, b) => a + b) + 1.6, fs = Math.min(fs0, avail / need);
+// [ start ] [ skip ] [ reset ] 글자 버튼 자리: 글자 길이대로, 칸이 넉넉하면 양 끝까지 고르게 벌리고 좁으면 글자를 줄임
+// 글자는 로고 글꼴 영어(start·pause·resume 중 가장 긴 6자 / skip / reset) — 한 글자 약 .6em, 괄호와 빈칸 1.1em
+// col: 좁은 오른쪽 칸(가로로 긴 판)이면 한 줄에 하나씩 위아래로 쌓아 글자를 키움
+function foKeys(x, y, avail, fs0, col) {
+  const em = [6, 4, 5].map(n => 1.1 + .6 * n);
+  if (col) { const fs = Math.min(fs0, avail / em[0]); return { fs, keys: em.map((e, i) => ({ x, y: y + i * fs * 2.4, w: e * fs, h: fs * 2.4 })) }; }
+  const need = em.reduce((a, b) => a + b) + 1.6, fs = Math.min(fs0, avail / need);
   const gap = Math.max(.8 * fs, (avail - (need - 1.6) * fs) / 2);
   let xx = x;
   return { fs, keys: em.map(e => { const k = { x: xx, y, w: e * fs, h: fs * 2.4 }; xx += e * fs + gap; return k; }) };
@@ -88,7 +92,9 @@ function foLay(W, H) {
     return { tall: true, label: [20, 28], dial: [W / 2, cy, r], dots: [26, y1, 20, 5.5], ...foKeys(20, y1 + 17, W - 60, 12) };
   }
   const wr = Math.max(150, W * .42), r = Math.min((H - 36) / 2, (W - wr - 44) / 2), cx = 20 + r, x0 = cx + r + 24;   // 오른쪽 칸(버튼·안내) 자리를 먼저 남김
-  return { tall: false, label: [x0, 30], dial: [cx, H / 2, r], dots: [x0 + 6, 54, 18, 5], x0, ...foKeys(x0, H / 2 - 10, W - 40 - x0, 11) };
+  // 버튼은 회차 점과 아래 안내 세 줄 사이에 위아래로 쌓을 수 있으면 쌓고(글자 9 이상), 낮은 판이면 한 줄로
+  const fsCol = Math.min(12, (W - 40 - x0) / 4.7, (H - 66 - 74) / 7.2);
+  return { tall: false, label: [x0, 30], dial: [cx, H / 2, r], dots: [x0 + 6, 54, 18, 5], x0, ...(fsCol >= 9 ? foKeys(x0, 74, W - 40 - x0, fsCol, true) : foKeys(x0, H / 2 - 10, W - 40 - x0, 11)) };
 }
 function foPlate(W, H, st) {
   const L = foLay(W, H), [cx, cy, r] = L.dial;
@@ -108,13 +114,12 @@ function foPlate(W, H, st) {
       const c = cc => `<circle cx="${dx + i * gap}" cy="${dy}" r="${dr}" fill="${cc}"/>`;
       o += i < st.done ? k.up(c, .7) : i === st.done && st.ph === 'focus' ? k.up(c, 1) + k.print(cc => `<circle cx="${dx + i * gap}" cy="${dy}" r="${dr * .45}" fill="${cc}"/>`) : k.sink(c);
     }
-    // 버튼: 로고 [ 03 ]처럼 대괄호로 감싼 글자 [ 계속 ] [ 건너뛰기 ] [ 초기화 ] — 판에서 낮게 솟음 (도는지는 글자 시작·정지·계속으로)
+    // 버튼: 로고 [ 03 ]처럼 대괄호로 감싼 로고 글꼴 영어 [ start ] [ skip ] [ reset ] — 판에서 낮게 솟음 (도는지는 글자 start·pause·resume으로)
     // 누르는 건 위에 겹친 투명 버튼(foBuild, 자리는 L.keys 그대로)
-    // 괄호만 솟고 글자는 판에 찍힌 진한 색 — 작은 글자도 두 테마에서 잘 읽히게 (같은 줄을 두 번: 괄호만 / 글자만 보이게)
     L.keys.forEach((b, i) => {
-      const t = (bk, lb) => c => `<text x="${(b.x + b.w / 2).toFixed(1)}" y="${(b.y + b.h / 2 + L.fs * .36).toFixed(1)}" font-size="${L.fs}" fill="${c}" text-anchor="middle" xml:space="preserve" style="font-family:var(--logo);font-weight:600">`
-        + `<tspan fill-opacity="${bk}">[ </tspan><tspan fill-opacity="${lb}" style="font-weight:700">${[st.go, '건너뛰기', '초기화'][i]}</tspan><tspan fill-opacity="${bk}"> ]</tspan></text>`;
-      o += k.up(t(1, 0), .6) + k.ink(t(0, 1));
+      const lab = [{ 시작: 'start', 정지: 'pause', 계속: 'resume' }[st.go], 'skip', 'reset'][i];
+      const t = c => `<text x="${(L.tall ? b.x + b.w / 2 : b.x).toFixed(1)}" y="${(b.y + b.h / 2 + L.fs * .36).toFixed(1)}" font-size="${L.fs}" fill="${c}" text-anchor="${L.tall ? 'middle' : 'start'}" xml:space="preserve" style="font-family:var(--logo);font-weight:600">[ ${lab} ]</text>`;
+      o += k.up(t, .6) + k.ink(t);   // 솟은 글자 윗면을 진한 인쇄 색으로 — 흰 판에서도 작은 글자가 읽힘
     });
     const plan = `집중 ${S.fo.min} · 휴식 ${S.fo.rest}`;
     if (L.tall) o += k.ink(plText(W - 40, dy + 4, 10, plan, 600, 'end')) + k.ink(plText(20, H - 18, 10.5, `다음 ${st.next}`, 600)) + k.ink(plText(W - 40, H - 18, 10.5, `오늘 집중 ${foToday()}분`, 600, 'end'));

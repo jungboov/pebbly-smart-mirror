@@ -13,10 +13,15 @@ function showCm(i, dir, axis) {
   renderCm();
 }
 function renderCm() {
+  document.querySelectorAll('[data-sw="reset"], [data-tm="reset"]').forEach(b => { b.textContent = cmL('초기화', 'reset'); });
+  $('al-del').textContent = cmL('삭제', 'delete');
   if (CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); }
   else if (CM[cm] === 'tm') renderTm();
   else if (CM[cm] === 'al') renderAl();
 }
+// 버튼 글자: 디지털 양각은 로고 글꼴 영어 [ start ] [ reset ] (clock.css가 괄호를 붙임), 그 밖엔 한글
+const cmEn = () => document.body.classList.contains('digi-pl');
+const cmL = (ko, en) => cmEn() ? en : ko;
 // 숫자마다 고정 폭 칸에 넣어서 빨리 바뀌어도 흔들리지 않게
 const digits = (el, s) => { const h = [...s].map(c => `<i>${c}</i>`).join(''); if (el.innerHTML !== h) el.innerHTML = h; };
 
@@ -28,7 +33,7 @@ function renderSw() {
   digits($('sw-m'), pad(Math.floor(t / 6e4)));
   digits($('sw-s'), pad(Math.floor(t / 1e3) % 60));
   digits($('sw-cs'), pad(Math.floor(t / 10) % 100));
-  $('sw-go').textContent = sw.run ? '정지' : t ? '계속' : '시작';
+  $('sw-go').textContent = sw.run ? cmL('정지', 'pause') : t ? cmL('계속', 'resume') : cmL('시작', 'start');
   $('sw-go').classList.toggle('on', sw.run);
 }
 function swLoop() { if (sw.run && CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); } }
@@ -40,7 +45,7 @@ function renderTm() {
   const t = Math.ceil(tmLeft());
   digits($('tm-m'), pad(Math.floor(t / 60)));
   digits($('tm-s'), pad(t % 60));
-  $('tm-go').textContent = tm.run ? '정지' : tm.left < tm.set ? '계속' : '시작';
+  $('tm-go').textContent = tm.run ? cmL('정지', 'pause') : tm.left < tm.set ? cmL('계속', 'resume') : cmL('시작', 'start');
   $('tm-go').classList.toggle('on', tm.run);
 }
 setInterval(() => {
@@ -51,16 +56,16 @@ setInterval(() => {
 
 // 알람: 여러 개(최대 4개). 아래 칩으로 고르고 +로 추가, 고른 알람의 시·분을 +/−로 맞추고 켜기·반복·삭제 (24시간 기준, 설정에 저장)
 // 반복: 매일 / 평일(월~금, 공휴일 빼고) / 주말(토·일)
-const AL_DAYS = { all: '매일', wk: '평일', we: '주말' };
+const AL_DAYS = { all: '매일', wk: '평일', we: '주말' }, AL_DAYS_EN = { all: 'daily', wk: 'weekdays', we: 'weekends' };
 let alSel = 0;
 const alNow = () => S.alarms[Math.min(alSel, S.alarms.length - 1)];
 function renderAl() {
   const a = alNow();
   digits($('al-h'), pad(a.h));
   digits($('al-m'), pad(a.m));
-  $('al-go').textContent = a.on ? '켜짐' : '꺼짐';
+  $('al-go').textContent = a.on ? cmL('켜짐', 'on') : cmL('꺼짐', 'off');
   $('al-go').classList.toggle('on', a.on);
-  $('al-days').textContent = AL_DAYS[a.days];
+  $('al-days').textContent = (cmEn() ? AL_DAYS_EN : AL_DAYS)[a.days];
   $('al-del').hidden = S.alarms.length < 2;
   $('al-list').innerHTML = S.alarms.map((x, i) => `<button data-al-sel="${i}" class="${x === a ? 'sel' : ''}${x.on ? '' : ' off'}">${pad(x.h)}:${pad(x.m)}</button>`).join('')
     + (S.alarms.length < 4 ? '<button data-al="add" aria-label="알람 추가">+</button>' : '');

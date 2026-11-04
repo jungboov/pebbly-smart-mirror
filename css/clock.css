@@ -204,14 +204,15 @@ body.sb.digi-pl .clock .ds-date, body.sb.digi-pl .clock .ds-date b, body.sb.digi
 body.sb.digi-pl .clock .ds-date b{font-family:var(--logo);font-weight:600}
 /* 스톱워치·타이머·알람: 판 안쪽(여백 안)에 — 크기는 fitClock이 판 안쪽 폭에 맞춤 */
 body.sb.digi-pl .cm{inset:3.2rem}
-/* 버튼: 둥근 키 대신 로고 [ 03 ]처럼 대괄호로 감싼 글자 [ 계속 ] [ 초기화 ] [ + ] — 판에서 낮게 솟음 (도는지는 글자 정지·계속으로)
+/* 버튼: 둥근 키 대신 로고 [ 03 ]처럼 대괄호로 감싼 로고 글꼴 영어 [ start ] [ reset ] [ + ] — 판에서 낮게 솟고 윗면은 진한 인쇄 색(흰 판에서도 읽힘)
+   도는지는 글자 pause·resume으로, 글자는 clock-modes.js cmL
    알람 목록은 고른 알람만 솟고 나머지는 판에 인쇄한 글자 */
-body.sb.digi-pl .cm button{width:auto;height:auto;padding:1rem .4rem;border:0;border-radius:0;background:none;box-shadow:none;color:var(--top);
+body.sb.digi-pl .cm button{width:auto;height:auto;padding:1rem .4rem;border:0;border-radius:0;background:none;box-shadow:none;color:var(--ink);font-family:var(--logo);font-weight:600;
   text-shadow:-.02em -.02em 0 var(--hi), .008em .016em 0 var(--s2), .016em .032em 0 var(--s4), .024em .048em 0 var(--s6), .03em .07em .05em var(--sh1)}
 body.sb.digi-pl .cm button::before{content:'[';margin-right:.4em;font-family:var(--logo);font-weight:600}
 body.sb.digi-pl .cm button::after{content:']';margin-left:.4em;font-family:var(--logo);font-weight:600}
 body.sb.digi-pl .cm .al-list button{font-family:var(--logo);font-weight:600;color:var(--ink);text-shadow:none}
-body.sb.digi-pl .cm .al-list button.sel{color:var(--top);text-shadow:-.02em -.02em 0 var(--hi), .008em .016em 0 var(--s2), .016em .032em 0 var(--s4), .024em .048em 0 var(--s6), .03em .07em .05em var(--sh1)}
+body.sb.digi-pl .cm .al-list button.sel{color:var(--ink);text-shadow:-.02em -.02em 0 var(--hi), .008em .016em 0 var(--s2), .016em .032em 0 var(--s4), .024em .048em 0 var(--s6), .03em .07em .05em var(--sh1)}
 body.sb.digi-pl .cm .al-list button.off{opacity:.55}
 body.sb.digi-pl .cm-pm{gap:.6rem}
 body.sb.digi-pl .cm-pm button{font-size:3.6rem;padding:.4rem .2rem}
@@ -220,6 +221,10 @@ body.sb.digi-pl .cm-dots i{background:var(--dim)}
 .dg{display:none}
 body.sb.digi-pl[data-cm="clock"] .dg{display:block;position:absolute;inset:0;pointer-events:none}
 body.sb.digi-pl[data-cm="clock"] #clock-in{visibility:hidden}
+/* 가로: 스톱워치 1/100초는 버튼 줄과 겹치지 않게 초 숫자 바로 아래 오른쪽(버튼 줄 위 빈 곳)에 */
+@media (orientation: landscape){
+  body.sb.digi-pl:not(.cm-line) #cm-sw .cm-d3{grid-area:3 / 2;justify-self:end;align-self:start;font-size:.4em;margin-top:.12em}
+}
 @media (orientation: portrait){
   body.sb.digi-pl .clock{padding-bottom:6rem}
   body.sb.digi-pl .dg{bottom:2.8rem}

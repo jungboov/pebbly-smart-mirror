@@ -63,6 +63,7 @@ function digiApply() {
   if (document.body.classList.contains('digi-pl') !== on) {   // 글꼴이 바뀌어서 숫자 폭을 다시 잼 (MuseoModerno를 받은 뒤 한 번 더)
     document.body.classList.toggle('digi-pl', on);
     measureDigits();
+    renderCm();   // 스톱워치·타이머·알람 버튼 글자(양각은 영어)
     if (on) document.fonts.load('600 100px MuseoModerno', '0123456789:').then(() => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(s => s.refresh()); fitClock(); }).catch(() => {});
   }
   if (!on) return;
