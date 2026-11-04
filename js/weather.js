@@ -376,10 +376,11 @@ function renderWave(w) {
     top += `<div class="wt ${cls}"><span class="wd">${dayLabel(iso)}</span>`
          + `<b${color}>${max}°<small>${Math.round(d.temperature_2m_min[i])}°</small></b></div>`;
     const x = (pts[k][0] / 6).toFixed(2), y = pts[k][1].toFixed(2);
-    if (cls === 'today') nodes += `<i class="wave-line" style="left:${x}%;height:calc(${y}% + 1.2rem)"></i>`;
+    // 오늘: 위(요일·기온 → 동그라미)와 아래(동그라미 → 강수확률) 점선 — 동그라미가 가운데를 가림
+    if (cls === 'today') nodes += `<i class="wave-line" style="left:${x}%;height:calc(${y}% + 1.2rem)"></i><i class="wave-line lo" style="left:${x}%;top:${y}%"></i>`;
     nodes += `<span class="node ${cls}" style="left:${x}%;top:${y}%">${icon(wmo(d.weather_code[i])[1])}</span>`;   // 오늘도 아이콘 (밝은 테두리·점선으로 구분)
-    const p = d.precipitation_probability_max[i];
-    pop += `<span class="wp">${p >= 30 ? '☂ ' + p + '%' : ''}</span>`;
+    const p = Math.round(d.precipitation_probability_max[i] || 0);   // 오늘은 30% 아래여도
+    pop += `<span class="wp${cls === 'today' ? ' today' : ''}">${p >= 30 || cls === 'today' ? '☂ ' + p + '%' : ''}</span>`;
   });
   $('wave-top').innerHTML = top;
   $('wave-nodes').innerHTML = nodes;

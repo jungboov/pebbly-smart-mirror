@@ -119,7 +119,7 @@ function pwHourly(k, W, H) {
   return o;
 }
 
-// ── 일별(어제부터 6일): 요일 / 최고·최저 · 최고기온 곡선 위 동그라미(그림 인쇄, 오늘은 크게 솟고 점선) · 강수확률 30% 이상
+// ── 일별(어제부터 6일): 요일 / 최고·최저 · 최고기온 곡선 위 동그라미(그림 인쇄, 오늘은 크게 솟고 위아래 점선) · 강수확률 30% 이상(오늘은 늘)
 const PW_UMB = '<path d="M2.5 12a9.5 9.5 0 0 1 19 0zM12 12v6a2 2 0 0 1-4 0"/>';
 function pwDaily(k, W, H) {
   let o = pwHead(k, W, 'daily');
@@ -140,8 +140,11 @@ function pwDaily(k, W, H) {
     const r = now ? nr * 1.2 : nr;
     o += k.up(pwDot(pts[j][0], pts[j][1], r), hgt * .7);
     o += k.ink(pwIco(k, wmo(d.weather_code[i])[1], true, pts[j][0] - r * .62, pts[j][1] - r * .62, r * 1.24, 1.1));
-    const p = d.precipitation_probability_max[i];
-    if (p >= 30) o += k.ink(pwPath(PW_UMB, cx(j) - 13, yp - 8.5, 9, 1.2)) + k.ink(plText(cx(j) + 9, yp, 9, p + '%', 600, 'middle'));
+    // 강수확률: 오늘은 위처럼 동그라미에서 점선을 내려 잇고, 30% 아래여도 보여 줌(글자는 위 '오늘'처럼 낮게 솟음)
+    const p = Math.round(d.precipitation_probability_max[i] || 0);
+    if (now && yp - 14 - (pts[j][1] + r + 3) > 4) o += k.print(plDash(cx(j), pts[j][1] + r + 3, cx(j), yp - 14));
+    if (p >= 30 || now) o += k.ink(pwPath(PW_UMB, cx(j) - 13, yp - 8.5, 9, 1.2))
+      + (now ? k.tx(plText(cx(j) + 9, yp, 9, p + '%', 700, 'middle'), .6) : k.ink(plText(cx(j) + 9, yp, 9, p + '%', 600, 'middle')));
   });
   return o;
 }

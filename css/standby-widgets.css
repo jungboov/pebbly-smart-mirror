@@ -72,6 +72,7 @@ body.sb .wave-plot{height:14rem;margin-top:2.4rem}
 body.sb .node{width:6.6rem;height:6.6rem}
 body.sb .node .ico{width:3.8rem;height:3.8rem}
 body.sb .wp{margin-top:1.4rem;font-size:3rem}
+body.sb .wave-line.lo{bottom:-1.1rem}
 /* 일별 위젯 칸이 좁으면(가로에서 시계가 커졌을 때) 날짜·기온 글자를 줄여 6칸에 맞춤 (위 기본 크기보다 뒤에 와야 적용됨) */
 @container (max-width: 64rem){
   body.sb .wd{font-size:2.6rem}

@@ -56,6 +56,8 @@
 .node.past{opacity:.45}
 .node.today{border-color:var(--accent);box-shadow:0 0 1.4rem .3rem rgba(var(--glow), .35)}   /* 오늘: 밝은 테두리 + 점선 */
 .wave-line{position:absolute;top:-1.2rem;border-left:1px dashed rgba(var(--glow), .4)}
+.wave-line.lo{bottom:-.4rem}   /* 아래 점선: 동그라미 가운데(top은 줄마다) → 강수확률 줄 바로 위 */
+.wp.today{font-weight:600}
 .wp{font-size:2.2rem;color:var(--rain);min-height:1.4em;margin-top:.6rem;white-space:nowrap}   /* ☂ 100% 가 두 줄로 꺾이지 않게 */
 .f-lbl{margin-bottom:1.8rem}
 
