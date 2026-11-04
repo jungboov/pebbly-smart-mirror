@@ -179,31 +179,46 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial .dv-ss{left:36%;top:53.813%;width:28%;height:23.14%;will-change:transform}
 
 /* ── 디지털 양각·양각 블랙 (설정 › 테마 › 시계, 시계 강조 화면) ──
-   시계 칸 뒤에 판을 깔기만 해서 시계 크기·배치는 그대로, 굴러가는 숫자는 도드라진 글자로 (색은 plate.js digiApply가 --변수로 넣음)
-   스톱워치·타이머·알람 숫자와 버튼도 같이 */
-body.sb.digi-pl .clock{isolation:isolate}
-body.sb.digi-pl .clock::before{content:'';position:absolute;inset:-2.4rem -3rem;z-index:-1;border-radius:3.6rem;
-  background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.6rem 1.4rem 3rem var(--sh2)}
-/* 도드라진 숫자: 왼쪽 위 빛 테 + 옆면 6겹(오른쪽 아래로, 바닥 쪽이 어둡게) — 로고 위젯 조각과 같은 비율(글자 크기의 약 2%·4%) */
-body.sb.digi-pl .clock-in, body.sb.digi-pl .cm b{color:var(--top);text-shadow:-.009em -.009em 0 var(--hi),
-  .0034em .0071em 0 var(--s1), .0068em .0142em 0 var(--s2), .0102em .0213em 0 var(--s3),
-  .0136em .0284em 0 var(--s4), .017em .0355em 0 var(--s5), .0204em .0426em 0 var(--s6)}
-/* 굴러가는 칸은 이웃 숫자를 가리려고 잘라 내는데, 옆면(오른쪽 아래)·빛 테(왼쪽)는 남기고 위쪽은 이웃 숫자 옆면이 안 비치게 조금 안으로 */
-body.sb.digi-pl .clock .roll, body.sb.digi-pl .cm b i{overflow:visible;clip-path:inset(.03em -.025em -.032em -.012em)}
-/* 초: 위로 지나간 숫자는 흐리게 비치고, 아래 다음 숫자는 판 아래 끝을 넘어서 안 보이게 (현재 숫자 바닥 + 옆면까지만) */
-body.sb.digi-pl .clock .roll.peek{clip-path:inset(0 -.025em .255em -.012em)}
+   시계 칸이 곧 판: 칸 안쪽 여백(3.2rem)만큼 fitClock이 숫자를 줄여 넣어서 판이 위젯·헤더와 겹치지 않음 (세로는 아래 2.8rem을 위젯과 사이로 남김)
+   숫자·날짜·라벨은 위젯 판과 같은 글꼴(MuseoModerno)로, 도드라짐도 위젯 판과 같은 비율(얕은 옆면 + 부드러운 그림자) — 색은 plate.js digiApply가 --변수로 넣음
+   스톱워치·타이머·알람 숫자와 버튼도 같이. 세로 반반의 한 줄(늘인 숫자) 배치는 쓰지 않고 세 줄로 */
+body.sb.digi-pl .clock{isolation:isolate;padding:3.2rem}
+body.sb.digi-pl .clock::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:3.6rem;
+  background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.4rem 1rem 2.4rem var(--sh2)}
+body.sb.digi-pl .clock-in, body.sb.digi-pl .cm{font-family:var(--logo);font-weight:600}
+/* 도드라진 숫자: 빛 테(왼쪽 위) + 옆면 6겹(오른쪽 아래, 바닥 쪽이 어둡게) + 가까운·먼 그림자 — 위젯 판 큰 숫자(412)와 같은 비율 */
+body.sb.digi-pl .clock-in, body.sb.digi-pl .cm b{color:var(--top);text-shadow:-.004em -.004em 0 var(--hi),
+  .0012em .0025em 0 var(--s1), .0024em .005em 0 var(--s2), .0036em .0075em 0 var(--s3),
+  .0048em .01em 0 var(--s4), .006em .0125em 0 var(--s5), .0072em .015em 0 var(--s6),
+  .006em .016em .008em var(--sh1), .014em .03em .016em var(--sh2)}
+/* 굴러가는 칸은 이웃 숫자를 가리려고 잘라 내는데, 옆면·그림자(오른쪽 아래)·빛 테(왼쪽)는 남기고 위쪽은 이웃 숫자 그림자가 안 비치게 조금 안으로 */
+body.sb.digi-pl .clock .roll, body.sb.digi-pl .cm b i{overflow:visible;clip-path:inset(.03em -.04em -.046em -.01em)}
+/* 초: 위로 지나간 숫자는 흐리게 비치고, 아래 다음 숫자는 안 보이게 (현재 숫자 바닥 + 그림자까지만) */
+body.sb.digi-pl .clock .roll.peek{clip-path:inset(0 -.04em .24em -.01em)}
 body.sb.digi-pl .clock .colon{color:var(--colon)}
-/* 판에 인쇄한 글자: 라벨·날짜·이름 */
-body.sb.digi-pl .clock .lbl, body.sb.digi-pl .cm-name, body.sb.digi-pl .clock .ds-date, body.sb.digi-pl .clock .ds-date b,
-body.sb.digi-pl .clock .ds-wd, body.sb.digi-pl .clock .ds-ap{color:var(--ink);text-shadow:none}
+/* 라벨·스톱워치 이름: 판에 인쇄한 글자(위젯 판의 d-day · focus와 같은 글꼴) */
+body.sb.digi-pl .clock .lbl, body.sb.digi-pl .cm-name{font-family:var(--logo);font-weight:500;letter-spacing:.02em;color:var(--ink);text-shadow:none}
+/* 날짜: 위젯 판의 이름(만난 지)처럼 낮게 도드라진 글자, 숫자는 MuseoModerno */
+body.sb.digi-pl .clock .ds-date, body.sb.digi-pl .clock .ds-date b, body.sb.digi-pl .clock .ds-wd, body.sb.digi-pl .clock .ds-ap{color:var(--top);
+  text-shadow:-.02em -.02em 0 var(--hi), .008em .016em 0 var(--s2), .016em .032em 0 var(--s4), .024em .048em 0 var(--s6), .03em .07em .05em var(--sh1), .06em .14em .12em var(--sh2)}
+body.sb.digi-pl .clock .ds-date b{font-family:var(--logo);font-weight:600}
+/* 스톱워치·타이머·알람: 판 안쪽(여백 안)에 — 크기는 fitClock이 판 안쪽 폭에 맞춤 */
+body.sb.digi-pl .cm{inset:3.2rem}
 /* 버튼: 판에서 솟은 키 (켜진 건 눌려 낮게) */
 body.sb.digi-pl .cm button{color:var(--ink);background:var(--key);border:0;
-  box-shadow:-.15rem -.15rem 0 var(--hi), .25rem .5rem 0 var(--s1), .35rem .7rem 0 var(--s4), .6rem 1.4rem 1.6rem var(--sh1)}
+  box-shadow:-.15rem -.15rem 0 var(--hi), .2rem .4rem 0 var(--s2), .3rem .6rem 0 var(--s5), .5rem 1.2rem 1.4rem var(--sh1)}
 body.sb.digi-pl .cm button.on, body.sb.digi-pl .cm .al-list button.sel{color:var(--ink);background:var(--key-on);
-  box-shadow:-.1rem -.1rem 0 var(--hi), .1rem .2rem 0 var(--s1), .25rem .5rem .8rem var(--sh1)}
+  box-shadow:-.1rem -.1rem 0 var(--hi), .1rem .2rem 0 var(--s2), .2rem .5rem .8rem var(--sh1)}
 body.sb.digi-pl .cm .al-list button.off{opacity:.6}
 body.sb.digi-pl .cm-dots i{background:var(--dim)}
-/* 가로: 스톱워치·타이머·알람은 숫자 + 오른쪽 +/− 버튼이 시계 칸보다 넓고 위로도 조금 올라가서, 판 안에 들게 숫자를 84%로·위 끝을 칸에 맞춤 */
-@media (orientation: landscape){
-  body.sb.digi-pl:not(.cm-line) .cm{font-size:calc(var(--cm, var(--clock)) * .84);top:0}
+/* 시계 화면: HTML 시계는 자리만 잡고 숨기고, 로고 판 구성의 SVG 판(digi.js)이 칸을 채움. 스톱워치·타이머·알람에선 판만 남고 HTML 숫자 */
+.dg{display:none}
+body.sb.digi-pl[data-cm="clock"] .dg{display:block;position:absolute;inset:0;pointer-events:none}
+body.sb.digi-pl[data-cm="clock"] #clock-in{visibility:hidden}
+@media (orientation: portrait){
+  body.sb.digi-pl .clock{padding-bottom:6rem}
+  body.sb.digi-pl .dg{bottom:2.8rem}
+  body.sb.digi-pl .clock::before{bottom:2.8rem}
+  body.sb.digi-pl .cm{bottom:6rem}
+  body.sb.digi-pl:not([data-cm="clock"]) .cm-dots{top:1.1rem}
 }

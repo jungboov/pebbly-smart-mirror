@@ -34,10 +34,11 @@ function roller(el, values, fitWidth) {
 }
 
 // 숫자별 글자 폭(em). 너무 좁으면 굴러갈 때 이웃 숫자가 많이 잘려서 최소 .62em
+// 디지털 양각(digi-pl)은 위젯 판과 같은 MuseoModerno 600, 그 밖엔 Orbitron 900
 let digitW = null;
 function measureDigits() {
   const c = document.createElement('canvas').getContext('2d');
-  c.font = '900 100px Orbitron';
+  c.font = document.body.classList.contains('digi-pl') ? '600 100px MuseoModerno' : '900 100px Orbitron';
   digitW = {};
   for (let i = 0; i < 10; i++) digitW[i] = Math.max(c.measureText(String(i)).width / 100, .62);
 }
@@ -85,7 +86,10 @@ function fitClock() {
     ds.style.zoom = '';
     // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌
     const sw = stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight), cg = parseFloat(st.columnGap);
-    const w = portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem;
+    // 디지털 양각은 시계 칸이 판이라 칸 안쪽 여백(좌우·위)만큼 빼고 맞춤 (아래 여백은 pb). 평면은 여백 0
+    const ckSt = getComputedStyle($('clock')), padX = parseFloat(ckSt.paddingLeft) + parseFloat(ckSt.paddingRight), padT = parseFloat(ckSt.paddingTop);
+    const digi = document.body.classList.contains('digi-pl');
+    const w = (portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem) - padX;
     // 칸 사이(2rem)·눕힌 라벨(2.6rem)은 CSS 값 그대로 (세로 반반 한 줄 배치에선 라벨을 숨기고 칸 사이를 0으로 해서 재지 않음)
     const gap = 2 * rem, lbl = 2.6 * rem + gap;
     // 눕힌 날짜 두께 (한 줄 배치에선 날짜가 가로라 첫 줄 높이)
@@ -100,6 +104,7 @@ function fitClock() {
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
     const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
     if (portrait && !solo) h = S.half ? h / 2 : h - Math.max(...PANELS.map(el => el.offsetHeight)) - 4 * rem;   // 아래 위젯 자리 (반반: 위 절반)
+    h -= padT;
     if (S.analog) { const cs = fitDial(w, h - pb, portrait, solo, rem, wmax); return clockVars(cs, cs, rem, wmax); }   // 아날로그: 시계판
     // 가로·세로 시계 크게: 날짜를 옆(세로)과 위(가로 줄) 중 시계가 더 커지는 쪽으로 — 시계 칸이 폭에 막히면(가로 반반, 폰 세로 등) 위로 올려
     // 가로는 위젯 칸 위·아래 끝까지, 세로는 시계 아래 빈 곳만큼 시계를 키움. 높이에 막히는 낮고 긴 화면은 옆
@@ -119,7 +124,7 @@ function fitClock() {
     // 세로 반반: 시:분 한 줄(폭에 맞춤)이 세 줄 크기의 80% 이상이면 한 줄로 — 위아래로 늘려(--sy) 위 절반을 채우고 아래 줄에 날짜·초
     // (폭이 좁은 폰은 한 줄이면 많이 작아져서 세 줄 그대로). 스톱워치·타이머·알람도 같이 (cm-line)
     const lineSize = oneLineSize(w, wmax);
-    const oneLine = portrait && S.half && !solo && lineSize >= .8 * size;
+    const oneLine = portrait && S.half && !solo && !digi && lineSize >= .8 * size;   // 양각은 늘인 숫자가 어색해서 세 줄 그대로
     document.body.classList.toggle('cm-line', oneLine);
     if (document.body.classList.contains('oneline') !== oneLine) {
       document.body.classList.toggle('oneline', oneLine);
@@ -146,7 +151,9 @@ function fitClock() {
     inner.style.rowGap = spare > 2 ? `calc(.04em + ${spare / (S.secs ? 2 : 1)}px)` : '';
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
     const cmSide = side || 9.4 * rem + gap;
-    cmSize = Math.min((w - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
+    // 양각 가로는 판(시계 칸) 폭 안에 버튼까지 들게 시계 칸 폭 기준
+    const wc = digi && !portrait ? lbl + span * size * .99 + side : w;
+    cmSize = Math.min((wc - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
     if (oneLine) cmSize = cmLine(h, size, rem);
     // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤. 한 줄 배치는 위에서)
     const items = [...ds.children].filter(c => c.offsetHeight);
@@ -154,7 +161,7 @@ function fitClock() {
     const z = dateLen ? Math.min(1, (dateRow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
     if (!oneLine) ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
-    $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side) + 'px';
+    $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side + padX) + 'px';
     if (moved) return fitClock();   // 날짜 자리를 옮겼으면 옮긴 모양으로 한 번 더 맞춤 (그다음엔 안 옮겨서 한 번뿐)
   } else {
     $('clock').style.width = '';
@@ -175,6 +182,7 @@ function clockVars(size, cmSize, rem, wmax) {
   if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
   else $('clock').style.removeProperty('--cm');
   $('clock').style.setProperty('--dw', wmax + 'em');
+  dgRender();   // 디지털 양각 판은 정해진 시계 칸 크기로 다시 그림 (digi.js)
 }
 
 // 세로 반반 한 줄 배치: 시:분 크기 (폭에 맞춤). .33em = 가운데 콜론 + 양옆 여백
@@ -1121,6 +1129,7 @@ function renderDate(d) {
 function tickClock() {
   const d = new Date();
   renderClock(d);
+  if (dgLay) dgTick(d);   // 디지털 양각 판: 바뀐 릴만 한 칸
   if (d.getSeconds() === 0) {
     if (d.getMinutes() === 0) { renderWeather(); wgHour(d.getHours()); }   // 정각마다 시간별 예보 첫 칸을 '지금'으로 당김
     else renderSun();

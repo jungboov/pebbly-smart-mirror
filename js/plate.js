@@ -60,7 +60,11 @@ function plApply() {
 const plRgba = (hex, a) => `rgba(${[1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(',')},${a})`;
 function digiApply() {
   const m = LG_INK[S.digi], on = !S.analog && !!m, st = $('clock').style;
-  document.body.classList.toggle('digi-pl', on);
+  if (document.body.classList.contains('digi-pl') !== on) {   // 글꼴이 바뀌어서 숫자 폭을 다시 잼 (MuseoModerno를 받은 뒤 한 번 더)
+    document.body.classList.toggle('digi-pl', on);
+    measureDigits();
+    if (on) document.fonts.load('600 100px MuseoModerno', '0123456789:').then(() => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(s => s.refresh()); fitClock(); }).catch(() => {});
+  }
   if (!on) return;
   const key = dvMix(m.bg[0], m.top, .5), v = { '--pl0': m.bg[0], '--pl1': m.bg[1], '--top': m.top, '--hi': m.hi, '--ink': PL_INK[S.digi],
     '--key': key, '--key-on': dvMix(key, m.side[0], .12), '--colon': dvMix(m.top, m.side[0], .3), '--dim': dvMix(m.top, m.side[0], .5),

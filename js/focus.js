@@ -81,7 +81,7 @@ function foLay(W, H) {
     return { tall: true, label: [20, 28], dial: [W / 2, cy, r], dots: [26, y1, 20, 5.5], fs: 12,
       keys: [kw, kw * 1.4, kw].map((w, i, a) => ({ x: 20 + a.slice(0, i).reduce((s, v) => s + v + 8, 0), y: y1 + 17, w, h: 30 })) };
   }
-  const r = (H - 36) / 2, cx = 20 + r, x0 = cx + r + 24, kw = (W - 40 - x0 - 16) / 3.4;
+  const wr = Math.max(150, W * .42), r = Math.min((H - 36) / 2, (W - wr - 44) / 2), cx = 20 + r, x0 = cx + r + 24, kw = (W - 40 - x0 - 16) / 3.4;   // 오른쪽 칸(버튼·안내) 자리를 먼저 남김
   return { tall: false, label: [x0, 30], dial: [cx, H / 2, r], dots: [x0 + 6, 54, 18, 5], fs: 11, x0,
     keys: [kw, kw * 1.4, kw].map((w, i, a) => ({ x: x0 + a.slice(0, i).reduce((s, v) => s + v + 8, 0), y: H / 2 - 8, w, h: 28 })) };
 }
@@ -110,7 +110,7 @@ function foPlate(W, H, st) {
     });
     const plan = `집중 ${S.fo.min} · 휴식 ${S.fo.rest}`;
     if (L.tall) o += k.ink(plText(W - 40, dy + 4, 10, plan, 600, 'end')) + k.ink(plText(20, H - 18, 10.5, `다음 ${st.next}`, 600)) + k.ink(plText(W - 40, H - 18, 10.5, `오늘 집중 ${foToday()}분`, 600, 'end'));
-    else o += k.ink(plText(L.x0, H - 40, 10, `다음 ${st.next} · ${plan}`, 600)) + k.ink(plText(L.x0, H - 24, 10, `오늘 집중 ${foToday()}분`, 600));
+    else o += k.ink(plText(L.x0, H - 56, 10, `다음 ${st.next}`, 600)) + k.ink(plText(L.x0, H - 40, 10, plan, 600)) + k.ink(plText(L.x0, H - 24, 10, `오늘 집중 ${foToday()}분`, 600));
     return o;
   });
 }
