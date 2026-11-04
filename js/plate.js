@@ -1,7 +1,7 @@
 // Pebbly Mirror — 양각 판: 디데이·집중 타이머 위젯의 양각·양각 블랙 테마
 // ===== 판 (logo.js의 조각 lgRaise·lgSink·색 LG_INK·그림자 lgShadow를 그대로 씀) =====
 // 테마(설정 › 테마 › 디데이·집중 타이머): 평면(미러 기본 흰 글자) · 양각(흰 판) · 양각 블랙(흑연색 판) — S.plate
-// 판 하나가 위젯 칸을 채움. 그림 단위는 칸 픽셀의 절반이라 로고 판과 배율이 비슷해서 조각 옆면·빛 테 두께가 같음
+// 판 하나가 위젯 칸을 채움. 그림 단위는 rem의 1/4(태블릿에선 칸 픽셀의 절반)이라 로고 판과 배율이 비슷하고, 폰처럼 rem이 작은 화면에서도 글자 비율이 같음
 // 인쇄(판에 찍힌 작은 글자·눈금)는 그림자 없이 맨 위에 — 작은 글자가 번지지 않게
 const PLATE_THEMES = [['flat', '평면'], ['emboss', '양각'], ['embossk', '양각 블랙']];
 const plFlat = () => !LG_INK[S.plate];
@@ -30,8 +30,13 @@ function plateSvg(W, H, ink, pre, build) {
     + `<radialGradient id="${pre}b" cx=".4" cy=".35" r=".9"><stop offset="0" stop-color="${m.bg[0]}"/><stop offset="1" stop-color="${m.bg[1]}"/></radialGradient>${lgShadow(m, pre + 's')}${clips.join('')}</defs>`
     + `<rect width="${W}" height="${H}" rx="14" fill="url(#${pre}b)"/><g${m.sh ? ` filter="url(#${pre}s)"` : ''}>${body}</g>${printed.join('')}</svg>`;
 }
-// 위젯 칸 크기 → 판 그림 단위(절반). 칸이 안 보이면(상세 화면) 0
-const plSize = el => { const r = el.getBoundingClientRect(); return [Math.round(r.width) / 2, Math.round(r.height) / 2]; };
+// 위젯 칸 크기 → 판 그림 단위(rem/4). 칸이 안 보이면(상세 화면) 0
+// 판을 위아래로 쌓을지(세로로 길거나 정사각형에 가까운 칸: 가로 화면·폰 가로) — 아니면 왼쪽·오른쪽으로 나눔(가로로 긴 칸: 세로 화면)
+const plTall = (W, H) => H > W * .8;
+const plSize = el => {
+  const r = el.getBoundingClientRect(), u = parseFloat(getComputedStyle(document.documentElement).fontSize) / 4 || 2;
+  return [Math.round(r.width / u), Math.round(r.height / u)];
+};
 
 // 설정 › 테마 카드: 작은 디데이 판(만난 지 412일)으로 보여 줌
 function plCards() {
@@ -46,7 +51,24 @@ function plCards() {
 // 테마·화면 크기가 바뀌면 두 위젯을 다시 그림 (applySettings·화면 회전)
 function plApply() {
   if (!PLATE_THEMES.some(t => t[0] === S.plate)) S.plate = 'flat';
-  cdRender(); foBuild(); cdSetRender();
+  cdRender(); foBuild(); cdSetRender(); digiApply();
 }
+
+// ===== 디지털 양각·양각 블랙 (설정 › 테마 › 시계, S.digi) =====
+// 시계 칸 뒤에 판을 깔고, 굴러가는 숫자는 그대로 도드라진 글자(옆면 6겹·빛 테)로 — 모양은 clock.css, 색은 로고 판 색(LG_INK)에서 여기서 넣음
+// 스톱워치·타이머·알람 숫자와 버튼도 같이. 아날로그 시계를 고르면 꺼짐
+const plRgba = (hex, a) => `rgba(${[1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(',')},${a})`;
+function digiApply() {
+  const m = LG_INK[S.digi], on = !S.analog && !!m, st = $('clock').style;
+  document.body.classList.toggle('digi-pl', on);
+  if (!on) return;
+  const key = dvMix(m.bg[0], m.top, .5), v = { '--pl0': m.bg[0], '--pl1': m.bg[1], '--top': m.top, '--hi': m.hi, '--ink': PL_INK[S.digi],
+    '--key': key, '--key-on': dvMix(key, m.side[0], .12), '--colon': dvMix(m.top, m.side[0], .3), '--dim': dvMix(m.top, m.side[0], .5),
+    '--sh1': plRgba(m.sh[0], m.sh[1]), '--sh2': plRgba(m.sh[0], m.sh[1] * .6) };
+  for (let i = 1; i <= 6; i++) v['--s' + i] = dvMix(m.side[1], m.side[0], i / 6);   // 옆면: 위(밝음) → 바닥(어두움), lgRaise와 같은 색
+  for (const [k, c] of Object.entries(v)) st.setProperty(k, c);
+}
+// 설정 › 테마 › 시계 카드의 작은 그림: 판에 도드라진 10 / 08
+const digiThumb = (id, ink) => plateSvg(80, 80, ink, `th-${id}-`, k => k.up(c => `<g fill="${c}" font-weight="900" font-size="26" text-anchor="end" style="font-family:var(--num)"><text x="62" y="38">10</text><text x="62" y="68">08</text></g>`));
 let plResize = 0;
 window.addEventListener('resize', () => { clearTimeout(plResize); plResize = setTimeout(() => { cdRender(); foBuild(); }, 250); });

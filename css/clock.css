@@ -177,3 +177,33 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial[data-face="relief"]{--dial-r:1.21}
 .dial:not([data-face="relief"]) .dv{display:none}
 .dial .dv-ss{left:36%;top:53.813%;width:28%;height:23.14%;will-change:transform}
+
+/* ── 디지털 양각·양각 블랙 (설정 › 테마 › 시계, 시계 강조 화면) ──
+   시계 칸 뒤에 판을 깔기만 해서 시계 크기·배치는 그대로, 굴러가는 숫자는 도드라진 글자로 (색은 plate.js digiApply가 --변수로 넣음)
+   스톱워치·타이머·알람 숫자와 버튼도 같이 */
+body.sb.digi-pl .clock{isolation:isolate}
+body.sb.digi-pl .clock::before{content:'';position:absolute;inset:-2.4rem -3rem;z-index:-1;border-radius:3.6rem;
+  background:radial-gradient(130% 120% at 35% 30%, var(--pl0), var(--pl1));box-shadow:.6rem 1.4rem 3rem var(--sh2)}
+/* 도드라진 숫자: 왼쪽 위 빛 테 + 옆면 6겹(오른쪽 아래로, 바닥 쪽이 어둡게) — 로고 위젯 조각과 같은 비율(글자 크기의 약 2%·4%) */
+body.sb.digi-pl .clock-in, body.sb.digi-pl .cm b{color:var(--top);text-shadow:-.009em -.009em 0 var(--hi),
+  .0034em .0071em 0 var(--s1), .0068em .0142em 0 var(--s2), .0102em .0213em 0 var(--s3),
+  .0136em .0284em 0 var(--s4), .017em .0355em 0 var(--s5), .0204em .0426em 0 var(--s6)}
+/* 굴러가는 칸은 이웃 숫자를 가리려고 잘라 내는데, 옆면(오른쪽 아래)·빛 테(왼쪽)는 남기고 위쪽은 이웃 숫자 옆면이 안 비치게 조금 안으로 */
+body.sb.digi-pl .clock .roll, body.sb.digi-pl .cm b i{overflow:visible;clip-path:inset(.03em -.025em -.032em -.012em)}
+/* 초: 위로 지나간 숫자는 흐리게 비치고, 아래 다음 숫자는 판 아래 끝을 넘어서 안 보이게 (현재 숫자 바닥 + 옆면까지만) */
+body.sb.digi-pl .clock .roll.peek{clip-path:inset(0 -.025em .255em -.012em)}
+body.sb.digi-pl .clock .colon{color:var(--colon)}
+/* 판에 인쇄한 글자: 라벨·날짜·이름 */
+body.sb.digi-pl .clock .lbl, body.sb.digi-pl .cm-name, body.sb.digi-pl .clock .ds-date, body.sb.digi-pl .clock .ds-date b,
+body.sb.digi-pl .clock .ds-wd, body.sb.digi-pl .clock .ds-ap{color:var(--ink);text-shadow:none}
+/* 버튼: 판에서 솟은 키 (켜진 건 눌려 낮게) */
+body.sb.digi-pl .cm button{color:var(--ink);background:var(--key);border:0;
+  box-shadow:-.15rem -.15rem 0 var(--hi), .25rem .5rem 0 var(--s1), .35rem .7rem 0 var(--s4), .6rem 1.4rem 1.6rem var(--sh1)}
+body.sb.digi-pl .cm button.on, body.sb.digi-pl .cm .al-list button.sel{color:var(--ink);background:var(--key-on);
+  box-shadow:-.1rem -.1rem 0 var(--hi), .1rem .2rem 0 var(--s1), .25rem .5rem .8rem var(--sh1)}
+body.sb.digi-pl .cm .al-list button.off{opacity:.6}
+body.sb.digi-pl .cm-dots i{background:var(--dim)}
+/* 가로: 스톱워치·타이머·알람은 숫자 + 오른쪽 +/− 버튼이 시계 칸보다 넓고 위로도 조금 올라가서, 판 안에 들게 숫자를 84%로·위 끝을 칸에 맞춤 */
+@media (orientation: landscape){
+  body.sb.digi-pl:not(.cm-line) .cm{font-size:calc(var(--cm, var(--clock)) * .84);top:0}
+}

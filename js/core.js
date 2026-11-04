@@ -56,12 +56,13 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // logoTheme: 로고 위젯 테마 'emboss'(양각)·'embossk'(양각 다크)·'deboss'(음각)·'debossk'(음각 다크) / logoSpin: 로고 위젯 숫자가 몇 초마다 다시 돌지(0 = 나타날 때만)
 // album: 사진 액자 앨범 번호(처음 올릴 때 만듦) / photoAt: 사진을 마지막으로 올리거나 지운 시각 (폰에서 바꾸면 미러가 목록을 새로 받는 신호)
 // phPer: 사진 액자 차례가 오면 몇 장 보여 주고 다음 위젯으로 갈지 (0 = 모두, 설정 버튼은 1을 true로 저장해서 숫자로 바꿔 씀)
+// digi: 디지털 시계 테마 ''(평면)·'emboss'(양각)·'embossk'(양각 블랙) — 시계 강조 화면에서 판을 깔고 숫자를 도드라지게 (plate.js digiApply)
 // counts: 디데이 항목 (count.js) / plate: 디데이·집중 타이머 위젯 테마 'flat'(평면)·'emboss'(양각)·'embossk'(양각 블랙)
 // fo: 집중 타이머 길이·방식 / foRun: 집중 타이머 진행(폰에서도 시작·멈춤) / foLog: 오늘 집중한 분 (focus.js)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
   { hour12: false, analog: false, dialTheme: 'black', logoTheme: 'emboss', logoSpin: 5, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, halfL: true, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
-    alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3, counts: [], plate: 'flat', fo: null, foRun: null, foLog: null },
+    alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3, digi: '', counts: [], plate: 'flat', fo: null, foRun: null, foLog: null },
   // 폰에서 다른 미러 설정 중(REMOTE)이면 이 폰 자기 설정은 섞지 않음: 기본값 위에 그 미러 설정만 (remoteStart)
   //   섞으면 그 미러에 없던 값(사진 앨범 등)이 이 폰 것으로 채워져 '미러에 적용' 때 그 미러로 넘어감
   REMOTE ? {} : (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()

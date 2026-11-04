@@ -76,7 +76,7 @@ function foState() {
 
 // 양각 판 자리: 세로로 긴 판(가로 화면)은 위에 원판, 아래 회차·버튼·안내 / 가로로 긴 판(세로 화면)은 왼쪽 원판, 오른쪽에 나머지
 function foLay(W, H) {
-  if (H > W) {
+  if (plTall(W, H)) {
     const r = Math.min(W / 2 - 34, (H - 178) / 2), cy = 48 + r, y1 = cy + r + 26, kw = (W - 56) / 3.4;
     return { tall: true, label: [20, 28], dial: [W / 2, cy, r], dots: [26, y1, 20, 5.5], fs: 12,
       keys: [kw, kw * 1.4, kw].map((w, i, a) => ({ x: 20 + a.slice(0, i).reduce((s, v) => s + v + 8, 0), y: y1 + 17, w, h: 30 })) };

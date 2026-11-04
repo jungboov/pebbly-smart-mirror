@@ -84,7 +84,7 @@ function cdReelSvg(k, x, cy, size, it, d, p) {
 }
 let cdLay = null;   // 양각 판의 릴 자리 { x, cy, size } — 구르는 동안 릴만 다시 그림
 function cdEmboss(el, d, s, roll) {
-  const [W, H] = plSize(el), m0 = s.main, tall = H > W;
+  const [W, H] = plSize(el), m0 = s.main, tall = plTall(W, H);
   if (!W) return;
   let reelAt;
   el.innerHTML = plateSvg(W, H, S.plate, 'cd-', k => {
@@ -96,7 +96,7 @@ function cdEmboss(el, d, s, roll) {
       size = Math.min(76, W / 3.3, H / 4.4); x = W / 2 - 4; cy = 66 + size * 1.1; x0 = 20; x1 = W - 54;
       o += k.up(plText(20, 64, 19, esc(m0.name), 700), .7);
       o += k.ink(plText(20, cy + size * .61 + 20, 10.5, m0.mode === 'since' ? cdFmt(cdParse(m0.date)) + '부터' : cdFmt(cdTarget(m0, d)), 600));
-      const y0 = cy + size * .61 + 34, rh = (H - 36 - y0) / 3;
+      const y0 = cy + size * .61 + 34, rh = Math.min(44, (H - 36 - y0) / 3);   // 칸이 길어도 줄 사이는 너무 벌어지지 않게
       if (s.rows.length) o += k.up(plDash(20, y0, W - 20, y0), .5);
       s.rows.forEach((r, i) => { o += row(r, 20, y0 + rh * (i + .5) + 6, W - 40, 14, 22); });
     } else {      // 세로 화면 칸(가로로 긴 판): 왼쪽 이름·숫자 창 | 점선 | 오른쪽 줄들

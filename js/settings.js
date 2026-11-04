@@ -44,7 +44,11 @@ $('settings').addEventListener('click', e => {
   else if (b && b.dataset.chip) S[b.dataset.chip] = !S[b.dataset.chip];
   else if (b && b.dataset.nt) S[b.dataset.nt] = (S[b.dataset.nt] + Number(b.dataset.d) + 24) % 24;   // 0~23시 돌아감
   else if (b && b.dataset.d) S.rotate = Math.min(120, Math.max(0, S.rotate + Number(b.dataset.d)));   // 0 = 끔
-  else if (b && b.dataset.clockTheme) { const t = b.dataset.clockTheme; S.analog = t !== 'digital'; if (S.analog) S.dialTheme = t; }
+  else if (b && b.dataset.clockTheme) {   // 디지털(평면·양각·양각 블랙)이면 S.digi, 아날로그면 S.dialTheme
+    const t = CLOCK_THEMES.find(x => x.id === b.dataset.clockTheme) || CLOCK_THEMES[0];
+    S.analog = !(t.id === 'digital' || t.digi);
+    if (S.analog) S.dialTheme = t.id; else S.digi = t.digi || '';
+  }
   else if (b && b.dataset.logoTheme) S.logoTheme = b.dataset.logoTheme;   // 로고 위젯 테마
   else if (b && b.dataset.plateTheme) S.plate = b.dataset.plateTheme;   // 디데이·집중 타이머 위젯 테마 (plate.js)
   else if (b && b.dataset.ls) S.logoSpin = LG_SPIN[Math.min(LG_SPIN.length - 1, Math.max(0, LG_SPIN.indexOf(S.logoSpin) + Number(b.dataset.ls)))];   // 숫자 다시 돌기 간격
@@ -61,6 +65,8 @@ $('settings').addEventListener('click', e => {
 // 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief — LCD 다크·양각 다크는 같은 그림에 색만)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털' },
+  { id: 'digitale', name: '디지털 양각', digi: 'emboss' },
+  { id: 'digitalek', name: '디지털 양각 블랙', digi: 'embossk' },
   { id: 'black', name: '레코드 블랙', dial: ['#2e2e2e', '#161616', '#0b0b0b', 'rgba(255,255,255,.35)', 'var(--vinyl-label)'] },
   { id: 'silver', name: '레코드 실버', dial: ['#f2f2f2', '#c3c3c3', '#8b8b8b', '#fff', '#d42d2d'] },
   { id: 'edge', name: '엣지', edge: true },
@@ -79,9 +85,10 @@ const CLOCK_THEMES = [
   { id: 'relief', name: '양각', relief: true },
   { id: 'reliefk', name: '양각 다크', relief: true },
 ];
-// 작은 그림 (40×40): 디지털은 시·분 두 줄, 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
+// 작은 그림 (40×40): 디지털은 시·분 두 줄(양각은 판에 도드라진 숫자 — plate.js digiThumb), 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
 // 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리·양각도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts·reliefParts)
 function thThumb(t) {
+  if (t.digi) return digiThumb(t.id, t.digi);
   if (t.qp) {
     const p = qpParts('th-dq-', new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
     return `<svg viewBox="-76 -76 152 152" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-dq-sh)">${rot(305, p.hour)}${rot(61, p.minute)}${p.hub}</g></svg>`;
@@ -140,7 +147,7 @@ function thThumb(t) {
     + `<circle cx="20" cy="20" r="1" fill="#ddd"/></svg>`;
 }
 function thRender() {
-  const cur = S.analog ? S.dialTheme : 'digital';
+  const cur = S.analog ? S.dialTheme : (CLOCK_THEMES.find(t => t.digi && t.digi === S.digi) || CLOCK_THEMES[0]).id;
   $('th-list').innerHTML = CLOCK_THEMES.map(t => `<button class="th-card${t.id === cur ? ' on' : ''}" data-clock-theme="${t.id}">${thThumb(t)}<span>${t.name}</span></button>`).join('');
   rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
   $('lg-list').innerHTML = lgCards();
