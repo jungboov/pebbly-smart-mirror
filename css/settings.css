@@ -168,3 +168,23 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 /* 화면 › 스타일: 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각 (칸이 좁으면 칩 줄이 이름 아래로) */
 .set-style{flex-wrap:wrap;gap:1.6rem 3rem}
 .set-style .chips{flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+/* 테마 탭: 스타일 카드(9) / 하나씩 고르기(접힘 — 열면 시계 · 위젯 모양 · 로고 카드) */
+.st-list{grid-template-columns:repeat(auto-fill, minmax(17rem, 1fr))}
+.th-more > summary{list-style:none;display:flex;align-items:center;gap:1.6rem;padding:2.4rem 0 .6rem;border-top:1px solid var(--card-bd);font-size:3.4rem;color:var(--text);cursor:pointer}
+.th-more > summary::-webkit-details-marker{display:none}
+.th-more > summary::after{content:'';width:1.6rem;height:1.6rem;margin-left:auto;border-right:.35rem solid var(--text-muted);border-bottom:.35rem solid var(--text-muted);transform:rotate(45deg) translateY(-.4rem)}
+.th-more[open] > summary::after{transform:rotate(225deg) translateY(-.4rem)}
+#th-mix{font-size:2.6rem;color:var(--text-dim)}
+.th-more > * + *{margin-top:2.2rem}
+.th-more .set-sub:first-of-type{margin-top:1rem;border-top:0;padding-top:1rem}
+.set-sub small{margin-left:1.2rem;font-size:2.4rem;color:var(--text-dim)}
+/* 넓은 화면(가로 태블릿·폴드 펼침·가로 폰): 창을 화면 폭 92%까지 넓히고, 창 안쪽이 넉넉하면 설정 줄을 두 단으로(목록·카드·안내는 한 줄 전체 — 위젯 목록은 순서라 한 단) */
+.set-card{container-type:inline-size}
+@media (orientation: landscape){
+  .set-card{width:min(92vw, 150rem)}
+}
+@container (min-width: 115rem){
+  .set-page.on{display:grid;grid-template-columns:1fr 1fr;column-gap:7rem;align-content:start}
+  .set-page.on > *{grid-column:1 / -1}
+  .set-page.on > .set-row:not(.set-sub){grid-column:auto}
+}

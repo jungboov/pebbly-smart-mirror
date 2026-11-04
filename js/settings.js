@@ -1,8 +1,8 @@
 // Pebbly Mirror — 설정 화면: 열기·버튼, 탭(화면·시계·위젯)과 위젯 페이지, 위젯 탭
 // ===== 설정 화면 =====
 let settingsAt = 0;
-// 페이지 → 켜 둘 탭. 위젯 페이지(교통·사진 액자·로고·디데이·집중 타이머)는 위젯 탭 목록에서 들어가서 위젯 탭이 켜져 있음, 폰으로 설정·미러 설정하기는 탭 없음
-const SET_TOP = { screen: 'screen', clock: 'clock', widgets: 'widgets', transit: 'widgets', photo: 'widgets', logo: 'widgets', count: 'widgets', focus: 'widgets' };
+// 탭: 화면 · 테마 · 위젯. 페이지 → 켜 둘 탭. 위젯 페이지(교통·사진 액자·로고·디데이·집중 타이머)는 위젯 탭 목록에서 들어가서 위젯 탭이 켜져 있음, 폰으로 설정·미러 설정하기는 탭 없음
+const SET_TOP = { screen: 'screen', theme: 'theme', widgets: 'widgets', transit: 'widgets', photo: 'widgets', logo: 'widgets', count: 'widgets', focus: 'widgets' };
 const WG_PAGE = ['transit', 'photo', 'logo', 'count', 'focus'];   // 위젯 탭에서 눌러 들어가는 위젯
 function setTab(t) {
   const card = $('settings').querySelector('.set-card');
@@ -176,9 +176,12 @@ function thRender() {
   }).join('');
   rotaryText('th-dk-', new Date(2026, 10, 2, 10, 9), $('th-list'));
   $('lg-list').innerHTML = lgCards();
-  document.querySelectorAll('.pl-list').forEach(el => { el.innerHTML = plCards(el.dataset.pl); });   // 디데이·집중 타이머 페이지 (같은 설정)
+  document.querySelectorAll('.pl-list').forEach(el => { el.innerHTML = plCards(el.dataset.pl); });   // 위젯 모양 (테마 탭 › 하나씩 고르기)
+  // 테마 탭 스타일 카드: 작은 시계 판(10 / 08)으로 — 평면은 디지털 시계 그대로. 지금 모양이 스타일 하나와 맞으면 그 카드가 켜짐, 따로 골라 섞였으면 '하나씩 고르기' 옆에 알림
+  $('st-list').innerHTML = PLATE_THEMES.map(([id, name]) => `<button class="th-card" data-style="${id}">${id === 'flat' ? thThumb(CLOCK_THEMES[0]) : digiThumb('st-' + id, id)}<span>${name}</span></button>`).join('');
   const st = styleNow();
   document.querySelectorAll('[data-style]').forEach(b => b.classList.toggle('on', b.dataset.style === st));
+  $('th-mix').textContent = st ? '' : '지금 따로 고른 모양';
 }
 
 // 위젯 탭: 가로·세로 중 고치는 쪽(설정을 열면 지금 화면 방향) / 순서대로 이름(› 있는 건 누르면 그 위젯 페이지) / 보이는 시간·위로·아래로 / 켜짐·꺼짐. 모두 끄면 시계만

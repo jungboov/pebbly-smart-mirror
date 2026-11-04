@@ -42,11 +42,12 @@ function scheduleReload() {
   renderFoot();
   tickClock();
   fitClock();
-  document.fonts.ready.then(() => {
-    measureDigits();
-    [setH1, setH2, setM1, setM2].forEach(set => set.refresh());
-    fitClock();
-  });
+  // 숫자 글꼴이 오면 숫자 폭을 다시 재고 칸·크기를 다시 맞춤. 글꼴이 늦게 오면(첫 실행·느린 인터넷, 폴드8에서 봄) 대신 쓰던 글꼴 폭으로
+  // 칸이 좁게 잡혀 숫자가 겹치거나 잘리고 줄이 넘어가서 — 다 받았을 때(ready)만이 아니라 Orbitron을 직접 받고, 글꼴이 하나라도 더 오면 또
+  const refont = () => { measureDigits(); [setH1, setH2, setM1, setM2].forEach(set => set.refresh()); fitClock(); };
+  document.fonts.ready.then(refont);
+  document.fonts.load('900 100px Orbitron', '0123456789').then(refont).catch(() => {});
+  document.fonts.addEventListener('loadingdone', refont);
   window.addEventListener('resize', fitClock);
   let reflow = 0;   // 크기가 바뀌면 그래프 칸 높이도 바뀌어서 다시 그림 (1°당 높이 상한)
   window.addEventListener('resize', () => { clearTimeout(reflow); reflow = setTimeout(renderWeather, 300); });
