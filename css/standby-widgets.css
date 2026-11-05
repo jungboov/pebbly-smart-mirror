@@ -154,19 +154,19 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb.oneline .ds .ds-wd{margin:0}
   body.sb.oneline .ds .ds-ap:not(:empty){display:block}
   /* 스톱워치·타이머·알람도 같은 한 줄(.cm-line — 디지털은 .oneline과 같이, 아날로그 시계도 디지털이 한 줄일 화면이면 fitDial이 붙임): 숫자 둘을 콜론으로 이어 폭에 맞추고 위아래로 늘림(--sy, 화면마다 아래 줄 높이가 달라서 따로)
-     둘째 줄 +·− 버튼(각 숫자 아래), 셋째 줄 왼쪽 이름·버튼, 오른쪽 1/100초(같이 늘림). 위치 점은 아래 오른쪽에 가로로 */
-  body.sb.cm-line .cm{grid-template-columns:auto auto auto;grid-template-rows:auto auto auto;grid-template-areas:"d1 cl d2" "c1 . c2" "ft ft d3";
+     둘째 줄 +·− 버튼(각 숫자 아래) — 스톱워치는 그 자리에 1/100초(같이 늘림, 오른쪽 끝), 셋째 줄 왼쪽 이름 · 오른쪽 끝 버튼. 위치 점은 아래 오른쪽에 가로로 */
+  body.sb.cm-line .cm{grid-template-columns:auto auto auto;grid-template-rows:auto auto auto;grid-template-areas:"d1 cl d2" "c1 . c2" "ft ft ft";
     justify-content:space-between;align-content:start;align-items:start;column-gap:0;row-gap:2rem}
-  body.sb.cm-line #cm-tm, body.sb.cm-line #cm-al{grid-template-areas:"d1 cl d2" "c1 . c2" "ft ft ft"}
+  body.sb.cm-line #cm-sw{grid-template-areas:"d1 cl d2" ". . d3" "ft ft ft"}
   body.sb.cm-line .cm .lbl{display:none}
   body.sb.cm-line .cm::before{content:":";grid-area:cl;height:.82em;color:var(--text-muted)}
   body.sb.cm-line .cm-d1, body.sb.cm-line .cm-d2, body.sb.cm-line .cm::before, body.sb.cm-line .cm-d3{transform:scaleY(var(--sy, 1));transform-origin:top;margin:0 0 calc(.82em * (var(--sy, 1) - 1))}
   body.sb.cm-line .cm::before{margin-left:.04em;margin-right:.04em}
-  body.sb.cm-line .cm-d3{grid-area:d3;justify-self:end}
+  body.sb.cm-line .cm-d3{grid-area:d3;justify-self:end;font-size:.5em}
   /* 늘린 숫자는 글자 위아래 여백까지 늘어나 아래 +·− 버튼을 덮음 → 숫자는 누름을 안 받게 (밀기는 시계 칸이 받음) */
   body.sb.cm-line .cm-d1, body.sb.cm-line .cm-d2, body.sb.cm-line .cm-d3{pointer-events:none}
   body.sb.cm-line .cm-pm{flex-direction:row;justify-self:center;align-self:start}
-  body.sb.cm-line .cm-foot{align-self:start;contain:inline-size}
+  body.sb.cm-line .cm-foot{position:static;grid-area:ft;align-self:start}
   /* 세 줄 배치(한 줄이 아닐 때)도 가운데로: 라벨 | 숫자 | +·− 묶음을 칸 가운데에 (스톱워치는 +·− 칸이 없어 두 칸) */
   body.sb:not(.cm-line) .cm{grid-template-columns:auto auto auto;justify-content:center}
   body.sb:not(.cm-line) #cm-sw{grid-template-columns:auto auto;grid-template-areas:"l1 d1" "l2 d2" "ft ft"}

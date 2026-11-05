@@ -105,7 +105,7 @@ function fitClock() {
     const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
     if (portrait && !solo) h = S.half ? h / 2 : h - Math.max(...PANELS.map(el => el.offsetHeight)) - 4 * rem;   // 아래 위젯 자리 (반반: 위 절반)
     h -= padT;
-    if (S.analog) { const cs = fitDial(w, h - pb, portrait, solo, rem, wmax); return clockVars(cs, cs, rem, wmax); }   // 아날로그: 시계판
+    if (S.analog) { document.body.classList.remove('cm-d3s'); const cs = fitDial(w, h - pb, portrait, solo, rem, wmax); return clockVars(cs, cs, rem, wmax); }   // 아날로그: 시계판 (1/100초는 초 아래)
     // 가로·세로 시계 크게: 날짜를 옆(세로)과 위(가로 줄) 중 시계가 더 커지는 쪽으로 — 시계 칸이 폭에 막히면(가로 반반, 폰 세로 등) 위로 올려
     // 가로는 위젯 칸 위·아래 끝까지, 세로는 시계 아래 빈 곳만큼 시계를 키움. 높이에 막히는 낮고 긴 화면은 옆
     // 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
@@ -150,10 +150,17 @@ function fitClock() {
     const spare = !portrait && !solo && !dateRow ? h - .99 * size * (rows - top) : 0;
     inner.style.rowGap = spare > 2 ? `calc(.04em + ${spare / (S.secs ? 2 : 1)}px)` : '';
     // 스톱워치·타이머·알람은 아래 버튼 자리가 있어야 해서 초를 꺼도 3줄 기준 크기 (오른쪽 +·− 버튼 자리도 남김)
-    const cmSide = side || 9.4 * rem + gap;
-    // 양각 가로는 판(시계 칸) 폭 안에 버튼까지 들게 시계 칸 폭 기준
-    const wc = digi && !portrait ? lbl + span * size * .99 + side : w;
-    cmSize = Math.min((wc - lbl - cmSide) / (2 * wmax + .02), h / 2.25);
+    // 오른쪽 +·− 칸(잰 폭)은 늘 남김 — 옆 날짜 칸이 그보다 좁은 화면(커버 가로 반반 등)에서 +·−가 시계 칸 밖으로 나가 아래 줄 버튼과 오른쪽 끝이 어긋났음
+    const cmSide = Math.max(side, ($('cm-tm').querySelector('.cm-pm').offsetWidth || 7 * rem) + gap + .4 * rem);
+    // 가로는 시계 칸(양각은 판) 폭 안에 +·− 버튼까지 들게 시계 칸 폭 기준 — 평면도 (칸 밖으로 나가면 아래 줄 버튼과 오른쪽 끝이 어긋남)
+    // 퓨어(판 없는 양각)는 판 안쪽 여백까지 씀 (CSS도 스톱워치·타이머·알람 칸을 시계 칸 폭 그대로)
+    const padC = document.body.classList.contains('digi-bare') ? padX : 0;
+    const wc = (!portrait ? lbl + span * size * .99 + side : w) + padC;
+    // 스톱워치 1/100초는 초 숫자 옆(폭이 듦)과 아래(높이가 듦) 중 숫자가 더 커지는 쪽에 (cm-d3s: 옆) — 옆이면 .4em 두 자리 + 사이 .15×.4em
+    const wb = (wc - lbl - cmSide) / (2 * wmax + .02), under = Math.min(wb, cmH(h, rem, false));
+    const beside3 = Math.min(wb, (wc - lbl - gap) / (2.8 * wmax + .08), cmH(h, rem, true));
+    document.body.classList.toggle('cm-d3s', beside3 > under * 1.01);
+    cmSize = Math.max(under, beside3);
     if (oneLine) cmSize = cmLine(h, size, rem);
     // 날짜가 시계보다 길면 날짜를 줄임 (눕힌 날짜는 시계 높이, 가로 날짜 줄은 시계 폭에 맞춤. 한 줄 배치는 위에서)
     const items = [...ds.children].filter(c => c.offsetHeight);
@@ -185,16 +192,23 @@ function clockVars(size, cmSize, rem, wmax) {
   dgRender();   // 디지털 양각 판은 정해진 시계 칸 크기로 다시 그림 (digi.js)
 }
 
+// 스톱워치·타이머·알람 세 줄 배치의 높이 한도: 숫자 2줄(.82×2 + .04)에 아래 줄(이름 · 버튼 — 알람은 두 줄일 수 있음) 자리,
+// 스톱워치는 초 숫자 아래 1/100초(.12 + .82×.4 = .45em)까지 — 양각 세로는 1/100초가 초 옆이라 빼고
+// 아래 줄 높이는 글자 크기(rem)와 칸 폭으로 정해져서(숫자 크기와 상관없음) 지금 잰 값
+function cmH(h, rem, beside) {
+  const fh = id => $(id).querySelector('.cm-foot').offsetHeight || 10 * rem, g = 1.2 * rem;
+  return Math.min(h / 2.25, (h - fh('cm-al') - g) / 1.72, beside ? Infinity : (h - fh('cm-sw') - g) / 2.13);
+}
 // 세로 반반 한 줄 배치: 시:분 크기 (폭에 맞춤). .33em = 가운데 콜론 + 양옆 여백
 const oneLineSize = (w, wmax) => w * .99 / (4 * wmax + .33);
 // 한 줄 배치의 스톱워치·타이머·알람: 시계와 같은 크기 한 줄, 위아래 배율은 화면마다 (아래 줄 높이가 달라서). 크기를 돌려줌
-// 숫자(.82em × 배율) + (+·− 버튼 줄) + 이름·버튼 줄, 스톱워치는 1/100초(.41em × 배율)도 아래 줄에
+// 숫자(.82em × 배율) + (+·− 버튼 줄) + 이름·버튼 줄, 스톱워치는 +·− 자리(둘째 줄)에 1/100초(.41em × 배율)
 function cmLine(h, size, rem) {
   for (const el of document.querySelectorAll('.cm')) {
     const pm = el.querySelector('.cm-pm'), foot = el.querySelector('.cm-foot'), d3 = el.querySelector('.cm-d3');
     const above = (pm ? pm.offsetHeight : 0) + 4 * rem;   // 줄 사이 2rem × 2 (버튼 줄이 없어도 빈 줄 사이가 있음)
     let k = (h - above - foot.offsetHeight) / (.82 * size);
-    if (d3) k = Math.min(k, (h - above) / (1.23 * size));
+    if (d3) k = (h - above - foot.offsetHeight) / (1.23 * size);
     el.style.setProperty('--sy', Math.max(1, Math.min(2.4, k)).toFixed(3));
   }
   return size;
@@ -236,8 +250,8 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   const line = half && oneLineSize(w, wmax) >= .8 * size3;
   document.body.classList.toggle('cm-line', line);
   if (line) return cmLine(h, oneLineSize(w, wmax), rem);
-  if (half) return Math.min((w - lbl - (S.date ? side : 9.4 * rem + gap)) / span, h / 2.25);
-  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), (D * R + (dateRow ? row : 0)) / 2.25);   // 라벨 2.6rem·+− 버튼 9.4rem 자리
+  if (half) return Math.min((w - lbl - (S.date ? side : 9.4 * rem + gap)) / span, cmH(h, rem));
+  return Math.min(((portrait ? w : cw) - 12 * rem - 2 * gap) / (2 * wmax + .02), cmH(D * R + (dateRow ? row : 0), rem));   // 라벨 2.6rem·+− 버튼 9.4rem 자리
 }
 
 // ===== 아날로그 시계 (레코드판, 설정 › 시계 모양) =====

@@ -29,34 +29,39 @@ body.sb .clock{position:relative;padding-bottom:6rem}
 }
 
 /* 시계 쪽 기능 (스톱워치·타이머·알람): 시계 자리에 같은 크기 3줄로 겹쳐 보임.
-   줄마다 라벨 | 숫자 | +·− 버튼, 셋째 줄 왼쪽에 이름과 시작·초기화 버튼 */
+   줄마다 라벨 | 숫자 | +·− 버튼, 맨 아래 줄은 왼쪽 끝 이름(알람은 시각 칩까지) · 오른쪽 끝 시작·초기화 버튼 (칸 — 양각은 판 안쪽 — 양 끝에 맞춤) */
 .cm{display:none}
 body.sb .cm{display:grid;opacity:0;visibility:hidden;pointer-events:none}
 body.sb[data-cm="sw"] #cm-sw, body.sb[data-cm="tm"] #cm-tm, body.sb[data-cm="al"] #cm-al{opacity:1;visibility:visible;pointer-events:auto}
 body.sb:not([data-cm="clock"]) #clock-in{opacity:0;visibility:hidden}
 .cm{position:absolute;inset:0 0 6rem;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto 1fr;
-  grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft .";align-items:end;column-gap:2rem;row-gap:.04em;
+  grid-template-areas:"l1 d1 c1" "l2 d2 c2" "ft ft ft";align-items:end;column-gap:2rem;row-gap:.04em;
   font-family:var(--num);font-weight:900;font-size:var(--cm, var(--clock));line-height:.82}
 .cm b{display:flex;height:.82em}
 /* 숫자 칸 폭을 고정해서 빨리 바뀌어도 흔들리지 않게 */
 .cm b i{display:inline-block;width:var(--dw, .834em);text-align:center;font-style:normal}
 .cm .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:2.6rem;line-height:1}
 .cm-l1{grid-area:l1} .cm-l2{grid-area:l2} .cm-d1{grid-area:d1} .cm-d2{grid-area:d2}
-/* 셋째 줄 숫자(1/100초)는 시계의 초처럼 숫자 칸 오른쪽 끝, 절반 크기 */
-.cm-d3{grid-row:3;grid-column:2;justify-self:end;font-size:.5em}
+/* 셋째 줄 숫자(1/100초)는 초 숫자 바로 아래 오른쪽 끝(시계의 초처럼 작게) — 아래 줄 오른쪽 버튼과 겹치지 않게 위에 붙임 (크기는 fitClock cmH가 그만큼 남김) */
+.cm-d3{grid-row:3;grid-column:2;justify-self:end;align-self:start;font-size:.4em;margin-top:.12em}
+/* 폭이 넉넉한 화면(fitClock이 정함 — 숫자가 더 커지는 쪽)은 초 오른쪽 아래에 (시계의 초처럼) */
+body.sb.cm-d3s:not(.cm-line) #cm-sw{grid-template-columns:auto auto auto;grid-template-areas:"l1 d1 ." "l2 d2 d3" "ft ft ft"}
+body.sb.cm-d3s:not(.cm-line) #cm-sw .cm-d3{grid-area:d3;justify-self:start;align-self:end;margin:0 0 0 .15em}
 .cm-c1{grid-area:c1} .cm-c2{grid-area:c2}
 .cm-pm{display:flex;flex-direction:column;gap:1.4rem;align-self:center;justify-self:start}
-.cm-foot{grid-area:ft;align-self:end;display:flex;flex-direction:column;gap:1.6rem;font-size:2.6rem}
+/* 아래 줄: 칸 맨 아래에 칸 폭 그대로(숫자 칸들 폭과 상관없이 — 숫자 묶음이 좁은 세로 화면에서도 버튼 줄이 꺾이지 않고, 숫자 칸을 벌리지도 않음)
+   왼쪽 이름 · 오른쪽 버튼, 모자라면 버튼 묶음이 다음 줄 오른쪽으로(그래도 모자라면 버튼끼리도). 숫자 크기는 fitClock cmH가 이 줄 높이만큼 남김 */
+.cm-foot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.6rem 3rem;font-size:2.6rem}
 .cm-name{font-family:var(--num);font-weight:500;color:var(--text-dim);letter-spacing:.06em;line-height:1}
 /* 알람 칩: 고른 알람은 흰 테두리, 꺼진 알람은 흐리게 */
-.al-top{display:flex;align-items:center;gap:2rem}
+.al-top{display:flex;align-items:center;gap:2rem;flex-wrap:wrap;row-gap:1rem}
 .al-list{display:flex;gap:1rem}
 .cm .al-list button{padding:.9rem 2rem;font-family:var(--num);font-size:2.4rem;font-weight:700;color:var(--text-muted)}
 .cm .al-list button.sel{color:var(--text);border-color:var(--text)}
 .cm .al-list button.off{color:var(--text-dim)}
 .cm .al-list button[data-al="add"]{padding:.9rem 1.8rem}
 .cm button[hidden]{display:none}
-.cm-ctl{display:flex;gap:1.4rem}
+.cm-ctl{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:1.4rem;margin-left:auto}
 .cm button{font-family:Paperlogy,"Pretendard Variable",Pretendard,sans-serif;font-weight:600;font-size:3.2rem;line-height:1;
   color:var(--text);background:none;border:1px solid var(--card-bd);border-radius:999px;padding:1.6rem 3rem;cursor:pointer;white-space:nowrap}
 .cm-pm button{width:7rem;height:7rem;padding:0;font-size:4.4rem}
