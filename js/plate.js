@@ -21,8 +21,7 @@ const plFlat = () => !LG_INK[S.plate];
 // 글자 조각: x, y(글자 바닥선), 크기, 내용, 굵기, 맞춤 → 색을 받아 <text>. 한글은 로고 글꼴에 없어서 Pretendard로
 const plText = (x, y, size, txt, w = 600, anchor = 'start') => c =>
   `<text x="${+x.toFixed(2)}" y="${+y.toFixed(2)}" font-size="${+size.toFixed(2)}" fill="${c}" text-anchor="${anchor}" style="font-family:var(--logo);font-weight:${w}">${txt}</text>`;
-// 꺾쇠 ┐┘ (로고처럼 오른쪽 끝 위아래 — 디지털 시계 판만, 위젯 판엔 없음) · 숫자 창 위아래 막대(로고 스파인)
-const plBrackets = (W, H) => c => `<path d="M${W - 30} 14H${W - 14}V30M${W - 30} ${H - 14}H${W - 14}V${H - 30}" fill="none" stroke="${c}" stroke-width="2"/>`;
+// 숫자 창 위아래 막대(로고 스파인)
 const plBars = (x, w, y1, y2) => c => `<rect x="${x}" y="${y1}" width="${w}" height="2.8" fill="${c}"/><rect x="${x}" y="${y2}" width="${w}" height="2.8" fill="${c}"/>`;
 const plDash = (x1, y1, x2, y2) => c => `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.25" stroke-dasharray="4 4"/>`;
 // 판에 인쇄한 읽을 글자(제목·날짜·버튼 글자·안내) 색 — 장식(눈금·낮은 숫자)보다 진하게
