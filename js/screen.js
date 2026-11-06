@@ -78,7 +78,8 @@ if (navigator.standalone) {
 function applySettings() {
   document.body.classList.toggle('sb', S.focus);
   document.body.classList.toggle('half', S.half);
-  document.body.classList.toggle('half-l', S.halfL);
+  document.body.classList.toggle('lay-clock', S.layL === 'clock');   // 가로 배치 시계 크게 6:4 · 위젯 크게 4:6 (반반은 둘 다 아님, CSS)
+  document.body.classList.toggle('lay-widget', S.layL === 'widget');
   document.body.classList.toggle('analog', S.analog);
   if (S.dialTheme === 'brown') S.dialTheme = 'black';   // 잠깐 있다 없앤 브라운 시계를 고른 기기(동기화로 받은 설정 포함)는 레코드 블랙으로
   $('dial').dataset.theme = S.dialTheme;

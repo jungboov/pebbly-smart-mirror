@@ -34,9 +34,11 @@ function dgTextW(t, size, w) {
   return c.measureText(t).width;
 }
 // 날짜 줄 나누기: 날짜(15) 다음 요일·공휴일·오전/오후(13). 가로로 긴 칸은 한 줄에 들면 한 줄, 아니면 날짜 / 나머지(폭 maxW를 넘으면 ' · '에서 또 나눔)
+// 한 덩어리가 혼자서도 maxW를 넘으면(좁은 판의 '부처님오신날 대체공휴일') 띄어쓰기에서 또 나눔 — 그래도 넘치는 줄은 그리기에서 글자를 줄임
 function dgDateLines(d, wide, maxW) {
   const ds = `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`, dsW = dgTextW(ds, 15, 600) + 12;
-  const parts = [WEEK[d.getDay()] + '요일', holidayName(ymd(d)), S.hour12 ? (d.getHours() < 12 ? '오전' : '오후') : ''].filter(Boolean);
+  const parts = [WEEK[d.getDay()] + '요일', holidayName(ymd(d)), S.hour12 ? (d.getHours() < 12 ? '오전' : '오후') : ''].filter(Boolean)
+    .flatMap(p => dgTextW(p, 13, 700) > maxW ? p.split(' ') : [p]);
   const sub = parts.join(' · ');
   if (wide && dsW + dgTextW(sub, 13, 700) <= maxW) return [[ds, sub, dsW]];
   const out = [[ds]];
@@ -54,12 +56,12 @@ function dgLayout(W, H) {
   const dw = 2 * (digitW ? Math.max(...Object.values(digitW)) : .62) + .04;   // 두 자리 폭(em, 가장 넓은 숫자 기준 — 분이 바뀌어도 안 흔들림)
   const wide = W > H * 1.05, date = S.date, secs = S.secs, avail = W - 52, lblW = dgTextW('sec', 9, 500);
   // 날짜 줄은 초(가장 클 때 30) 왼쪽까지 — 아래 줄 높이는 날짜 줄 수(첫 줄 15 + 다음 줄마다 20)와 초 중 큰 쪽
-  const lines = date ? dgDateLines(new Date(), wide, (secs ? W - 26 - lblW - 4 - 30 * dw - 3 - 14 : W - 26) - 26) : [];
+  const dateW = (secs ? W - 26 - lblW - 4 - 30 * dw - 3 - 14 : W - 26) - 26, lines = date ? dgDateLines(new Date(), wide, dateW) : [];
   const footH = Math.max(lines.length ? 16 + (lines.length - 1) * 20 + (lines.length > 1 ? 2 : 0) : 0, secs ? 24 : 0), gap = footH ? 16 : 0;
   // 숫자 크기: 한 줄(시 : 분)은 폭 2자리×2 + 콜론, 두 줄은 2자리 폭 — 높이는 창 1.24em(두 줄은 2.62em, 창 사이 .14em)
   const fit = n => Math.min(avail / (n === 1 ? 2 * dw + .42 : dw + .1), (H - 56 - footH - gap) / (n === 1 ? 1.24 : 2.62));
   const st = !wide && fit(2) > fit(1) * 1.08, s = fit(st ? 2 : 1), bh = s * (st ? 2.62 : 1.24), gH = bh + gap + footH, y0 = (H - gH) / 2, r = s * 1.24;
-  const L = { wide, st, W, H };
+  const L = { wide, st, W, H, dateW };
   if (st) {   // 시 위 · 분 아래, 창마다 위아래 막대(판 폭 가득) — 시의 아래 숫자와 분의 위 숫자가 붙어 보이지 않게 창 사이를 띄움
     const g = s * .14;
     Object.assign(L, { bars: [[20, W - 40, y0, y0 + r], [20, W - 40, y0 + r + g, y0 + 2 * r + g]], h: { x: W / 2, cy: y0 + r / 2, s }, m: { x: W / 2, cy: y0 + r * 1.5 + g, s },
@@ -90,8 +92,8 @@ function dgRender() {
   box.innerHTML = plateSvg(W, H, S.digi, 'dgp-', k => {   // id 앞글자는 릴 묶음(dg-h·dg-m·dg-s)과 겹치지 않게
     let o = '';
     L.date.forEach(({ y, l }, i) => {   // 첫 줄 날짜(옆에 요일이 들면 같이), 다음 줄부터 요일·공휴일·오전/오후
-      if (i) { o += k.up(plText(26, y, 13, l[0], 700), .5); return; }
-      o += k.up(plText(26, y, 15, l[0], 600), .6);
+      if (i) { o += k.up(plText(26, y, Math.min(13, 13 * L.dateW / dgTextW(l[0], 13, 700)), l[0], 700), .5); return; }
+      o += k.up(plText(26, y, Math.min(15, 15 * L.dateW / dgTextW(l[0], 15, 600)), l[0], 600), .6);
       if (l[1]) o += k.up(plText(26 + l[2], y, 13, l[1], 700), .5);
     });
     const clips = L.win.map(w => k.clip(0, w[0], W, w[1]));

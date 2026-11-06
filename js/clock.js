@@ -84,14 +84,14 @@ function fitClock() {
     if (hd.offsetHeight) stage.style.paddingTop = hd.offsetTop + hd.offsetHeight + (portrait ? 1.6 : 2.6) * rem + 'px';
     const ds = document.querySelector('.ds');
     ds.style.zoom = '';
-    // 폭: 세로는 전체 폭, 가로는 위젯 자리(최소 50rem + 여백 4rem)를 남긴 폭, 가로 반반이면 왼쪽 절반(시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌
+    // 폭: 세로는 전체 폭, 가로는 왼쪽 시계 칸(가로 배치: 시계 크게 6 · 반반 5 · 위젯 크게 4 할, 시계만이면 전체). 여기서 라벨과 날짜 칸을 뺌
     const sw = stage.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight), cg = parseFloat(st.columnGap);
     // 디지털 양각은 시계 칸이 판이라 칸 안쪽 여백(좌우·위)만큼 빼고 맞춤 (아래 여백은 pb). 평면은 여백 0
     const ckSt = getComputedStyle($('clock')), padX = parseFloat(ckSt.paddingLeft) + parseFloat(ckSt.paddingRight), padT = parseFloat(ckSt.paddingTop);
     const digi = document.body.classList.contains('digi-pl');
-    // 디지털 판 가로 반반: 판(시계 칸)이 왼쪽 절반을 다 채움(CSS) — 칸 폭을 숫자 크기로 정하지 않음, 판 안 숫자·날짜는 digi.js가 맞춤
-    const fill = !portrait && !solo && S.halfL && digi;
-    const w = (portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem) - padX;
+    // 디지털 판 가로: 판(시계 칸)이 왼쪽 칸을 다 채움(CSS) — 칸 폭을 숫자 크기로 정하지 않음, 판 안 숫자·날짜는 digi.js가 맞춤
+    const fill = !portrait && !solo && digi, part = { clock: .6, widget: .4 }[S.layL] || .5;
+    const w = (portrait ? $('clock').clientWidth : solo ? sw : (sw - cg) * part) - padX;
     // 칸 사이(2rem)·눕힌 라벨(2.6rem)은 CSS 값 그대로 (세로 반반 한 줄 배치에선 라벨을 숨기고 칸 사이를 0으로 해서 재지 않음)
     const gap = 2 * rem, lbl = 2.6 * rem + gap;
     // 눕힌 날짜 두께 (한 줄 배치에선 날짜가 가로라 첫 줄 높이)
