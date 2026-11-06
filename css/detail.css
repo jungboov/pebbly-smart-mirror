@@ -47,17 +47,66 @@
   .sun-arc{margin-top:.6rem}
 }
 
-/* ── 판 테마(양각·음각·퓨어)의 상세 화면: 시계·지금 날씨·일별·시간별·공기가 각자 판 (시계 판은 clock.css, 위젯 판은 plate-wg.js)
-   판이 남는 높이를 채워 판 사이에 빈 줄이 생기지 않게 — 날짜는 시계 판 아래 줄에 들어가서 밖의 날짜 줄은 숨김(clock.css) ── */
+/* ── 판 테마(양각·음각·퓨어)의 상세 화면: 시계·지금 날씨·일별·시간별·공기가 각자 판 (시계 판은 digi.js, 위젯 판은 plate-wg.js)
+   판 사이는 가로·세로 모두 같은 간격(--pg), 머리줄 밑줄과 첫 판 사이도 같게. 판 크기는 칸 비율로 정하고, 판 안 그림이 그 크기에 맞춰 줄이거나 덜어 냄
+   날짜는 시계 판 안에 들어가서 밖의 날짜 줄은 숨김(clock.css). 위젯만 판이고 시계는 평면이면 날짜 줄을 시계 아래 칸에 ── */
+body.pw-on:not(.sb){--pg:3.2rem}
+body.pw-on:not(.sb) .stage{gap:var(--pg)}
+body.pw-on:not(.sb) .head{margin-bottom:0}
+body.pw-on:not(.sb) .zone{display:none}
+body.pw-on:not(.sb) :is(.wmain, .wave, .hourly, .cards){display:block;align-self:stretch;min-width:0;min-height:0;margin:0;padding:0;overflow:hidden}
+body.pw-on.digi-pl:not(.sb) .clock{align-self:stretch;min-height:0;margin:0}
+body.pw-on.digi-pl:not(.sb) .dg{bottom:0}
+/* 가로(폴드·태블릿처럼 4:3 가까이): 왼쪽 시계 / 시간별, 오른쪽 지금 날씨 / 일별 / 공기 — 줄을 엇갈려 왼쪽 2판·오른쪽 3판이 같은 높이에서 끝남 */
 @media (orientation: landscape){
-  /* 왼쪽 시계 판은 날짜·빈 줄 자리까지 내려와 오른쪽 지금 날씨 + 일별 판과 같은 높이, 일별 판도 빈 줄 자리까지 */
-  body.digi-pl:not(.sb) .clock{grid-row:2 / 5;align-self:stretch}
-  body.pw-on:not(.sb) .wmain{align-self:stretch}
-  body.pw-on:not(.sb) .wave{grid-row:3 / 5;align-self:stretch}
+  body.pw-on:not(.sb) .stage{
+    grid-template-columns:minmax(0,1fr) minmax(0,.82fr);
+    grid-template-rows:auto minmax(0,1.3fr) minmax(0,1fr) minmax(0,.4fr) minmax(0,1.1fr);
+    grid-template-areas:
+      "head   head"
+      "clock  wmain"
+      "date   wave"
+      "hourly wave"
+      "hourly cards";
+  }
+  body.pw-on.digi-pl:not(.sb) .stage{
+    grid-template-areas:
+      "head   head"
+      "clock  wmain"
+      "clock  wave"
+      "hourly wave"
+      "hourly cards";
+  }
 }
+/* 가로로 아주 긴 화면(데스크톱·노트북·폰 가로, 8:5 이상): 시계는 왼쪽 세로 한 칸(시 위·분 아래), 오른쪽에 위젯 2×2 — 위 지금 날씨·시간별, 아래 공기·일별 */
+@media (orientation: landscape) and (min-aspect-ratio: 8/5){
+  body.pw-on:not(.sb) .stage{
+    grid-template-columns:minmax(0,.78fr) minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:
+      "head  head  head"
+      "clock wmain hourly"
+      "date  cards wave";
+  }
+  body.pw-on.digi-pl:not(.sb) .stage{
+    grid-template-areas:
+      "head  head  head"
+      "clock wmain hourly"
+      "clock cards wave";
+  }
+}
+/* 세로: 시계 / 지금 날씨 / 공기 / 시간별·일별(번갈아) 한 줄씩 — 지금 날씨는 기온·설명 + 정보 칸을 한 판으로 묶음(세로 상세는 원래 칸마다 흩어 놓음) */
 @media (orientation: portrait){
-  /* 지금 날씨(기온·설명 + 정보 칸)는 한 판으로 묶고(세로 상세는 원래 칸마다 흩어 놓음), 남는 높이는 시계 판이 받음 */
-  body.pw-on:not(.sb) .stage{grid-template-rows:auto minmax(0,1fr) auto auto auto auto auto}
-  body.pw-on:not(.sb) .wmain{display:block;grid-row:3 / 5;grid-column:1 / -1;margin-top:3rem}
-  body.digi-pl:not(.sb) .clock{align-self:stretch}
+  body.pw-on:not(.sb) .stage{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto minmax(0,1fr) minmax(0,.85fr) minmax(0,1.15fr);   /* 평면 시계는 제 크기 */
+    grid-template-areas:"head" "clock" "date" "wmain" "cards" "wave";
+  }
+  body.pw-on.digi-pl:not(.sb) .stage{
+    grid-template-rows:auto minmax(0,1.3fr) minmax(0,1fr) minmax(0,.85fr) minmax(0,1.15fr);
+    grid-template-areas:"head" "clock" "wmain" "cards" "wave";
+  }
 }
+/* 시계만 판(위젯은 평면): 시계 판이 날짜·빈 줄 자리까지 내려옴 */
+@media (orientation: landscape){ body.digi-pl:not(.sb):not(.pw-on) .clock{grid-row:2 / 5;align-self:stretch} }
+@media (orientation: portrait){ body.digi-pl:not(.sb):not(.pw-on) .clock{align-self:stretch} }

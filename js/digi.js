@@ -42,6 +42,7 @@ function dgDateLines(d, wide, maxW) {
   const sub = parts.join(' · ');
   if (wide && dsW + dgTextW(sub, 13, 700) <= maxW) return [[ds, sub, dsW]];
   const out = [[ds]];
+  out.full = true;   // 아래 줄이 두 줄 넘으면 첫 줄(날짜)은 초 위라서 판 폭 가득까지 (그리기에서 L.dateW1)
   for (const p of parts) {
     const last = out[out.length - 1];
     if (out.length > 1 && dgTextW(last[0] + ' · ' + p, 13, 700) <= maxW) last[0] += ' · ' + p; else out.push([p]);
@@ -52,7 +53,7 @@ function dgDateLines(d, wide, maxW) {
 const dgStamp = d => ymd(d) + (S.hour12 && d.getHours() >= 12 ? 'p' : 'a');
 // 자리 잡기: 판 그림 단위(W×H)에서 시·분 창, 아래 줄(날짜 · 초) 자리
 // 위아래 여백 28, 양옆 26 — 시·분 묶음과 아래 줄을 한 덩어리로 판 가운데에
-function dgLayout(W, H) {
+function dgLayout(W, H, sb = true) {
   const dw = 2 * (digitW ? Math.max(...Object.values(digitW)) : .62) + .04;   // 두 자리 폭(em, 가장 넓은 숫자 기준 — 분이 바뀌어도 안 흔들림)
   const wide = W > H * 1.05, date = S.date, secs = S.secs, avail = W - 52, lblW = dgTextW('sec', 9, 500);
   // 날짜 줄은 초(가장 클 때 30) 왼쪽까지 — 아래 줄 높이는 날짜 줄 수(첫 줄 15 + 다음 줄마다 20)와 초 중 큰 쪽
@@ -60,8 +61,12 @@ function dgLayout(W, H) {
   const footH = Math.max(lines.length ? 16 + (lines.length - 1) * 20 + (lines.length > 1 ? 2 : 0) : 0, secs ? 24 : 0), gap = footH ? 16 : 0;
   // 숫자 크기: 한 줄(시 : 분)은 폭 2자리×2 + 콜론, 두 줄은 2자리 폭 — 높이는 창 1.24em(두 줄은 2.62em, 창 사이 .14em)
   const fit = n => Math.min(avail / (n === 1 ? 2 * dw + .42 : dw + .1), (H - 56 - footH - gap) / (n === 1 ? 1.24 : 2.62));
-  const st = !wide && fit(2) > fit(1) * 1.08, s = fit(st ? 2 : 1), bh = s * (st ? 2.62 : 1.24), gH = bh + gap + footH, y0 = (H - gH) / 2, r = s * 1.24;
-  const L = { wide, st, W, H, dateW };
+  const st = !wide && fit(2) > fit(1) * 1.08;
+  // 옆 배치(상세 화면의 납작한 판 — 태블릿 세로): 날짜·초를 아래 줄 대신 시·분 오른쪽 칸에 — 숫자가 8% 넘게 커지면
+  const side = !sb && wide && dgSide(W, H, dw, lblW, date, secs, fit(1));
+  if (side) return side;
+  const s = fit(st ? 2 : 1), bh = s * (st ? 2.62 : 1.24), gH = bh + gap + footH, y0 = (H - gH) / 2, r = s * 1.24;
+  const L = { wide, st, W, H, dateW, dateW1: lines.full && lines.length > 1 ? W - 52 : dateW, dx: 26, lblX: W - 26, lblA: 'end' };
   if (st) {   // 시 위 · 분 아래, 창마다 위아래 막대(판 폭 가득) — 시의 아래 숫자와 분의 위 숫자가 붙어 보이지 않게 창 사이를 띄움
     const g = s * .14;
     Object.assign(L, { bars: [[20, W - 40, y0, y0 + r], [20, W - 40, y0 + r + g, y0 + 2 * r + g]], h: { x: W / 2, cy: y0 + r / 2, s }, m: { x: W / 2, cy: y0 + r * 1.5 + g, s },
@@ -81,20 +86,42 @@ function dgLayout(W, H) {
   }
   return L;
 }
+// 옆 배치: [ 시 : 분 ]  날짜 / 요일 / 37 sec — 오른쪽 칸 폭은 날짜 줄·초 중 넓은 쪽, 칸 높이(날짜 줄 + 초)는 시·분 창과 가운데 맞춤
+// 아래 줄 배치(base 크기)보다 숫자가 8% 넘게 커질 때만. 아니면 null
+function dgSide(W, H, dw, lblW, date, secs, base) {
+  const lines = date ? dgDateLines(new Date(), false, 150) : [];
+  const lw = lines.map((l, i) => dgTextW(l[0], i ? 13 : 15, i ? 700 : 600)), s2max = 30, secW = secs ? s2max * dw + 4 + lblW : 0;
+  const sideW = Math.max(0, ...lw, secW);
+  if (!sideW) return null;
+  const s = Math.min((W - 52 - sideW - 24) / (2 * dw + .42), (H - 56) / 1.24);
+  if (s < base * 1.08) return null;
+  const s2 = Math.min(s2max, s * .3), dateH = lines.length ? 11 + (lines.length - 1) * 20 + 2 : 0, sideH = dateH + (secs ? (dateH ? 12 : 0) + s2 * .72 : 0);
+  const cw = s * dw, tw = 2 * cw + s * .42, gw = tw + 24 + sideW, x0 = 26 + (W - 52 - gw) / 2, cy = H / 2, xs = x0 + tw + 24, ys0 = cy - sideH / 2;
+  const L = { wide: true, st: false, side: true, W, H, dateW: sideW, dx: xs,
+    bars: [[x0 - 6, tw + 12, cy - s * .62, cy + s * .62]], h: { x: x0 + cw / 2, cy, s }, m: { x: x0 + tw - cw / 2, cy, s }, colon: { x: x0 + cw + s * .21, cy, s },
+    win: [[cy - s * .62 + 2.8, s * 1.24 - 5.6]] };
+  L.date = lines.map((l, i) => ({ y: ys0 + 11 + i * 20 + (i ? 2 : 0), l }));
+  if (secs) {
+    const yb = ys0 + sideH, x = xs + s2 * dw / 2, scy = yb - s2 * .36;
+    L.s = { x, cy: scy, s: s2, clip: [x - s2 * dw / 2 - 3, scy - s2 * .42, s2 * dw + 6, s2 * .84] };
+    Object.assign(L, { lbl: yb, lblX: xs + s2 * dw + 4, lblA: 'start' });
+  }
+  return L;
+}
 // 판 전체 다시 그림 (크기·테마·날짜·시간제가 바뀔 때). roll이면 바뀐 릴만 굴림
 function dgRender() {
   const box = $('dg');
   if (!dgOn()) { box.innerHTML = ''; dgKey = ''; dgShown = null; return; }
   const ck = $('clock'), rem = parseFloat(getComputedStyle(document.documentElement).fontSize), u = rem / 4;
-  const gapB = innerHeight > innerWidth ? 2.8 * rem : 0, W = Math.round(ck.offsetWidth / u), H = Math.round((ck.offsetHeight - gapB) / u);
+  const sb = document.body.classList.contains('sb'), gapB = innerHeight > innerWidth && (sb || !document.body.classList.contains('pw-on')) ? 2.8 * rem : 0, W = Math.round(ck.offsetWidth / u), H = Math.round((ck.offsetHeight - gapB) / u);
   if (!W || !H) return;
-  const d = new Date(), L = dgLayout(W, H);
+  const d = new Date(), L = dgLayout(W, H, sb);
   box.innerHTML = plateSvg(W, H, S.digi, 'dgp-', k => {   // id 앞글자는 릴 묶음(dg-h·dg-m·dg-s)과 겹치지 않게
     let o = '';
     L.date.forEach(({ y, l }, i) => {   // 첫 줄 날짜(옆에 요일이 들면 같이), 다음 줄부터 요일·공휴일·오전/오후
-      if (i) { o += k.up(plText(26, y, Math.min(13, 13 * L.dateW / dgTextW(l[0], 13, 700)), l[0], 700), .5); return; }
-      o += k.up(plText(26, y, Math.min(15, 15 * L.dateW / dgTextW(l[0], 15, 600)), l[0], 600), .6);
-      if (l[1]) o += k.up(plText(26 + l[2], y, 13, l[1], 700), .5);
+      if (i) { o += k.up(plText(L.dx, y, Math.min(13, 13 * L.dateW / dgTextW(l[0], 13, 700)), l[0], 700), .5); return; }
+      o += k.up(plText(L.dx, y, Math.min(15, 15 * (L.dateW1 || L.dateW) / dgTextW(l[0], 15, 600)), l[0], 600), .6);
+      if (l[1]) o += k.up(plText(L.dx + l[2], y, 13, l[1], 700), .5);
     });
     const clips = L.win.map(w => k.clip(0, w[0], W, w[1]));
     for (const b of L.bars) o += k.up(plBars(...b), .6);
@@ -102,7 +129,7 @@ function dgRender() {
     if (L.colon) o += k.up(c => `<text x="${L.colon.x.toFixed(1)}" y="${(L.colon.cy + L.colon.s * .3).toFixed(1)}" font-size="${(L.colon.s * .8).toFixed(1)}" fill="${c}" text-anchor="middle" style="font-family:var(--logo);font-weight:600">:</text>`, .8);
     if (L.s) {
       o += `<g id="dg-s" clip-path="${k.clip(...L.s.clip)}"></g>`;
-      o += k.ink(plText(W - 26, L.lbl, 9, 'sec', 500, 'end'));
+      o += k.ink(plText(L.lblX, L.lbl, 9, 'sec', 500, L.lblA));
     }
     return o;
   }, false, true);   // 바탕 없이 — 판 바탕은 CSS(.dg, 스톱워치·타이머·알람 판과 같은 색·그림자)
