@@ -89,6 +89,8 @@ function fitClock() {
     // 디지털 양각은 시계 칸이 판이라 칸 안쪽 여백(좌우·위)만큼 빼고 맞춤 (아래 여백은 pb). 평면은 여백 0
     const ckSt = getComputedStyle($('clock')), padX = parseFloat(ckSt.paddingLeft) + parseFloat(ckSt.paddingRight), padT = parseFloat(ckSt.paddingTop);
     const digi = document.body.classList.contains('digi-pl');
+    // 디지털 판 가로 반반: 판(시계 칸)이 왼쪽 절반을 다 채움(CSS) — 칸 폭을 숫자 크기로 정하지 않음, 판 안 숫자·날짜는 digi.js가 맞춤
+    const fill = !portrait && !solo && S.halfL && digi;
     const w = (portrait ? $('clock').clientWidth : solo ? sw : S.halfL ? (sw - cg) / 2 : sw - cg - 54 * rem) - padX;
     // 칸 사이(2rem)·눕힌 라벨(2.6rem)은 CSS 값 그대로 (세로 반반 한 줄 배치에선 라벨을 숨기고 칸 사이를 0으로 해서 재지 않음)
     const gap = 2 * rem, lbl = 2.6 * rem + gap;
@@ -155,7 +157,7 @@ function fitClock() {
     // 가로는 시계 칸(양각은 판) 폭 안에 +·− 버튼까지 들게 시계 칸 폭 기준 — 평면도 (칸 밖으로 나가면 아래 줄 버튼과 오른쪽 끝이 어긋남)
     // 퓨어(판 없는 양각)는 판 안쪽 여백까지 씀 (CSS도 스톱워치·타이머·알람 칸을 시계 칸 폭 그대로)
     const padC = document.body.classList.contains('digi-bare') ? padX : 0;
-    const wc = (!portrait ? lbl + span * size * .99 + side : w) + padC;
+    const wc = (!portrait && !fill ? lbl + span * size * .99 + side : w) + padC;
     // 스톱워치 1/100초는 초 숫자 옆(폭이 듦)과 아래(높이가 듦) 중 숫자가 더 커지는 쪽에 (cm-d3s: 옆) — 옆이면 .4em 두 자리 + 사이 .15×.4em
     const wb = (wc - lbl - cmSide) / (2 * wmax + .02), under = Math.min(wb, cmH(h, rem, false));
     const beside3 = Math.min(wb, (wc - lbl - gap) / (2.8 * wmax + .08), cmH(h, rem, true));
@@ -168,7 +170,7 @@ function fitClock() {
     const z = dateLen ? Math.min(1, (dateRow ? lbl + span * size : size * (rows - top)) / dateLen) : 1;
     if (!oneLine) ds.style.zoom = z < .99 ? z : '';
     // 가로: 시계 칸 폭을 가장 넓은 시각 기준으로 고정 → 분이 바뀌어 숫자 폭이 달라도 날짜·위젯이 안 움직임
-    $('clock').style.width = portrait ? '' : (lbl + span * size * .99 + side + padX) + 'px';
+    $('clock').style.width = portrait || fill ? '' : (lbl + span * size * .99 + side + padX) + 'px';
     if (moved) return fitClock();   // 날짜 자리를 옮겼으면 옮긴 모양으로 한 번 더 맞춤 (그다음엔 안 옮겨서 한 번뿐)
   } else {
     $('clock').style.width = '';
