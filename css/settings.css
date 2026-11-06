@@ -14,13 +14,11 @@
    제목 옆에 탭이 다 안 들어가면 탭 줄을 제목 아래로. 켜진 탭·보이는 페이지는 .on (settings.js setTab) */
 .set-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2rem 3rem}
 .set-tabs{display:flex;flex-wrap:wrap;gap:1rem}
-.set-card .set-tabs button{padding:1.2rem 2.6rem;border:1px solid var(--card-bd);border-radius:999px}
-.set-card .set-tabs button.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
 .set-page{display:none;flex-direction:column;gap:2.2rem}
 .set-page.on{display:flex}
 /* 위젯 페이지 맨 위: ‹ 위젯(목록으로) · 위젯 이름 */
 .set-back{display:flex;align-items:center;gap:2.4rem;font-size:3.6rem;color:var(--text)}
-.set-card .set-back button{padding:1rem 2.4rem 1rem 1.8rem;border:1px solid var(--card-bd);border-radius:999px;color:var(--text)}
+.set-card .set-back button{padding:1rem 0;color:var(--text-dim)}   /* ‹ 위젯: 테두리 없이 글자만 (괄호 버튼들 사이에서 길 안내처럼) */
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:3rem;font-size:3.4rem;color:var(--text-muted)}
 /* 위치: 구·동(상세 주소를 켜면 도로명) · 날씨 갱신 시각. 폰에서 미러 설정 중엔 폰 위치라 숨김 */
 .set-place{display:flex;align-items:center;gap:1rem;min-width:0;font-size:3rem;color:var(--text);text-align:right}
@@ -31,32 +29,40 @@ body.remote .set-loc{display:none}
   .set-card{gap:2.4rem;padding:3.6rem 4.4rem}
   .set-page{gap:1.4rem}
 }
-.seg{display:flex;border:1px solid var(--card-bd);border-radius:2.2rem;overflow:hidden}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
-.seg button{padding:1.4rem 2.8rem}
-.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:700}
-/* 배치(버튼 5개): 이름 아래 줄에 폭 가득, 버튼은 같은 폭 */
+/* 고르는 버튼(탭 · 하나 고르기 .seg · 따로 켜고 끄는 칩): 로고 [ 03 ]처럼 고른 것만 대괄호 [ 반반 ] + 진한 글자, 나머지는 흐린 글자
+   괄호 자리는 늘 비워 둬서(안 고른 건 투명) 골라도 글자가 안 움직임. 괄호는 로고 글꼴, 읽어 주기 프로그램엔 안 읽힘( / '') */
+.seg, .set-tabs, .chips, .rm-chips{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem}
+.set-card :is(.seg, .set-tabs, .chips, .rm-chips) button{padding:1rem .2rem;color:var(--text-dim);white-space:nowrap}
+.set-card :is(.seg, .set-tabs, .chips, .rm-chips) button.on{color:var(--text);font-weight:700}
+.set-card :is(.seg, .set-tabs, .chips, .rm-chips, .step) button::before, .set-card :is(.set-close, .set-sync, .remote-open, .remote-apply)::before{content:'[';content:'[' / '';margin-right:.4em;font-family:var(--logo);font-weight:600}
+.set-card :is(.seg, .set-tabs, .chips, .rm-chips, .step) button::after, .set-card :is(.set-close, .set-sync, .remote-open, .remote-apply)::after{content:']';content:']' / '';margin-left:.4em;font-family:var(--logo);font-weight:600}
+.set-card :is(.seg, .set-tabs, .chips, .rm-chips) button:not(.on)::before, .set-card :is(.seg, .set-tabs, .chips, .rm-chips) button:not(.on)::after{color:transparent}
+/* 배치(버튼 5개): 이름 아래 줄에 양 끝 맞춰 한 줄 — 글자를 조금 작게, 괄호 안쪽도 좁게 */
 .set-lay{flex-wrap:wrap;row-gap:1.6rem}
-.set-lay .seg{flex:1 1 100%}
-.set-lay .seg button{flex:1 1 0;padding:1.4rem .6rem;white-space:nowrap}
-/* 따로 켜고 끄는 칩 여러 개 (표시: 날짜 / 상세 주소, 스타일 5개는 줄을 바꿔 오른쪽 정렬) */
-.chips{display:flex;gap:1rem}
-.set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}
-.set-card .chips button.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+.set-lay .seg{flex:1 1 100%;flex-wrap:nowrap;justify-content:space-between;gap:.4rem}
+.set-card .set-lay .seg button{flex:none;padding:1rem 0;font-size:2.75rem}
+.set-card .set-lay .seg button::before{margin-right:.22em}
+.set-card .set-lay .seg button::after{margin-left:.22em}
+/* 칩 여러 개 (표시: 날짜 / 상세 주소, 스타일 5개는 줄을 바꿔 오른쪽 정렬) */
+/* 숫자 올리고 내리기: [ − ] 23시 [ + ] */
 .step{display:flex;align-items:center;gap:2rem;color:var(--text);font-variant-numeric:tabular-nums}
-.step button{width:6.4rem;height:6.4rem;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
+.set-card .step button{padding:1rem .2rem;color:var(--text)}
+.set-card .step button::before{margin-right:.35em}
+.set-card .step button::after{margin-left:.35em}
 .step span{min-width:9rem;text-align:center}
 .set-hint{margin-top:auto;font-size:2.6rem;line-height:1.5;color:var(--text-dim)}
-.set-foot{display:flex;gap:1.4rem}
-.set-card .set-close{flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--panel-2);color:var(--text);font-weight:600}
-.set-card .set-sync, .set-card .remote-open{padding:1.8rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--text)}
+/* 아래 줄: 왼쪽 [ 폰으로 설정 ] · 오른쪽 [ 닫기 ] (괄호는 위 고르는 버튼과 같은 모양) */
+.set-foot{display:flex;justify-content:space-between;gap:1.4rem}
+.set-card .set-close{padding:1.8rem .2rem;color:var(--text);font-weight:600}
+.set-card .set-sync, .set-card .remote-open{padding:1.8rem .2rem;color:var(--text-muted)}
 /* 폰으로 설정: QR(흰 바탕)과 주소. 폰에서 미러 설정 중이면 위에 안내, '폰으로 설정' 버튼은 숨김 */
 .sync-qr{align-self:center;width:min(30rem, 100%);border-radius:2rem;overflow:hidden}
 .sync-qr:empty{display:none}
 .sync-qr svg{display:block;width:100%;height:auto}
 .sync-url{align-self:center;font-size:2rem;color:var(--text-dim);word-break:break-all;text-align:center}
 .sync-url:empty{display:none}
-.set-card .sync-off{align-self:center;padding:1.4rem 3rem;border:1px solid var(--card-bd);border-radius:2.2rem;color:var(--bad)}
+.set-card .sync-off{align-self:center;color:var(--bad)}
 .set-card .sync-off[hidden]{display:none}
 .remote-note{display:none}
 .set-card[data-tab="sync"] .set-hint{display:none}
@@ -69,20 +75,24 @@ body.remote .set-card{height:94vh;height:94dvh}
 body.remote .remote-bar:not(:empty){display:flex;flex-direction:column;gap:1.2rem}
 .rm-name{display:flex;gap:1rem}
 .rm-name input{flex:1;min-width:0;padding:1.2rem 2rem;border:1px solid var(--card-bd);border-radius:1.6rem;background:var(--bg);color:var(--text);font:inherit;font-size:2.8rem;user-select:text}
-.rm-chips{display:flex;flex-wrap:wrap;gap:1rem}
-.set-card .rm-name button, .set-card .rm-chips button{padding:1rem 2.2rem;border:1px solid var(--card-bd);border-radius:999px;font-size:2.6rem;color:var(--text)}
-.set-card .rm-chips button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+.set-card .rm-name button{font-size:2.6rem}
+.set-card .rm-chips button{font-size:2.6rem}   /* 고른 것만 [ ] — 아래 고르는 버튼 규칙 */
 /* 폰 자기 화면 설정 › 미러 설정하기: 이름(누르면 그 미러) | 이름·삭제 */
 .set-card #remote-list .rm-go{flex:1;min-width:0;padding:.6rem 0;border:0;text-align:left;font-size:3.2rem;color:var(--text)}
 #remote-list li span{display:flex;gap:1rem;flex:none}
 /* 폰: '미러에 적용' — 바꾼 게 있으면 밝게(눌림), 없으면 흐리게 */
 .set-card .remote-apply{display:none}
-body.remote .set-card .remote-apply{display:block;flex:1;padding:1.8rem;border-radius:2.2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
-body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var(--text-dim);font-weight:600;cursor:default}
+body.remote .set-card .remote-apply{display:block;padding:1.8rem .2rem;color:var(--text);font-weight:700}
+body.remote .set-card .remote-apply:disabled{color:var(--text-dim);font-weight:600;cursor:default}
 /* 교통 등록: 등록 목록 / 검색창 / 결과(정류장 → 노선 체크, 또는 지하철 방면) */
 .tr-sec{display:flex;flex-direction:column;gap:1.8rem}
 .tr-add{display:flex;gap:1.2rem}
-.set-card .tr-add button, .set-card .tr-bar button, .set-card .tr-list button{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;color:var(--text)}
+/* 하는 버튼(+ 버스 · 검색 · 지우기 · 시작 · 고치기 · 저장 등): 괄호를 늘 보임 [ + 버스 ] — 고르는 버튼의 고른 모양과 같은 말투 */
+.set-card :is(.tr-add, .tr-bar, .tr-list, .rm-name) button, .set-card :is(.tr-save, .ph-add, .sync-off){padding:1rem .2rem;border:0;border-radius:0;background:none;color:var(--text);white-space:nowrap}
+.set-card :is(.tr-add, .tr-bar, .tr-list, .rm-name) button::before, .set-card :is(.tr-save, .ph-add, .sync-off)::before{content:'[';content:'[' / '';margin-right:.4em;font-family:var(--logo);font-weight:600}
+.set-card :is(.tr-add, .tr-bar, .tr-list, .rm-name) button::after, .set-card :is(.tr-save, .ph-add, .sync-off)::after{content:']';content:']' / '';margin-left:.4em;font-family:var(--logo);font-weight:600}
+.set-card :is(.tr-add, .tr-bar, .tr-list, .rm-name) button:disabled{color:var(--text-dim)}
+.set-card .sync-off{color:var(--bad)}   /* 끊기는 빨간 글자 그대로 (위 하는 버튼 규칙보다 뒤에) */
 .tr-list, .tr-res{list-style:none;display:flex;flex-direction:column;gap:1rem}
 .tr-list li, .tr-res li{display:flex;align-items:center;justify-content:space-between;gap:2rem;padding:1.6rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;font-size:3rem;color:var(--text)}
 .tr-list small, .tr-res small{display:block;margin-top:.5rem;font-size:2.4rem;color:var(--text-dim)}
@@ -102,8 +112,12 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .wg-list small{display:block;margin-top:.4rem;font-size:2.4rem;color:var(--text-dim)}
 .set-card .wg-list button{width:6.4rem;height:6.4rem;display:grid;place-items:center;flex:none;padding:0;border:1px solid var(--card-bd);border-radius:50%;color:var(--text)}
 .set-card .wg-list button:disabled{opacity:.2;cursor:default}
-.set-card .wg-list .wg-tog{width:11rem;border-radius:2.2rem;color:var(--text-muted)}
-.set-card .wg-list .wg-tog.on{background:var(--accent);color:var(--on-accent);font-weight:700;border-color:var(--accent)}
+/* 켜짐·꺼짐: 고르는 버튼과 같은 모양 — 켜짐만 [ 켜짐 ] (괄호 자리는 늘 비워 둠) */
+.set-card .wg-list .wg-tog{width:auto;height:auto;display:block;padding:1rem .2rem;border:0;border-radius:0;color:var(--text-dim);white-space:nowrap}
+.set-card .wg-list .wg-tog.on{color:var(--text);font-weight:700}
+.set-card .wg-list .wg-tog::before{content:'[';content:'[' / '';margin-right:.4em;font-family:var(--logo);font-weight:600}
+.set-card .wg-list .wg-tog::after{content:']';content:']' / '';margin-left:.4em;font-family:var(--logo);font-weight:600}
+.set-card .wg-list .wg-tog:not(.on)::before, .set-card .wg-list .wg-tog:not(.on)::after{color:transparent}
 .wg-list svg{width:3rem;height:3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* 보이는 시간: 시계 버튼(시간을 정했으면 밝게) → 아래 줄에 시작 −/+ ~ 끝 −/+ / 항상 */
 .set-card .wg-list button[data-tm]{color:var(--text-dim)}
@@ -112,8 +126,10 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .wg-time b{min-width:8rem;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
 .wg-time i, .wg-time em{font-style:normal;color:var(--text-dim)}
 .wg-time em{flex:1}
-.set-card .wg-time button{width:5.6rem;height:5.6rem}
-.set-card .wg-time .wg-always, .set-card .wg-time .wg-set{width:auto;margin-left:auto;padding:0 2.6rem;border-radius:2.2rem}
+.set-card .wg-time button{width:auto;height:auto;display:block;padding:1rem .2rem;border:0;border-radius:0;color:var(--text)}
+.set-card .wg-time .wg-always, .set-card .wg-time .wg-set{margin-left:auto}
+.set-card .wg-time button::before{content:'[';content:'[' / '';margin-right:.35em;font-family:var(--logo);font-weight:600}
+.set-card .wg-time button::after{content:']';content:']' / '';margin-left:.35em;font-family:var(--logo);font-weight:600}
 .tr-msg:empty{display:none}
 /* 개인정보처리방침 링크: 안내 문구 아래 작게 */
 .set-policy{align-self:flex-start;margin-top:-1.6rem;font-size:2.4rem;color:var(--text-dim);text-underline-offset:.4em}
@@ -122,12 +138,12 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .policy{position:fixed;inset:0;z-index:15;background:var(--bg)}
 .policy[hidden]{display:none}
 .policy iframe{display:block;width:100%;height:100%;border:0}
-.set-card .tr-save{padding:1.6rem;border-radius:2rem;background:var(--accent);color:var(--on-accent);font-weight:700}
+.set-card .tr-save{font-weight:700}
 /* 사진 앨범 같이 쓰기: 이 미러만 / ○○와 같이 (다른 미러가 많으면 줄바꿈) */
 .ph-share-row[hidden]{display:none}
 .ph-share-row .chips{flex-wrap:wrap;justify-content:flex-end}
 /* 사진 탭: 올리기(사진 고르기) / 작은 그림 4칸 격자, 그림마다 오른쪽 위 지우기 */
-.set-card .ph-add{padding:1.2rem 2.2rem;border:1px solid var(--card-bd);border-radius:2rem;font-size:3.2rem;color:var(--text);cursor:pointer}
+.set-card .ph-add{font-size:3.2rem;cursor:pointer}
 .ph-list{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .ph-list:empty{display:none}
 .ph-list li{position:relative;aspect-ratio:1;border-radius:1.6rem;overflow:hidden;background:var(--panel-2)}
@@ -163,7 +179,7 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 /* 페이지 안 묶음 제목(시계 › 테마, 디데이·집중 타이머 › 모양): 위에 여백·선 */
 .set-sub{margin-top:2rem;padding-top:3rem;border-top:1px solid var(--card-bd);color:var(--text)}
 .fo-state{font-size:2.8rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
-.set-card #fo-set-go.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+.set-card #fo-set-go.on{font-weight:700}   /* 도는 중(정지): 진하게 */
 /* 디데이 목록: 이름 값(작게 날짜) | ↑ 고치기 지우기 · 추가·고치기 칸 */
 .cd-set-list b{margin-left:1rem;font-weight:700;font-variant-numeric:tabular-nums}
 .cd-btns{display:flex;gap:1rem;flex:none}
@@ -173,7 +189,7 @@ body.remote .set-card .remote-apply:disabled{background:var(--panel-2);color:var
 .cd-form .tr-bar{flex-wrap:wrap}
 .cd-form #cd-name{flex-basis:100%}
 .cd-form input[type=date]{flex:none;color-scheme:dark}
-.set-card .cd-form .tr-save{padding:1.2rem 3.4rem;color:var(--on-accent);border-color:var(--accent)}
+.set-card .cd-form .tr-save{font-weight:700}
 .cd-form .chips{flex-wrap:wrap}
 /* 화면 › 스타일: 평면 · 라이트 양각 · 라이트 음각 · 다크 양각 · 다크 음각 (칸이 좁으면 칩 줄이 이름 아래로) */
 .set-style{flex-wrap:wrap;gap:1.6rem 3rem}
