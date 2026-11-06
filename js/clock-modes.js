@@ -13,6 +13,7 @@ function showCm(i, dir, axis, from) {
   cm = (i + CM.length) % CM.length;
   document.body.dataset.cm = CM[cm];
   cmAt = Date.now();
+  dotWorm(document.querySelector('.cm-dots'), cm);   // 넘어가는 모습이 있으면 cp.go가 이어서 움직임
   if (dir && old !== cm) cp.go(cmView(old), cmView(cm), dir, axis, from);
   renderCm();
 }

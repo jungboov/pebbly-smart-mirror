@@ -96,8 +96,9 @@ body.sb .moon-ico{width:4rem;height:4rem}
 
 /* 위젯 위치 표시 (아이폰 스마트 스택처럼 오른쪽 세로 점) */
 body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-right));transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
-.sb-dots i, .cm-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:var(--dot);transition:height .6s, width .6s, background .6s}
-.sb-dots i.on{height:3.4rem;background:var(--accent)}
+/* 점은 모두 같은 크기, 지금 자리는 위에 겹친 진한 점(.dw) — 넘길 때 늘었다 줄며 손가락·용수철을 따라감 (screen.js dotWorm) */
+.sb-dots i, .cm-dots i{width:1.2rem;height:1.2rem;border-radius:.6rem;background:var(--dot)}
+.sb-dots .dw, .cm-dots .dw{position:absolute;border-radius:.6rem;background:var(--accent);pointer-events:none}
 
 /* 세로: 위젯을 넓고 낮게 (정보 카드 4장 한 줄, 공기·해 카드 3장 한 줄) 해서 남는 높이를 시계에 줌 */
 @media (orientation: portrait){
@@ -134,7 +135,6 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb .sun-arc{order:0;margin-top:-1rem}
   /* 위젯 위치 점: 아래 가운데 가로로 */
   body.sb .sb-dots{top:auto;bottom:3rem;right:auto;left:50%;transform:translateX(-50%);flex-direction:row}
-  .sb-dots i.on{width:3.4rem;height:1.2rem}
   /* 세로 배치 '반반'(설정): 위 절반 시계(가운데) / 아래 절반 위젯. 시계는 위 절반 높이에 맞춤 (fitClock) */
   body.sb.half .stage{grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"clock" "panel"}
   body.sb.half .clock{align-self:center}
@@ -171,9 +171,8 @@ body.sb .sb-dots{position:absolute;top:50%;right:max(3rem, env(safe-area-inset-r
   body.sb:not(.cm-line) .cm{grid-template-columns:auto auto auto;justify-content:center}
   body.sb:not(.cm-line) #cm-sw{grid-template-columns:auto auto;grid-template-areas:"l1 d1" "l2 d2" "ft ft"}
   /* 세로: 위치 점은 시계 칸 맨 위 가운데에 가로로 — 스톱워치·타이머·알람은 점 자리만큼 내림 (높이는 그대로, 시계 아래 여백 6rem에서 씀) */
-  body.sb:not([data-cm="clock"]) .cm-dots{position:absolute;top:0;left:50%;transform:translateX(-50%);flex-direction:row}
+  body.sb:is(:not([data-cm="clock"]), .cm-moving) .cm-dots{position:absolute;top:0;left:50%;transform:translateX(-50%);flex-direction:row}
   body.sb .cm{inset:3.4rem 0 2.6rem}
-  body.sb[data-cm="sw"] .cm-dots i:nth-child(2), body.sb[data-cm="tm"] .cm-dots i:nth-child(3), body.sb[data-cm="al"] .cm-dots i:nth-child(4){width:3.4rem;height:1.2rem}
 }
 
 /* 가로: 오른쪽 위젯도 칸 높이(화면 높이)를 채움 — 세로와 같은 규칙. 제목은 맨 위에 고정, 내용이 남은 높이를 채움

@@ -186,7 +186,8 @@ function showPanel(p, dir, axis, from) {
   panelName = list[panel];
   document.body.dataset.panel = panelName;
   document.body.classList.toggle('alt', panel % 2 === 1);
-  $('sb-dots').innerHTML = list.map((_, i) => `<i${i === panel ? ' class="on"' : ''}></i>`).join('');
+  $('sb-dots').innerHTML = list.map(() => '<i></i>').join('');
+  dotWorm($('sb-dots'), panel);   // 넘어가는 모습이 있으면 wp.go가 이어서 움직임
   if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
   else if (old === 'photo') phLeave();   // 동영상 멈춤
@@ -217,8 +218,9 @@ function autoNext(held) {
 // (CSS의 숨김 상태 위에 잠깐 덮어씌우는 모양이라 끝나면 지워서 원래 상태로)
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 // frame(rem): 잘라 내는 테두리 { el 기준 칸, m 여유(px) } — 없으면 넘어가는 칸 자신 + 2rem
-function pager(frame) {
+function pager(frame, onPos) {
   // st: { out 나가는 칸, inn 들어오는 칸, dir, axis, span 한 칸 거리, m 여유, rem, x 나가는 칸 이동(px), box 칸마다 잘라 낼 테두리 [왼, 위, 오른, 아래, 폭, 높이] }
+  // onPos(st): 그릴 때마다(끄는 중·용수철) 지금 모습을, 멈추면 null을 알려 줌 — 넘김 점이 같이 움직임 (dotWorm)
   const P = { st: null, raf: 0 };
   // 하나 놓기: t 이동(px), s 크기, o 불투명도, b 번짐(0~1). 잘라 내는 테두리는 움직인(작아진) 만큼 거꾸로 옮겨 제자리에 고정
   const put = (el, t, s, o, b) => {
@@ -236,10 +238,12 @@ function pager(frame) {
     const { out, inn, dir, span, x } = P.st, p = Math.min(1, Math.abs(x) / span);
     put(out, x, 1 - .08 * p, 1 - .8 * p, .6 * p);
     if (inn) put(inn, x + dir * span, .92 + .08 * p, .15 + .85 * p, .6 * (1 - p));
+    if (onPos) onPos(P.st);
   };
   P.stop = () => {
     cancelAnimationFrame(P.raf);
     if (P.st) { pgClear(P.st.out); if (P.st.inn) pgClear(P.st.inn); P.st = null; }
+    if (onPos) onPos(null);
   };
   P.start = (out, inn, dir, axis, x) => {
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), f = frame ? frame(rem) : null;
@@ -280,7 +284,30 @@ function pager(frame) {
 const pgClear = el => { el.style.clipPath = el.style.transform = el.style.opacity = el.style.filter = el.style.visibility = ''; };
 // 시계 쪽: 시계·스톱워치·타이머·알람이 판째(디지털 양각·음각은 칸마다 판) 넘어감 — 잘라 내는 테두리는 판 자리(#dg 칸, 평면·아날로그는 시계 칸) + 2rem
 // (.cm은 판보다 안쪽이라 제 칸 기준이면 판이 잘림)
-const wp = pager(), cp = pager(rem => ({ el: $(document.body.classList.contains('digi-pl') ? 'dg' : 'clock'), m: 2 * rem }));
+// 넘김 점: 크기가 같은 점들 위에 진한 점 하나(.dw)가 p(소수 칸 번호)를 따라 늘었다 줄며 움직임
+//   앞쪽 끝이 먼저 다음 점까지 가고(0~½) 뒤쪽 끝이 따라붙음(½~1) — 뒤로 끌면 반대쪽 끝이 앞장섬, 끝 → 처음은 줄 전체로 늘었다 줄음
+//   손가락으로 끄는 동안은 끈 만큼, 놓으면 넘김 용수철을 따라 다음(제자리) 점에 달라붙음 (pager onPos)
+function dotWorm(box, p) {
+  const ds = box.querySelectorAll('i'), n = ds.length;
+  if (!n) return;
+  let w = box.querySelector('.dw');
+  if (!w) { w = document.createElement('b'); w.className = 'dw'; box.append(w); }
+  const row = getComputedStyle(box).flexDirection === 'row', D = row ? ds[0].offsetWidth : ds[0].offsetHeight;
+  const pos = i => row ? ds[i].offsetLeft : ds[i].offsetTop, k = v => Math.min(1, Math.max(0, v));
+  const q = ((p % n) + n) % n, a = Math.floor(q), b = (a + 1) % n, t = q - a, ya = pos(a), yb = pos(b);
+  const [s, e] = yb >= ya ? [ya + k(2 * t - 1) * (yb - ya), ya + D + k(2 * t) * (yb - ya)] : [ya - k(2 * t) * (ya - yb), ya + D - k(2 * t - 1) * (ya - yb)];
+  w.style.cssText = row ? `left:${s}px;top:${ds[0].offsetTop}px;width:${e - s}px;height:${D}px` : `top:${s}px;left:${ds[0].offsetLeft}px;height:${e - s}px;width:${D}px`;
+}
+// 끄는 중·넘어가는 중의 소수 칸 번호: 나가는 칸 번호 + 방향 × 간 거리(한 칸 = span)
+const pgPos = (st, idx) => idx(st.out) + st.dir * Math.min(1, Math.abs(st.x) / st.span);
+const wpDots = st => dotWorm($('sb-dots'), st && st.inn ? pgPos(st, el => panelList().indexOf(PANEL_NAMES[PANELS.indexOf(el)])) : panel);
+// 시계 쪽 점은 시계 화면에선 숨어 있다가 끄는(넘어가는) 동안만 보임 (cm-moving)
+const cpDots = st => {
+  document.body.classList.toggle('cm-moving', !!st);
+  dotWorm(document.querySelector('.cm-dots'), st && st.inn ? pgPos(st, el => CM.findIndex((_, j) => cmView(j) === el)) : cm);
+};
+const wp = pager(null, wpDots), cp = pager(rem => ({ el: $(document.body.classList.contains('digi-pl') ? 'dg' : 'clock'), m: 2 * rem }), cpDots);
+addEventListener('resize', () => { wpDots(wp.st); cpDots(cp.st); });
 
 // 손으로 끌기: 누른 채 움직이면 지금 칸이 손가락을 따라오고, 그 방향 다음(이전) 칸이 뒤따라 흐릿하게 보임
 // 위젯 쪽은 켠 위젯, 시계 쪽은 시계 → 스톱워치 → 타이머 → 알람

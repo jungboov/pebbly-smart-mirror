@@ -69,8 +69,8 @@ body.sb.cm-d3s:not(.cm-line) #cm-sw .cm-d3{grid-area:d3;justify-self:start;align
 /* 시계 쪽 화면 위치 점: 스톱워치·타이머·알람일 때만. 위젯 점과 마주 보게 — 가로는 화면 왼쪽 끝 가운데에 세로로(위젯 점은 오른쪽 끝),
    세로는 시계 칸 맨 위 가운데에 가로로(위젯 점은 맨 아래, standby-widgets.css) */
 .cm-dots{display:none}
-body.sb:not([data-cm="clock"]) .cm-dots{position:fixed;left:max(3rem, env(safe-area-inset-left));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
-body[data-cm="sw"] .cm-dots i:nth-child(2), body[data-cm="tm"] .cm-dots i:nth-child(3), body[data-cm="al"] .cm-dots i:nth-child(4){height:3.4rem;background:var(--accent)}
+/* 시계 화면에선 숨고, 시계 쪽을 끄는(넘어가는) 동안은 보임(cm-moving). 지금 자리는 진한 점(.dw, standby-widgets.css) */
+body.sb:is(:not([data-cm="clock"]), .cm-moving) .cm-dots{position:fixed;left:max(3rem, env(safe-area-inset-left));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1.2rem}
 /* 울림 */
 .ring{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;gap:5rem;background:var(--ring-bg);animation:ring 1s steps(2) infinite}
 .ring[hidden]{display:none}

@@ -235,5 +235,5 @@ body.sb.digi-pl[data-cm="clock"] #clock-in{visibility:hidden}
   body.sb.digi-pl .clock{padding-bottom:6rem}
   body.sb.digi-pl .dg{bottom:2.8rem}
   body.sb.digi-pl .cm{bottom:6rem}
-  body.sb.digi-pl:not([data-cm="clock"]) .cm-dots{top:1.1rem}
+  body.sb.digi-pl:is(:not([data-cm="clock"]), .cm-moving) .cm-dots{top:1.1rem}
 }
