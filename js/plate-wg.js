@@ -206,15 +206,11 @@ function pwDaily(k, W, H) {
     // 강수확률: 오늘은 위처럼 동그라미에서 점선을 내려 잇고, 30% 아래여도 보여 줌(글자는 위 '오늘'처럼 낮게 솟음)
     const p = Math.round(d.precipitation_probability_max[i] || 0);
     if (now && yp - 14 - (pts[j][1] + r + 3) > 4) o += k.print(plDash(cx(j), pts[j][1] + r + 3, cx(j), yp - 14));
-    if (p >= 30 || now) {   // 우산 + 숫자. 칸이 좁아 이웃과 닿으면 숫자를 줄여 칸 가운데에, 그래도 작으면 우산을 뺌
-      const pt = p + '%', tw = pwW(pt, 9, now ? 700 : 600);
-      let fs = 9, ux = cx(j) - 13, tx = cx(j) + 9, umb = true;
-      if (tw / 2 > cw - 24) {
-        fs = pwFit(pt, 9, cw - 4 - 10, now ? 700 : 600);
-        if (fs < 7) { umb = false; fs = pwFit(pt, 9, cw - 4, now ? 700 : 600); }
-        const w2 = pwW(pt, fs, now ? 700 : 600), g0 = cx(j) - ((umb ? 10 : 0) + w2) / 2;
-        ux = g0; tx = g0 + (umb ? 10 : 0) + w2 / 2;
-      }
+    if (p >= 30 || now) {   // 우산 + 숫자를 한 덩어리로 칸 가운데에(우산과 숫자 사이 3). 칸이 좁으면 숫자를 줄이고, 그래도 작으면 우산을 뺌
+      const pt = p + '%', fw = now ? 700 : 600;
+      let umb = true, fs = pwFit(pt, 9, cw - 4 - 12, fw);
+      if (fs < 7) { umb = false; fs = pwFit(pt, 9, cw - 4, fw); }
+      const w2 = pwW(pt, fs, fw), ux = cx(j) - ((umb ? 12 : 0) + w2) / 2, tx = ux + (umb ? 12 : 0) + w2 / 2;
       if (umb) o += k.ink(pwPath(PW_UMB, ux, yp - 8.5, 9, 1.2));
       o += now ? k.tx(plText(tx, yp, fs, pt, 700, 'middle'), .6) : k.ink(plText(tx, yp, fs, pt, 600, 'middle'));
     }
@@ -227,22 +223,33 @@ function pwDaily(k, W, H) {
 function pwAir(k, W, H) {
   let o = pwHead(k, W, `air · ${PANELS[3].dataset.src || '예측값'}`);
   const a = state.air, x1 = W - 20, tall = plTall(W, H);
-  const pmBlock = (x, y, bw, bh, name, v, gr) => {
+  // 미세먼지·초미세먼지는 짝으로: 둘이 같은 배치(이름 / 수치 / 등급, 또는 낮은 판에선 수치 · 등급 한 줄)와 같은 수치 크기를 씀
+  const pmM = (bw, bh, v, gr) => {
     const g = v == null ? null : GRADES[gr(v)], val = v == null ? '-' : String(Math.round(v));
-    let s = k.tx(plText(x, y + 11, pwFit(name, 10.5, bw), name, 700), .4);
     // 수치는 이름 바닥선(y+11)과 등급 점 위(y+bh-10) 사이에 3씩 띄워서 — 숫자 높이는 크기의 .72
-    let vs = pwFit(val, Math.min(bh * .46, 50), bw - 4, 500), vy = y + 11 + (bh - 30) / 2 + vs * .38;
-    if (vy - vs * .72 < y + 14 || vy > y + bh - 13) { vs = Math.min(vs, (bh - 27) / .72); vy = y + 14 + (bh - 27 + vs * .72) / 2; }
+    let vs = pwFit(val, Math.min(bh * .46, 50), bw - 4, 500); const vy = 11 + (bh - 30) / 2 + vs * .38;
+    if (vy - vs * .72 < 14 || vy > bh - 13) vs = Math.min(vs, (bh - 27) / .72);
     const gw = g ? 11 + pwW(g[0], 11, 700) : 0, vi = g ? pwFit(val, Math.min(30, (bh - 14 - 2.5) / .72), bw - gw - 10, 500) : 0;
-    if (g && vi >= vs * 1.3) {   // 낮은 판: 이름 / 수치 · 등급을 한 줄에(바닥선 맞춤) — 수치가 확실히 커질 때
-      vs = vi;
-      const vw = pwW(val, vs, 500);
-      s += k.up(plText(x, y + bh - 2.5, vs, val, 500));
+    return { g, val, vs, vi };
+  };
+  const pmDraw = (x, y, bw, bh, name, m, inl, sz) => {
+    const { g, val } = m;
+    let s = k.tx(plText(x, y + 11, pwFit(name, 10.5, bw), name, 700), .4);
+    if (inl && g) {   // 낮은 판: 이름 / 수치 · 등급을 한 줄에(바닥선 맞춤)
+      const vw = pwW(val, sz, 500);
+      s += k.up(plText(x, y + bh - 2.5, sz, val, 500));
       return s + k.print(() => `<circle cx="${pf(x + vw + 9.6)}" cy="${pf(y + bh - 6.5)}" r="3.6" fill="${PW_GRADE[g[1]]}"/>`) + k.tx(plText(x + vw + 17, y + bh - 2.5, 11, g[0], 700), .5);
     }
-    s += k.up(plText(x, vy, vs, val, 500));
+    let vy = y + 11 + (bh - 30) / 2 + sz * .38;
+    if (vy - sz * .72 < y + 14 || vy > y + bh - 13) vy = y + 14 + (bh - 27 + sz * .72) / 2;
+    s += k.up(plText(x, vy, sz, val, 500));
     if (g) s += k.print(() => `<circle cx="${pf(x + 3.6)}" cy="${pf(y + bh - 6.5)}" r="3.6" fill="${PW_GRADE[g[1]]}"/>`) + k.tx(plText(x + 11, y + bh - 2.5, 11, g[0], 700), .5);
     return s;
+  };
+  const pmPair = (x, y, bw, gap, bh) => {
+    const A = pmM(bw, bh, a && a.pm10, gradePm10), B = pmM(bw, bh, a && a.pm25, gradePm25);
+    const vs = Math.min(A.vs, B.vs), vi = A.g && B.g ? Math.min(A.vi, B.vi) : 0, inl = vi >= vs * 1.3, sz = inl ? vi : vs;
+    return pmDraw(x, y, bw, bh, '미세먼지', A, inl, sz) + pmDraw(x + bw + gap, y, bw, bh, '초미세먼지', B, inl, sz);
   };
   const moonBlock = (x, y, bw, big) => {   // y: 가운데 줄
     const p = moonPhase(Date.now()), name = MOON_NAMES.find(([lim]) => p < lim)[1], r = big ? 11 : 8;
@@ -274,13 +281,13 @@ function pwAir(k, W, H) {
   const narrow = !tall && (x1 - 20) * .46 - 36 < 45;   // 가로 배치의 해·달 칸이 너무 좁으면(노트북 상세 화면) 세로 배치로
   if (tall || narrow) {   // 세로로 긴 판: 미세먼지 둘 나란히 / 점선 / 해 / 점선 / 달 — 해 자리가 없으면 맨 아래 줄에 달 | 일출·일몰 시각
     const bw = (x1 - 20 - 18) / 2, mh = 40, bh = Math.min(96, H * .3, H - 18 - mh - 55), y2 = 44 + bh + 14, sh = H - 18 - mh - 12 - y2;
-    o += pmBlock(20, 44, bw, bh, '미세먼지', a && a.pm10, gradePm10) + pmBlock(20 + bw + 18, 44, bw, bh, '초미세먼지', a && a.pm25, gradePm25);
+    o += pmPair(20, 44, bw, 18, bh);
     o += k.up(plDash(20 + bw + 9, 46, 20 + bw + 9, 44 + bh), .5) + k.up(plDash(20, y2 - 7, x1, y2 - 7), .5);
     if (sh >= 30) o += sunBlock(20, y2, x1 - 20, sh) + k.up(plDash(20, H - 18 - mh, x1, H - 18 - mh), .5) + moonBlock(20, H - 18 - mh / 2 + 2, x1 - 20, true);
     else { const hw = (x1 - 20) / 2; o += moonBlock(20, H - 18 - mh / 2 + 2, hw - 12, false) + sunBlock(20 + hw + 6, H - 18 - mh + 6, hw - 6, 0); }
   } else {      // 가로로 긴 판: 미세먼지 | 초미세먼지 | 해·달
     const bw = (x1 - 20) * .27, sx = 20 + 2 * bw + 36, bh = H - 44 - 18, sw = x1 - sx;
-    o += pmBlock(20, 44, bw, bh, '미세먼지', a && a.pm10, gradePm10) + pmBlock(20 + bw + 18, 44, bw, bh, '초미세먼지', a && a.pm25, gradePm25);
+    o += pmPair(20, 44, bw, 18, bh);
     o += k.up(plDash(20 + bw + 9, 46, 20 + bw + 9, H - 18), .5) + k.up(plDash(sx - 12, 46, sx - 12, H - 18), .5);
     // 해 시각 아래에 달 줄(가운데 H-24, 위 끝 H-32)이 안 들 만큼 낮으면 달은 뺌
     const tsz = pwFit('00:00', 15, sw / 2 - 6, 600), roomy = 44 + 13 + tsz * .8 + 6 <= H - 35;
