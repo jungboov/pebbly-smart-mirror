@@ -46,3 +46,18 @@
   .sun-times b{font-size:2.4rem}
   .sun-arc{margin-top:.6rem}
 }
+
+/* ── 판 테마(양각·음각·퓨어)의 상세 화면: 시계·지금 날씨·일별·시간별·공기가 각자 판 (시계 판은 clock.css, 위젯 판은 plate-wg.js)
+   판이 남는 높이를 채워 판 사이에 빈 줄이 생기지 않게 — 날짜는 시계 판 아래 줄에 들어가서 밖의 날짜 줄은 숨김(clock.css) ── */
+@media (orientation: landscape){
+  /* 왼쪽 시계 판은 날짜·빈 줄 자리까지 내려와 오른쪽 지금 날씨 + 일별 판과 같은 높이, 일별 판도 빈 줄 자리까지 */
+  body.digi-pl:not(.sb) .clock{grid-row:2 / 5;align-self:stretch}
+  body.pw-on:not(.sb) .wmain{align-self:stretch}
+  body.pw-on:not(.sb) .wave{grid-row:3 / 5;align-self:stretch}
+}
+@media (orientation: portrait){
+  /* 지금 날씨(기온·설명 + 정보 칸)는 한 판으로 묶고(세로 상세는 원래 칸마다 흩어 놓음), 남는 높이는 시계 판이 받음 */
+  body.pw-on:not(.sb) .stage{grid-template-rows:auto minmax(0,1fr) auto auto auto auto auto}
+  body.pw-on:not(.sb) .wmain{display:block;grid-row:3 / 5;grid-column:1 / -1;margin-top:3rem}
+  body.digi-pl:not(.sb) .clock{align-self:stretch}
+}

@@ -6,7 +6,7 @@
 // 구성은 디데이 판과 같음: 왼쪽 위 작은 인쇄 제목(now · 부천) · 점선 · 숫자는 로고 글꼴(MuseoModerno). 여백은 왼쪽·오른쪽 모두 20(예전 오른쪽 꺾쇠 ┐┘는 뺌)
 // 다시 그림: 날씨·공기·해·교통·달력·사진 순번을 그린 끝에(pwDraw), 테마·화면 크기가 바뀔 때(plApply), 로고 글꼴을 받은 뒤
 const PW_EL = { now: '.wmain', hourly: '.hourly', daily: '.wave', air: '.cards', transit: '.transit', cal: '.cal', photo: '.photo' };
-const pwOn = () => !plFlat() && document.body.classList.contains('sb');
+const pwOn = () => !plFlat();   // 시계 강조 화면·상세 화면 모두 (상세는 지금 날씨·일별·시간별·공기가 한 화면에 각자 판)
 const pf = v => +(+v).toFixed(1);
 // 글자 폭(판 단위, 크기 size) — 로고 글꼴, 없는 글자(한글)는 Pretendard / 칸 폭에 맞게 줄인 크기
 const pwCtx = document.createElement('canvas').getContext('2d');

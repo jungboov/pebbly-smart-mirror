@@ -9,7 +9,7 @@
 const DG_EASE = t => 1 - (1 - t) ** 3;
 let dgLay = null, dgKey = '', dgShown = null;
 const dgRaf = {};
-const dgOn = () => document.body.classList.contains('digi-pl') && document.body.classList.contains('sb');
+const dgOn = () => document.body.classList.contains('digi-pl');   // 시계 강조 화면·상세 화면 모두
 // 릴 값: 시(12·24시간제), 분·초 — i칸 뒤(앞)의 값
 function dgVal(kind, d, i) {
   if (kind === 's') return pad(((d.getSeconds() + i) % 60 + 60) % 60);
