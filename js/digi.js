@@ -122,6 +122,7 @@ function dgTick(d, roll = true) {
     if (!roll || !dgShown || calm) { g.innerHTML = dgReel(r, kind, d, 0); continue; }
     const t0 = performance.now();
     const step = t => {
+      if (!dgOn()) return;   // 구르는 중에 평면·아날로그로 바꾸면 멈춤 (디지털 테마가 아니면 lgMark에 줄 색이 없음)
       const k = Math.min(1, (t - t0) / 600);
       g.innerHTML = dgReel(r, kind, d, -1 + DG_EASE(k));
       if (k < 1) dgRaf[kind] = requestAnimationFrame(step);
