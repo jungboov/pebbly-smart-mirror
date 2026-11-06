@@ -125,6 +125,7 @@ async function loadBoard() {
   if (!S.transit.length || boardBusy) return;
   boardBusy = true;
   $('tr-reload').disabled = true;
+  window.pwDraw?.('transit');   // 판의 [ refresh ] → [ ··· ]
   const bus = [...new Set(S.transit.filter(t => t.t === 'bus').map(t => `${t.src}:${t.id}`))].join(',');
   const sub = [...new Set(S.transit.filter(t => t.t === 'sub').map(t => t.station))].join(',');
   try {

@@ -10,6 +10,9 @@ body.sb .count, body.sb .focus{display:flex;flex-direction:column;container-type
 body.sb.pw-on :is(.wmain, .hourly, .wave, .cards, .transit, .cal, .photo){position:relative}
 .pw{position:absolute;inset:0;z-index:0;pointer-events:none}
 body.sb.pw-on :is(.wmain, .hourly, .wave, .cards, .transit, .cal) > :not(.pw), body.sb.pw-on :is(.wmain, .cards)::before, body.sb.pw-on .photo > .lbl{visibility:hidden}
+/* 교통 판의 새로고침: 숨긴 제목 줄의 버튼만 꺼내 판에 그린 [ refresh ] 위에 투명하게 겹침(자리는 plate-wg.js pwTransit이 --x·--y·--w·--h로) */
+body.sb.pw-on #tr-reload{visibility:visible;position:absolute;z-index:1;left:var(--x);top:var(--y);width:var(--w);height:var(--h);margin:0;border:0;border-radius:0;background:none}
+body.sb.pw-on #tr-reload svg{display:none}
 
 /* ── 평면 ── 이름 / 큰 숫자(릴) / 시작한 날 · 아래(세로 화면은 오른쪽)에 다음 기념·나머지 항목 */
 .cd-wrap{flex:1;min-height:0;display:flex;flex-direction:column}

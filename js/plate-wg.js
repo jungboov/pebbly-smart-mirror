@@ -31,8 +31,8 @@ function pwIco(k, kind, day, x, y, s, sw = 1.4) {
     : (ICONS[kind] || ICONS.cloud).replace(' class="dots"', ` stroke-width="${(sw * 24 / s * 1.9).toFixed(2)}"`);
   return pwPath(body, x, y, s, sw);
 }
-// 모든 판에 같은 것: 왼쪽 위 인쇄 제목(칸 폭에 맞춰 줄임)
-const pwHead = (k, W, txt) => k.ink(plText(20, 28, pwFit(txt, 11, W - 40, 500), esc(txt), 500));
+// 모든 판에 같은 것: 왼쪽 위 인쇄 제목(칸 폭에 맞춰 줄임 — room은 오른쪽 끝에 둔 버튼 자리)
+const pwHead = (k, W, txt, room = 0) => k.ink(plText(20, 28, pwFit(txt, 11, W - 40 - room, 500), esc(txt), 500));
 // 기온 → 판 높이: 칸 가운데 기준, 1°당 높이는 최고·최저 차이가 작아도 8°가 칸 80%가 되게(최대 1°당 10 — 몇 도 차이가 판 가득 출렁이지 않게)
 function pwTempY(temps, y0, y1) {
   const t = temps.map(Math.round), lo = Math.min(...t), hi = Math.max(...t), mid = (hi + lo) / 2;
@@ -200,10 +200,16 @@ function pwAir(k, W, H) {
 }
 
 // ── 교통: 정류장(이름·번호) / 노선 | 도착(3분 2정거장 · 14분) — 곧 도착은 높이 솟음. 정류장 사이 점선
+//   제목 줄 오른쪽 끝 새로고침 [ refresh ] — 집중 타이머 판 버튼처럼 낮게 솟은 로고 글꼴(받아 오는 동안 [ ··· ])
+//   누르는 건 위에 겹친 평면 버튼 #tr-reload(판에선 투명 — 자리는 여기서 --x·--y·--w·--h로, count.css)
 function pwTransit(k, W, H) {
-  const at = boardAt ? new Date(boardAt) : null;
-  let o = pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : ''));
+  const at = boardAt ? new Date(boardAt) : null, rw = S.transit.length ? pwW('[ refresh ]', 11, 600) : 0;
+  let o = pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : ''), rw && rw + 12);
   if (!S.transit.length) return o;
+  // 누르는 칸: 판 위 끝 ~ 첫 정류장 위(46), 글자 왼쪽 8 ~ 판 오른쪽 끝
+  const bt = plText(W - 20, 28, 11, boardBusy ? '[ ··· ]' : '[ refresh ]', 600, 'end'), hit = [W - 28 - rw, 0, rw + 28, 44];
+  o += k.up(bt, .6) + k.ink(bt);
+  Object.entries({ x: hit[0] / W, y: hit[1] / H, w: hit[2] / W, h: hit[3] / H }).forEach(([n, v]) => $('tr-reload').style.setProperty('--' + n, (v * 100).toFixed(2) + '%'));
   const x1 = W - 20, past = (Date.now() - boardAt) / 6e4;
   const when = (min, text, st) => {
     if (min == null) return { t: text || '-', soon: false };
