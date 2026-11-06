@@ -90,7 +90,7 @@ function fitClock() {
     const ckSt = getComputedStyle($('clock')), padX = parseFloat(ckSt.paddingLeft) + parseFloat(ckSt.paddingRight), padT = parseFloat(ckSt.paddingTop);
     const digi = document.body.classList.contains('digi-pl');
     // 디지털 판 가로: 판(시계 칸)이 왼쪽 칸을 다 채움(CSS) — 칸 폭을 숫자 크기로 정하지 않음, 판 안 숫자·날짜는 digi.js가 맞춤
-    const fill = !portrait && !solo && digi, part = { clock: .6, widget: .4 }[S.layL] || .5;
+    const fill = !portrait && !solo && digi, part = { clock: .6, widget: .4 }[layNow(portrait ? 'P' : 'L')] || .5;
     const w = (portrait ? $('clock').clientWidth : solo ? sw : (sw - cg) * part) - padX;
     // 칸 사이(2rem)·눕힌 라벨(2.6rem)은 CSS 값 그대로 (세로 반반 한 줄 배치에선 라벨을 숨기고 칸 사이를 0으로 해서 재지 않음)
     const gap = 2 * rem, lbl = 2.6 * rem + gap;
@@ -105,14 +105,14 @@ function fitClock() {
     const fit = (sideW, hh, row) => Math.min((w - lbl - sideW) / span, hh / (rows + (row ? .04 : -top)));
     let h = stage.clientHeight - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
     const pb = parseFloat(getComputedStyle($('clock')).paddingBottom);
-    if (portrait && !solo) h = S.half ? h / 2 : h - Math.max(...PANELS.map(el => el.offsetHeight)) - 4 * rem;   // 아래 위젯 자리 (반반: 위 절반)
+    if (portrait && !solo) h *= part;   // 세로: 위 시계 칸 (시계 크게 6 · 반반 5 · 위젯 크게 4 할)
     h -= padT;
     if (S.analog) { document.body.classList.remove('cm-d3s'); const cs = fitDial(w, h - pb, portrait, solo, rem, wmax); return clockVars(cs, cs, rem, wmax); }   // 아날로그: 시계판 (1/100초는 초 아래)
     // 가로·세로 시계 크게: 날짜를 옆(세로)과 위(가로 줄) 중 시계가 더 커지는 쪽으로 — 시계 칸이 폭에 막히면(가로 반반, 폰 세로 등) 위로 올려
     // 가로는 위젯 칸 위·아래 끝까지, 세로는 시계 아래 빈 곳만큼 시계를 키움. 높이에 막히는 낮고 긴 화면은 옆
     // 날짜 줄 두께는 놓인 방향과 상관없이 같음 (눕힌 날짜는 폭, 가로 줄은 높이)
     let dateRow = S.date && portrait && solo;
-    if (S.date && !solo && !(portrait && S.half)) {
+    if (S.date && !solo && !portrait) {
       const t = getComputedStyle(ds).writingMode === 'horizontal-tb' ? ds.offsetHeight : ds.offsetWidth;
       dateRow = fit(0, h - pb - t - 3 * rem, true) > fit(t + gap + 3 * rem, h - pb);
     }
@@ -126,7 +126,7 @@ function fitClock() {
     // 세로 반반: 시:분 한 줄(폭에 맞춤)이 세 줄 크기의 80% 이상이면 한 줄로 — 위아래로 늘려(--sy) 위 절반을 채우고 아래 줄에 날짜·초
     // (폭이 좁은 폰은 한 줄이면 많이 작아져서 세 줄 그대로). 스톱워치·타이머·알람도 같이 (cm-line)
     const lineSize = oneLineSize(w, wmax);
-    const oneLine = portrait && S.half && !solo && !digi && lineSize >= .8 * size;   // 양각은 늘인 숫자가 어색해서 세 줄 그대로
+    const oneLine = portrait && !solo && !digi && lineSize >= .8 * size;   // 양각은 늘인 숫자가 어색해서 세 줄 그대로
     document.body.classList.toggle('cm-line', oneLine);
     if (document.body.classList.contains('oneline') !== oneLine) {
       document.body.classList.toggle('oneline', oneLine);
@@ -247,7 +247,7 @@ function fitDial(w, h, portrait, solo, rem, wmax) {
   ds.style.zoom = z < .99 ? z : '';
   const cw = D + (S.date && !dateRow ? side : 0);
   $('clock').style.width = portrait ? '' : cw + 'px';
-  const half = portrait && S.half && !solo, lbl = 2.6 * rem + gap, span = 2 * wmax + .02;
+  const half = portrait && !solo, lbl = 2.6 * rem + gap, span = 2 * wmax + .02;
   const size3 = half ? Math.min((w - lbl - (S.date ? side : 0)) / span, h / (S.secs ? 2.25 : 1.68)) : 0;   // 디지털 세 줄 크기 (날짜는 옆)
   const line = half && oneLineSize(w, wmax) >= .8 * size3;
   document.body.classList.toggle('cm-line', line);

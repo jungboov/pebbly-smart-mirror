@@ -35,6 +35,10 @@ body.remote .set-loc{display:none}
 .set-card button{font:inherit;font-size:3.2rem;color:var(--text-muted);background:none;border:0;cursor:pointer}
 .seg button{padding:1.4rem 2.8rem}
 .seg button.on{background:var(--accent);color:var(--on-accent);font-weight:700}
+/* 배치(버튼 5개): 이름 아래 줄에 폭 가득, 버튼은 같은 폭 */
+.set-lay{flex-wrap:wrap;row-gap:1.6rem}
+.set-lay .seg{flex:1 1 100%}
+.set-lay .seg button{flex:1 1 0;padding:1.4rem .6rem;white-space:nowrap}
 /* 따로 켜고 끄는 칩 여러 개 (표시: 날짜 / 상세 주소, 스타일 5개는 줄을 바꿔 오른쪽 정렬) */
 .chips{display:flex;gap:1rem}
 .set-card .chips button{padding:1.2rem 2.4rem;border:1px solid var(--card-bd);border-radius:2.2rem}

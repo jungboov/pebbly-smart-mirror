@@ -50,7 +50,7 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // hour12: 12시간제 / analog: 아날로그 시계(레코드판, 시계 강조 화면에서만) / dialTheme: 아날로그 테마 'black'·'silver'·'edge'·'edgem'·'edger'(엣지 흰·민트·레인보우 — 가장자리 숫자와 테두리 선)·'line'·'sweep'·'date'(모던 3가지)·'flower'(보석 꽃 그림)·'rainbow'(블랙 타일 — 검은 타일 다이얼)·'qp'(타일 캘린더 — 주·월·날짜·요일·달)·'lcd'(LCD — 7세그먼트·00~31 날짜)·'lcdk'(LCD 다크 — 같은 판을 검게, 네거티브 액정)·'quartz'(쿼츠 — 검은 벽시계)·'rotary'(로터리 — 숫자 링이 돌아 표시선에 맞춤)·'relief'(양각 — 흰 판에 도드라진 눈금·작은 다이얼 둘)·'reliefk'(양각 다크 — 같은 판을 검게) / secs: 초 표시(끄면 시·분만 크게, 아날로그는 초침을 숨기고 라벨이 멈춤) / date: 시계 옆 날짜(끄면 그만큼 시계가 넓게)
 // addr: 위치를 도로명 주소까지 (켰을 때만 약 10m 단위 좌표로 조회) / alert: 비·미세먼지 알림 띠 / focus: 시계 강조 화면(끄면 상세 화면) / rotate: 날씨 위젯 자동 넘김(초)
 // wgL·wgP: 시계 강조 화면 위젯 { order: 순서, off: 끈 위젯 } 가로·세로 따로 / wgTime: 위젯별 보이는 시간 { 이름: [시작시, 끝시] } (설정 > 위젯)
-// half: 세로 화면을 위 시계 / 아래 위젯 반반으로 (끄면 시계를 폭에 맞게 최대한 크게) / layL: 가로 화면 왼쪽 시계 칸 : 오른쪽 위젯 칸 — 'clock' 시계 크게 6:4 · 'half' 반반 5:5 · 'widget' 위젯 크게 4:6
+// layL / layP: 가로(왼쪽 시계 칸 : 오른쪽 위젯 칸) / 세로(위 시계 칸 : 아래 위젯 칸) 배치 — 'clockOnly' 시계 전체 · 'clock' 시계 크게 6:4 · 'half' 반반 5:5 · 'widget' 위젯 크게 4:6 · 'widgetOnly' 위젯 전체
 // night: 야간 모드 'off'·'dim'(어둡게)·'red'(붉은 단색), 안 고르면 폰은 붉게·나머지는 어둡게 / nightStart~nightEnd: 야간 시간(시)
 // transit: 등록한 버스 정류장·지하철역 (교통 위젯) / alarms: 알람 [{ h, m, on, days: 'all' 매일 · 'wk' 평일(공휴일 빼고) · 'we' 주말 }]
 // logoTheme: 로고 위젯 테마 'emboss'(양각)·'embossk'(양각 다크)·'deboss'(음각)·'debossk'(음각 다크) / logoSpin: 로고 위젯 숫자가 몇 초마다 다시 돌지(0 = 나타날 때만)
@@ -61,15 +61,17 @@ const range = (n, f = String) => Array.from({ length: n }, (_, i) => f(i));
 // fo: 집중 타이머 길이·방식 / foRun: 집중 타이머 진행(폰에서도 시작·멈춤) / foLog: 오늘 집중한 분 (focus.js)
 const SET_KEY = 'mirror_settings';
 const S = Object.assign(
-  { hour12: false, analog: false, dialTheme: 'black', logoTheme: 'emboss', logoSpin: 5, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), half: false, rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
+  { hour12: false, analog: false, dialTheme: 'black', logoTheme: 'emboss', logoSpin: 5, secs: true, date: true, addr: false, alert: true, focus: !['detail', 'mirror'].includes(params.get('mode')), rotate: 10, wgL: null, wgP: null, wgTime: {}, night: null, nightStart: 23, nightEnd: 6, transit: [],
     alarms: [{ on: false, h: 7, m: 0, days: 'all' }], phPer: 3, digi: '', counts: [], plate: 'flat', fo: null, foRun: null, foLog: null },
   // 폰에서 다른 미러 설정 중(REMOTE)이면 이 폰 자기 설정은 섞지 않음: 기본값 위에 그 미러 설정만 (remoteStart)
   //   섞으면 그 미러에 없던 값(사진 앨범 등)이 이 폰 것으로 채워져 '미러에 적용' 때 그 미러로 넘어감
   REMOTE ? {} : (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
 );
-// 예전 가로 배치(halfL: 반반 켬·끔)는 layL로 — 끔(시계 크게: 위젯 자리만 남기고 시계를 최대한 크게)은 시계 크게 6:4로
-if (!['clock', 'half', 'widget'].includes(S.layL)) S.layL = S.halfL === false ? 'clock' : 'half';
-delete S.halfL;
+// 예전 배치(halfL 가로·half 세로: 반반 켬·끔)는 layL·layP로 — 끔(시계 크게: 위젯 자리만 남기고 시계를 최대한 크게)은 시계 크게 6:4로
+const LAYS = ['clockOnly', 'clock', 'half', 'widget', 'widgetOnly'];
+if (!LAYS.includes(S.layL)) S.layL = S.halfL === false ? 'clock' : 'half';
+if (!LAYS.includes(S.layP)) S.layP = S.half ? 'half' : 'clock';
+delete S.halfL; delete S.half;
 // 예전 알람 하나짜리 설정은 목록으로
 if (S.alarm) { S.alarms = [{ ...S.alarm, days: 'all' }]; delete S.alarm; }
 // 예전에 가로·세로 구분 없이 저장한 위젯 설정은 둘 다에 옮김

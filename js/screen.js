@@ -77,9 +77,13 @@ if (navigator.standalone) {
 // 설정 반영: 화면 종류(시계 강조/상세), 시계 형식, 위젯 넘김 주기
 function applySettings() {
   document.body.classList.toggle('sb', S.focus);
-  document.body.classList.toggle('half', S.half);
-  document.body.classList.toggle('lay-clock', S.layL === 'clock');   // 가로 배치 시계 크게 6:4 · 위젯 크게 4:6 (반반은 둘 다 아님, CSS)
-  document.body.classList.toggle('lay-widget', S.layL === 'widget');
+  // 배치(지금 화면 방향 것): 세로는 시계 전체 말고는 모두 위·아래로 나눔(half — 비율은 lay-clock 6:4 · lay-widget 4:6, 반반은 둘 다 아님), 위젯 전체는 시계를 숨김(lay-wonly)
+  //   시계 전체는 위젯 목록을 비워 '시계만' 배치로 (panelList) — CSS는 가로·세로 미디어 안에서 같은 이름을 씀
+  const lay = layNow();
+  document.body.classList.toggle('half', portraitMQ.matches && lay !== 'clockOnly');
+  document.body.classList.toggle('lay-clock', lay === 'clock');
+  document.body.classList.toggle('lay-widget', lay === 'widget');
+  document.body.classList.toggle('lay-wonly', lay === 'widgetOnly');
   document.body.classList.toggle('analog', S.analog);
   if (S.dialTheme === 'brown') S.dialTheme = 'black';   // 잠깐 있다 없앤 브라운 시계를 고른 기기(동기화로 받은 설정 포함)는 레코드 블랙으로
   $('dial').dataset.theme = S.dialTheme;
@@ -162,10 +166,12 @@ const WG_NAMES = { now: '지금 날씨', hourly: '시간별 예보', daily: '일
 const portraitMQ = matchMedia('(orientation: portrait)');
 const wgNow = () => REMOTE && remoteOrient ? remoteOrient : portraitMQ.matches ? 'P' : 'L';
 const wgCfg = (o = wgNow()) => S[o === 'P' ? 'wgP' : 'wgL'];
+const layNow = (o = wgNow()) => S[o === 'P' ? 'layP' : 'layL'];   // 지금 화면 방향의 배치 (설정 › 화면 › 가로·세로 배치)
 const wgOrder = o => [...new Set([...(wgCfg(o).order || []).filter(n => PANEL_NAMES.includes(n)), ...PANEL_NAMES])];   // 새 위젯은 뒤에
 const wgReady = n => n === 'transit' ? S.transit.length > 0 : n === 'photo' ? photos.length > 0 : n === 'count' ? S.counts.length > 0 : true;
 function panelList(o) {
   if (!S.focus) return PANEL_NAMES.slice(0, 4);
+  if (layNow(o) === 'clockOnly') return [];   // 시계 전체: 위젯을 모두 끈 것처럼 '시계만'
   const h = new Date().getHours();
   // 다 끄면 빈 목록 = 시계만. 집중 타이머는 꺼 뒀거나 보이는 시간이 아니어도 도는(멈춘) 동안은 나옴
   return wgOrder(o).filter(n => wgReady(n) && ((n === 'focus' && S.foRun) || (!wgCfg(o).off.includes(n) && (!S.wgTime[n] || inHours(S.wgTime[n], h)))));
