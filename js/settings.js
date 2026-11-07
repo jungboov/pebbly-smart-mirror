@@ -75,7 +75,7 @@ $('settings').addEventListener('click', e => {
 // 시계 탭: 테마 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
 // 같은 시계의 색 차이는 fam(묶음)으로 카드 하나에: 카드 아래 점(dot 색, v 이름)을 누르면 그 색으로. 카드는 고른 색(아니면 첫 색) 그림·이름
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief·square — LCD 다크·양각 다크·스퀘어 블랙은 같은 그림에 색만)
+// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief·square — LCD 다크·양각 다크·스퀘어 블랙은 같은 그림에 색만, 스퀘어 데이트는 3시 날짜 창을 더함)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털', fam: 'digital', v: '평면', dot: '#000' },
   { id: 'digitale', name: '디지털 라이트 양각', digi: 'emboss', fam: 'digital', v: '라이트 양각', dot: 'linear-gradient(135deg, #fff, #ebe5e3 45%, #a39b97)' },
@@ -106,6 +106,8 @@ const CLOCK_THEMES = [
   { id: 'reliefk', name: '양각 다크', relief: true, fam: 'relief', v: '다크', dot: '#2b2b2e' },
   { id: 'square', name: '스퀘어', square: true, fam: 'square', v: '화이트', dot: 'linear-gradient(135deg, #fff 40%, #c8c8c8)' },
   { id: 'squarek', name: '스퀘어 블랙', square: true, fam: 'square', v: '블랙', dot: 'radial-gradient(circle at 35% 30%, #3a3a3e, #000 65%)' },
+  { id: 'squared', name: '스퀘어 데이트', square: true, fam: 'squared', v: '화이트', dot: 'linear-gradient(135deg, #fff 40%, #c8c8c8)' },
+  { id: 'squarekd', name: '스퀘어 데이트 블랙', square: true, fam: 'squared', v: '블랙', dot: 'radial-gradient(circle at 35% 30%, #3a3a3e, #000 65%)' },
 ];
 const thFam = t => t.fam || t.id;
 // 작은 그림 (40×40): 디지털은 시·분 두 줄(양각은 판에 도드라진 숫자 — plate.js digiThumb), 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
@@ -129,7 +131,7 @@ function thThumb(t) {
   }
   if (t.square) {   // 10시 10분 30초
     const p = squareParts(`th-${t.id}-`, t.id, new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
-    return `<svg viewBox="-118 -118 236 236" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-${t.id}-sh)">${rot(305, p.hour)}${rot(61, p.minute)}</g>${rot(180, p.sec)}${p.hub}</svg>`;
+    return `<svg viewBox="-70 -70 140 140" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-${t.id}-sh)">${rot(305, p.hour)}${rot(61, p.minute)}</g>${rot(180, p.sec)}${p.hub}</svg>`;
   }
   if (t.quartz) {
     const p = quartzParts('th-dw-'), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;

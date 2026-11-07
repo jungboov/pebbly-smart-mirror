@@ -294,9 +294,9 @@ function renderDial(d) {
   }
   if (S.dialTheme === 'qp' && d.toDateString() !== dqDay) drawQp(d);
   if (S.dialTheme === 'quartz' && !dwDrawn) drawQuartz();   // 쿼츠: 처음 고를 때 그림
-  if (DSQ_INK[S.dialTheme]) {   // 스퀘어·스퀘어 블랙: 처음 고를 때(테마를 바꿀 때) 그리고, 3시 날짜 창은 날이 바뀔 때
+  if (DSQ_INK[S.dialTheme]) {   // 스퀘어(4가지): 처음 고를 때(테마를 바꿀 때) 그리고, 데이트의 3시 날짜 창은 날이 바뀔 때
     if (S.dialTheme !== dsqTheme) drawSquare(S.dialTheme);
-    if (d.toDateString() !== dsqDay) { dsqDay = d.toDateString(); $('dsq-date').innerHTML = sqDate(d.getDate()); }
+    if (d.toDateString() !== dsqDay) { dsqDay = d.toDateString(); if ($('dsq-date')) $('dsq-date').innerHTML = sqDate(d.getDate()); }
   }
   if (DV_INK[S.dialTheme]) {   // 양각·양각 다크: 처음 고를 때(테마를 바꿀 때) 그리고, 위 작은 다이얼 24시간 바늘은 초마다·요일과 날짜는 날이 바뀔 때
     if (S.dialTheme !== dvTheme) drawRelief(S.dialTheme);
@@ -503,7 +503,7 @@ const DM = {
   sweep: { inset: 12, idx: [30, 30, 1.6, '#c7c7cc'], hands: [48, 84], logo: '#8e8e93', nums: true },
   date: { inset: 4, idx: [16, 14, 5, '#fff'], hands: [48, 82], cal: [0, -51, 25], red: true, hollow: true, bleed: true },
 };
-const DIAL_FACE = { edge: 'edge', edgem: 'edge', edger: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary', relief: 'relief', reliefk: 'relief', square: 'square', squarek: 'square' };
+const DIAL_FACE = { edge: 'edge', edgem: 'edge', edger: 'edge', line: 'modern', sweep: 'modern', date: 'modern', flower: 'flower', rainbow: 'rainbow', qp: 'qp', lcd: 'lcd', lcdk: 'lcd', quartz: 'quartz', rotary: 'rotary', relief: 'relief', reliefk: 'relief', square: 'square', squarek: 'square', squared: 'square', squarekd: 'square' };
 let dmTheme = '';
 const WEEK_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 // 판 높이(반높이 hy, 날짜를 끄면 칸에 맞춰 바뀜)에 따라 12시 시 눈금 안쪽 끝까지 거리가 원래(244)의 몇 배인지 — 로고·12시 아래 날짜 자리를 같이 옮김
@@ -897,15 +897,14 @@ function drawQuartz() {
   dwDrawn = true;
 }
 
-// ===== 스퀘어 시계판 (설정 › 테마 › 스퀘어·스퀘어 블랙) =====
-// 네모난 강철 손목시계: 광택 케이스(납작한 테 + 안쪽 비탈 — 왼쪽 위 비탈은 검게 비침)·3시 용두·모서리 러그·위아래 팔찌(끝으로 흐려짐)
-// 은색 챕터 링에 로마 숫자(XII·III·VI·IX가 변 가운데, 숫자 위가 바깥쪽 — 오른쪽 변은 눕고 아래 변은 뒤집힘), 6시 양옆에 pebbly | labs
-// 안쪽 판은 흰색(블랙은 검은색), 위쪽에 [ 03 ], 3시 쪽 날짜 창(날짜 보기를 켜면), 은색 바늘 둘(가운데 능선 — 왼쪽 밝게·오른쪽 어둡게)과 가는 초침
-// 200×232 단위·가운데 0,0 (index.html viewBox). 케이스 반폭 88 · 비탈 76~62 · 챕터 링 62~42 · 안쪽 판 42
-const DSQ_INK = {
-  square: { dial: ['#fefefd', '#e4e4e1'], logo: '#2a2a2c', edge: 'rgba(0,0,0,.22)', sec: '#38383b', sh: .42, glare: 0 },
-  squarek: { dial: ['#26262a', '#030304'], logo: '#f0f0f0', edge: 'rgba(0,0,0,.7)', sec: '#e6e6e8', sh: .85, glare: .09 },
-};
+// ===== 스퀘어 시계판 (설정 › 테마 › 스퀘어·스퀘어 블랙 / 스퀘어 데이트·스퀘어 데이트 블랙) =====
+// 네모난 손목시계의 가운데 판만(케이스·팔찌 없이): 은색 챕터 링에 로마 숫자(XII·III·VI·IX가 변 가운데, 숫자 위가 바깥쪽 — 오른쪽 변은 눕고 아래 변은 뒤집힘), 6시 양옆에 pebbly | labs
+// 안쪽 판은 흰색(블랙은 검은색), 위쪽에 [ 03 ], 데이트는 3시 쪽 날짜 창(날짜 보기 설정과 상관없이 늘 — 그 설정은 다른 시계처럼 옆 날짜만)
+// 바늘은 곧은 은색 막대 둘(폭이 거의 같고 끝만 짧게 뾰족, 가운데 능선으로 한쪽 밝게·한쪽 어둡게, 꼬리 없음)과 가운데 고리, 가는 초침
+// 126×126 단위·가운데 0,0 (index.html viewBox) — 챕터 링 62~42 · 안쪽 판 42
+const DSQ_W = { dial: ['#fefefd', '#e4e4e1'], logo: '#2a2a2c', edge: 'rgba(0,0,0,.22)', sec: '#38383b', sh: .42, glare: 0 };
+const DSQ_K = { dial: ['#26262a', '#030304'], logo: '#f0f0f0', edge: 'rgba(0,0,0,.7)', sec: '#e6e6e8', sh: .85, glare: .09 };
+const DSQ_INK = { square: DSQ_W, squarek: DSQ_K, squared: { ...DSQ_W, date: true }, squarekd: { ...DSQ_K, date: true } };   // 데이트(d): 3시 날짜 창
 // 로마 숫자: 위아래를 가는 가로줄로 잇고 획은 굵은 것·가는 것 (높이 h, 굵은 획 b·가는 획 t) — 가운데가 0,0, 위가 -y
 function sqRoman(str, h, b, t) {
   const W = { I: 1.7, V: 6.4, X: 6.4 }, gap = .95, f = v => v.toFixed(2), y0 = -h / 2, y1 = h / 2;
@@ -928,44 +927,12 @@ const sqDate = day => '<rect x="28" y="-4.4" width="11.4" height="8.8" fill="#fb
 function squareParts(pre, theme, d) {
   const K = DSQ_INK[theme] || DSQ_INK.square, id = n => `url(#${pre}${n})`, f = v => v.toFixed(2);
   const lin = (n, x2, y2, stops) => `<linearGradient id="${pre}${n}" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</linearGradient>`;
-  const defs = lin('case', 1, 1, [[0, '#f7f7f7'], [.3, '#b8b8b8'], [.52, '#fbfbfb'], [.8, '#999'], [1, '#dcdcdc']])
-    + lin('bt', 1, 0, [[0, '#101010'], [.55, '#3a3a3a'], [.8, '#cdcdcd'], [1, '#f4f4f4']])   // 안쪽 비탈: 위(왼쪽은 검게 비침)·왼쪽·오른쪽·아래
-    + lin('bl', 0, 1, [[0, '#181818'], [.6, '#686868'], [1, '#bcbcbc']])
-    + lin('br', 0, 1, [[0, '#f7f7f7'], [1, '#a8a8a8']])
-    + lin('bb', 1, 0, [[0, '#9a9a9a'], [.45, '#ececec'], [1, '#afafaf']])
-    + lin('ring', 1, 1, [[0, '#f1f1f1'], [.45, '#cecece'], [1, '#9d9d9d']])
-    + lin('link', 0, 1, [[0, '#fbfbfb'], [.3, '#dadada'], [.62, '#a2a2a2'], [1, '#ececec']])
-    + lin('crown', 0, 1, [[0, '#f5f5f5'], [.5, '#8c8c8c'], [1, '#d6d6d6']])
+  const defs = lin('ring', 1, 1, [[0, '#f1f1f1'], [.45, '#cecece'], [1, '#9d9d9d']])
     + `<radialGradient id="${pre}dial" cx=".36" cy=".28" r=".9"><stop offset="0" stop-color="${K.dial[0]}"/><stop offset="1" stop-color="${K.dial[1]}"/></radialGradient>`
-    + `<radialGradient id="${pre}hub" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#8e8e90"/></radialGradient>`
+    + `<radialGradient id="${pre}hubg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#8e8e90"/></radialGradient>`
     + `<linearGradient id="${pre}glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="${K.glare}"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>`
-    // 팔찌가 끝으로 흐려지게: 위아래 끝(±116)은 투명, 케이스 쪽(±96 안)은 그대로
-    + `<linearGradient id="${pre}fadeg" gradientUnits="userSpaceOnUse" x1="0" y1="-116" x2="0" y2="116"><stop offset="0" stop-color="#000"/><stop offset=".09" stop-color="#fff"/><stop offset=".91" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>`
-    + `<mask id="${pre}fade" maskUnits="userSpaceOnUse" x="-100" y="-116" width="200" height="232"><rect x="-100" y="-116" width="200" height="232" fill="url(#${pre}fadeg)"/></mask>`
     + `<filter id="${pre}sh" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx=".5" dy=".9" stdDeviation=".6" flood-color="#000" flood-opacity="${K.sh}"/></filter>`;
-  // 팔찌: 케이스 쪽 첫 마디는 통짜, 그다음은 가운데 마디와 양옆 마디를 벽돌처럼 엇갈려
-  const ROWS = [[88, 11, [[-50, 50]]], [100.5, 11, [[-50, -17], [-15.5, 15.5], [17, 50]]], [113, 11, [[-50, -33], [-31.5, 31.5], [33, 50]]]];
-  let br = '';
-  for (const s of [-1, 1]) for (const [y0, hh, parts] of ROWS) for (const [a, b] of parts)
-    br += `<rect x="${a}" y="${s < 0 ? -y0 - hh : y0}" width="${b - a}" height="${hh}" rx="1.4" fill="${id('link')}" stroke="#777" stroke-width=".4"/>`;
-  // 러그(케이스 모서리 위아래로 나온 덩어리 — 핀 머리), 용두(3시, 홈 줄)
-  let lug = '';
-  for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
-    const x = sx < 0 ? -80 : 70, y = sy < 0 ? -97 : 86;
-    lug += `<rect x="${x}" y="${y}" width="10" height="11" rx="2" fill="${id('case')}" stroke="#707070" stroke-width=".4"/><circle cx="${sx * 75}" cy="${sy * 92}" r="1.6" fill="#cfcfcf" stroke="#707070" stroke-width=".3"/>`;
-  }
-  let grip = '';
-  for (let i = 0; i < 6; i++) grip += `M${f(91.4 + i * 1.05)} -8.3V8.3`;
-  let face = `<g mask="url(#${pre}fade)">${br}</g>${lug}`
-    + `<rect x="86" y="-5" width="5" height="10" fill="${id('crown')}" stroke="#707070" stroke-width=".4"/><rect x="90" y="-9.5" width="7.6" height="19" rx="2" fill="${id('crown')}" stroke="#707070" stroke-width=".4"/>`
-    + `<path d="${grip}" stroke="#7a7a7a" stroke-width=".3"/>`
-    + `<rect x="-88" y="-88" width="176" height="176" rx="9" fill="${id('case')}" stroke="#6e6e6e" stroke-width=".6"/>`
-    + `<rect x="-86.8" y="-86.8" width="173.6" height="173.6" rx="8" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".6"/>`
-    + `<path d="M-76 -76H76L62 -62H-62Z" fill="${id('bt')}"/><path d="M-76 -76L-62 -62V62L-76 76Z" fill="${id('bl')}"/>`
-    + `<path d="M76 -76V76L62 62V-62Z" fill="${id('br')}"/><path d="M-76 76H76L62 62H-62Z" fill="${id('bb')}"/>`
-    + `<path d="M-76 -76L-62 -62M76 -76L62 -62M76 76L62 62M-76 76L-62 62" stroke="#fff" stroke-opacity=".22" stroke-width=".4"/>`
-    + `<rect x="-76" y="-76" width="152" height="152" fill="none" stroke="#5c5c5c" stroke-width=".5"/>`
-    + `<rect x="-62" y="-62" width="124" height="124" fill="${id('ring')}" stroke="#4a4a4c" stroke-width=".7"/>`;
+  let face = `<rect x="-62" y="-62" width="124" height="124" rx="1.6" fill="${id('ring')}" stroke="#4a4a4c" stroke-width=".7"/>`;
   // 로마 숫자: 시 방향을 네모(반폭 52 — 챕터 링 가운데)에 비춘 자리, 놓인 변에 따라 숫자 위가 바깥쪽
   const RN = ['XII', 'I', 'II', 'III', 'IIII', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
   face += '<g fill="none" stroke="#46464a">';
@@ -980,17 +947,20 @@ function squareParts(pre, theme, d) {
     + `<rect x="-42" y="-42" width="84" height="84" fill="${id('dial')}"/><path d="M-41.5 41.5V-41.5H41.5" fill="none" stroke="${K.edge}" stroke-width="1"/>`
     + '<rect x="-42" y="-42" width="84" height="84" fill="none" stroke="#535355" stroke-width=".45"/>'
     + `<text y="-25" font-size="8.6" fill="${K.logo}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--mark);font-weight:600;white-space:pre">[ 03 ]</text>`
-    + `<g id="${pre}date" class="dsq-date">${sqDate(d.getDate())}</g>`
+    + (K.date ? `<g id="${pre}date">${sqDate(d.getDate())}</g>` : '')
     + (K.glare ? `<rect x="-42" y="-42" width="84" height="84" fill="${id('glare')}"/>` : '');
-  // 바늘: 끝이 뾰족한 가는 칼 모양(가운데 능선 — 왼쪽 면 밝게·오른쪽 면 어둡게), 가운데 뒤로 조금
+  // 바늘: 곧은 막대(가운데 쪽 폭 w0 → 끝 쪽 w1, 끝은 폭만큼 짧게 뾰족), 가운데 능선 — 왼쪽 면 밝게·오른쪽 면 어둡게. 꼬리 없이 가운데 고리 밑에서 시작
   const P = pts => pts.map(([x, y]) => `${f(x)} ${f(y)}`).join('L');
-  const hand = (L, w) => `<path d="M${P([[0, -L], [-w, -L * .22], [-w * .65, 5], [0, 5]])}Z" fill="#f8f8f8"/>`
-    + `<path d="M${P([[0, -L], [w, -L * .22], [w * .65, 5], [0, 5]])}Z" fill="#959597"/>`
-    + `<path d="M${P([[0, -L], [-w, -L * .22], [-w * .65, 5], [w * .65, 5], [w, -L * .22]])}Z" fill="none" stroke="#545456" stroke-width=".3" stroke-linejoin="round"/>`;
+  const hand = (L, w0, w1) => {
+    const a = w0 / 2, b = w1 / 2, t = -L + w1 * 1.05, y0 = 1.5;
+    return `<path d="M${P([[0, y0], [-a, y0], [-b, t], [0, -L]])}Z" fill="#f2f1ec"/><path d="M${P([[0, y0], [a, y0], [b, t], [0, -L]])}Z" fill="#999894"/>`
+      + `<path d="M${P([[-a, y0], [-b, t], [0, -L], [b, t], [a, y0]])}Z" fill="none" stroke="#4c4c4e" stroke-width=".35" stroke-linejoin="round"/>`;
+  };
   return {
-    defs, face, hour: hand(25, 2.3), minute: hand(38.5, 1.75),
-    sec: `<path d="M0 9V-40" stroke="${K.sec}" stroke-width=".5" stroke-linecap="round"/><circle r="1.4" fill="${K.sec}"/>`,
-    hub: `<circle r="2.5" fill="${id('hub')}" stroke="#58585a" stroke-width=".35"/><circle r=".75" fill="#6b6b6d"/>`,
+    defs, face, hour: hand(27, 3.7, 3.7), minute: hand(41, 2.2, 2.5),
+    sec: `<path d="M0 6V-41" stroke="${K.sec}" stroke-width=".45" stroke-linecap="round"/>`,
+    // 가운데 고리: 바늘보다 큰 은색 고리 + 안쪽 홈 + 가운데 핀 (그림자는 바늘과 같이)
+    hub: `<g filter="url(#${pre}sh)"><circle r="4.6" fill="${id('hubg')}" stroke="#4e4e50" stroke-width=".4"/><circle r="2.7" fill="#d4d4d2" stroke="#59595b" stroke-width=".45"/><circle r="1" fill="#88888a"/></g>`,
   };
 }
 let dsqTheme = '', dsqDay = '';

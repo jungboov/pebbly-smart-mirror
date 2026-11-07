@@ -180,11 +180,9 @@ body.no-sec .dl-sec, body.no-sec .de-sec, body.no-sec .df-sec, body.no-sec .dr-s
 .dial:not([data-face="relief"]) .dv{display:none}
 .dial .dv-ss{left:36%;top:53.813%;width:28%;height:23.14%;will-change:transform}
 
-/* 스퀘어·스퀘어 블랙: 네모 손목시계(200×232 단위 → 세로/가로 1.16). 모양·색은 clock.js(squareParts)가 그림에 직접 넣음. 날짜 보기를 끄면 3시 날짜 창도 숨김 */
-.dial[data-face="square"]{--dial-r:1.16}
+/* 스퀘어·스퀘어 블랙·스퀘어 데이트(3시 날짜 창): 네모 손목시계의 가운데 판만(126×126 단위, R 1). 모양·색은 clock.js(squareParts)가 그림에 직접 넣음 */
 .dial:not([data-face="square"]) .dsq{display:none}
 .dial .dsq-sec{will-change:transform}
-body.no-date .dsq-date{display:none}
 
 /* ── 디지털 양각·양각 블랙 (설정 › 테마 › 시계, 시계 강조 화면) ──
    시계 칸이 곧 판: 칸 안쪽 여백(3.2rem)만큼 fitClock이 숫자를 줄여 넣어서 판이 위젯·헤더와 겹치지 않음 (세로는 아래 2.8rem을 위젯과 사이로 남김)
