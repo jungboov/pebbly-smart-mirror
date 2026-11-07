@@ -37,9 +37,10 @@ body.pw-on #tr-reload svg{display:none}
 .cd-side:has(.cd-list:empty){display:none}
 @media (orientation: portrait){
   .cd-wrap{flex-direction:row;gap:4rem}
-  .cd-main{min-width:0}
-  .cd-big{font-size:min(20rem, (100cqw - 40rem) / 3.1)}
-  .cd-side{width:36rem;flex:none;padding-left:4rem;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+  /* 오른쪽 줄 칸은 줄 내용 폭만큼(판 절반까지) — 고정 폭(36rem)이면 'D-106'처럼 긴 숫자 옆 날짜가 잘렸음. 큰 숫자는 남는 왼쪽 폭에 맞춤 */
+  .cd-main{min-width:0;container-type:inline-size}
+  .cd-big{font-size:min(20rem, 100cqw / 3.1)}
+  .cd-side{width:max-content;max-width:50%;flex:none;padding-left:4rem;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
   .cd-list li:first-child{border-top:0}
   .cd-list li{padding:1.4rem 0;font-size:3rem}
   .cd-list b{font-size:4.6rem}
