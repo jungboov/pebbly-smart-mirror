@@ -75,7 +75,7 @@ $('settings').addEventListener('click', e => {
 // 시계 탭: 테마 카드. 누르면 시계 모양(S.analog)과 아날로그 테마(S.dialTheme)를 같이 정함
 // 같은 시계의 색 차이는 fam(묶음)으로 카드 하나에: 카드 아래 점(dot 색, v 이름)을 누르면 그 색으로. 카드는 고른 색(아니면 첫 색) 그림·이름
 // 레코드판 테마 늘리기: 여기 한 줄(이름, 작은 그림의 케이스 색 3개·테두리·라벨 색) + clock.css '.dial[data-theme=…]'(실제 시계판 색)
-// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief — LCD 다크·양각 다크는 같은 그림에 색만)
+// 엣지·모던·플라워·블랙 타일·타일 캘린더·LCD처럼 모양이 다른 시계판은 index.html #dial에 따로 그리고 작은 그림도 따로 (edge·modern·flower·rainbow·qp·lcd·quartz·rotary·relief·square — LCD 다크·양각 다크·스퀘어 블랙은 같은 그림에 색만)
 const CLOCK_THEMES = [
   { id: 'digital', name: '디지털', fam: 'digital', v: '평면', dot: '#000' },
   { id: 'digitale', name: '디지털 라이트 양각', digi: 'emboss', fam: 'digital', v: '라이트 양각', dot: 'linear-gradient(135deg, #fff, #ebe5e3 45%, #a39b97)' },
@@ -104,10 +104,12 @@ const CLOCK_THEMES = [
   { id: 'rotary', name: '로터리', rotary: true },
   { id: 'relief', name: '양각', relief: true, fam: 'relief', v: '라이트', dot: '#e3ddda' },
   { id: 'reliefk', name: '양각 다크', relief: true, fam: 'relief', v: '다크', dot: '#2b2b2e' },
+  { id: 'square', name: '스퀘어', square: true, fam: 'square', v: '화이트', dot: 'linear-gradient(135deg, #fff 40%, #c8c8c8)' },
+  { id: 'squarek', name: '스퀘어 블랙', square: true, fam: 'square', v: '블랙', dot: 'radial-gradient(circle at 35% 30%, #3a3a3e, #000 65%)' },
 ];
 const thFam = t => t.fam || t.id;
 // 작은 그림 (40×40): 디지털은 시·분 두 줄(양각은 판에 도드라진 숫자 — plate.js digiThumb), 레코드판은 케이스·나사·눈금·레코드·라벨·바늘(10시 10분 30초),
-// 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리·양각도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts·reliefParts)
+// 엣지(흰·민트·레인보우)는 실제 시계판(200×244)을 그대로 줄여서 — 가장자리 숫자·테두리(clock.js edgeNums)·바늘(10시 10분), 모던도 실제 그림 조각(clock.js modernParts)으로, 플라워는 꽃 그림에 바늘(clock.js flowerHands), 블랙 타일·타일 캘린더·LCD·쿼츠·로터리·양각·스퀘어도 실제 그림(clock.js rainbowParts·qpParts·lcdParts·quartzParts·rotaryParts·reliefParts·squareParts)
 function thThumb(t) {
   if (t.digi) return digiThumb(t.id, t.digi);
   if (t.qp) {
@@ -124,6 +126,10 @@ function thThumb(t) {
     const p = reliefParts(`th-${t.id}-`, new Date(), t.id), y = DV.sub * DV.k, at = (deg, s, oy = 0) => `<g transform="translate(0 ${oy}) rotate(${deg})">${s}</g>`;
     return `<svg viewBox="-128 -125 256 250" aria-hidden="true"><defs>${p.defs}</defs>${p.face}${at(180, p.sec, y)}${at(332.5, p.sub24, -y)}`
       + `<g filter="url(#th-${t.id}-hs)">${at(305, p.hour)}${at(61, p.minute)}${p.hub}</g></svg>`;
+  }
+  if (t.square) {   // 10시 10분 30초
+    const p = squareParts(`th-${t.id}-`, t.id, new Date()), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
+    return `<svg viewBox="-118 -118 236 236" aria-hidden="true"><defs>${p.defs}</defs>${p.face}<g filter="url(#th-${t.id}-sh)">${rot(305, p.hour)}${rot(61, p.minute)}</g>${rot(180, p.sec)}${p.hub}</svg>`;
   }
   if (t.quartz) {
     const p = quartzParts('th-dw-'), rot = (deg, s) => `<g transform="rotate(${deg})">${s}</g>`;
