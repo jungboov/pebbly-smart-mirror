@@ -23,6 +23,14 @@ function renderCm() {
   if (CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); }
   else if (CM[cm] === 'tm') renderTm();
   else if (CM[cm] === 'al') renderAl();
+  cmFoot();
+}
+// 칸마다 아래 줄(이름·버튼) 높이 → --fh: 양각 판은 숫자 묶음을 그 위 남는 높이 가운데에 (clock.css). 알람은 칩이 늘면 두 줄이 되기도 해서 그릴 때마다
+function cmFoot() {
+  for (const el of document.querySelectorAll('.cm')) {
+    const h = el.querySelector('.cm-foot').offsetHeight + 'px';
+    if (el.style.getPropertyValue('--fh') !== h) el.style.setProperty('--fh', h);
+  }
 }
 // 버튼 글자: 디지털 양각은 로고 글꼴 영어 [ start ] [ reset ] (clock.css가 괄호를 붙임), 그 밖엔 한글
 const cmEn = () => document.body.classList.contains('digi-pl');
@@ -43,7 +51,7 @@ function renderSw() {
 }
 function swLoop() { if (sw.run && CM[cm] === 'sw') { renderSw(); requestAnimationFrame(swLoop); } }
 
-// 타이머: 분·초를 +/−로 맞추고 시작. 끝나면 울림
+// 타이머: 분(1분)·초(5초)를 +/−로 맞추고 시작. 끝나면 울림
 const tm = { set: 300, left: 300, end: 0, run: false };   // 초
 const tmLeft = () => tm.run ? Math.max(0, (tm.end - Date.now()) / 1e3) : tm.left;
 function renderTm() {
@@ -89,7 +97,7 @@ function checkAlarm(d) {
 function cmStep(b) {
   const d = b.dataset;
   if (d.tm && !isNaN(d.tm) && !tm.run) {
-    tm.set = Math.min(99 * 60 + 59, Math.max(10, tm.set + Number(d.tm)));
+    tm.set = Math.min(99 * 60 + 55, Math.max(5, tm.set + Number(d.tm)));
     tm.left = tm.set;
     renderTm();
   } else if (d.al && !isNaN(d.al)) {

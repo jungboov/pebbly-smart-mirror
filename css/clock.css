@@ -212,10 +212,15 @@ body.digi-pl .clock .lbl, body.digi-pl .cm-name{font-family:var(--logo);font-wei
 body.digi-pl .clock .ds-date, body.digi-pl .clock .ds-date b, body.digi-pl .clock .ds-wd, body.digi-pl .clock .ds-ap{color:var(--top);
   text-shadow:-.02em -.02em 0 var(--hi), .008em .016em 0 var(--s2), .016em .032em 0 var(--s4), .024em .048em 0 var(--s6), .03em .07em .05em var(--sh1), .06em .14em .12em var(--sh2)}
 body.digi-pl .clock .ds-date b{font-family:var(--logo);font-weight:600}
-/* 스톱워치·타이머·알람: 판 안쪽(여백 안)에 — 크기는 fitClock이 판 안쪽 폭에 맞춤 */
-body.digi-pl .cm{inset:3.2rem}
+/* 스톱워치·타이머·알람: 판 안쪽(여백 안)에 — 크기는 fitClock이 판 안쪽 폭에 맞춤. 판(::after)은 여기서 3.2rem 밖이라 시계 판(.dg)과 같은 자리
+   .sb까지 붙여야 standby.css·standby-widgets.css의 평면용 자리(body.sb .cm — 세로 3.4rem 0 2.6rem, 가로 위 -.1em 0 0)를 이김.
+   빠졌던 동안(상세 화면에도 판 테마를 켠 뒤로)은 판이 시계 판보다 3.2rem씩 커져서 화면 끝·아래 위젯에 붙고 위치 점이 판 테두리에 걸렸음 */
+body.sb.digi-pl .cm{inset:3.2rem}
 /* 퓨어는 판이 없어서 좌우 여백 없이 시계 칸 폭 그대로 (숫자를 그만큼 크게 — fitClock padC) */
-body.digi-bare .cm{left:0;right:0}
+body.sb.digi-bare .cm{left:0;right:0}
+/* 숫자 묶음은 판 안쪽 위 끝 ~ 아래 줄(이름·버튼) 위 사이 가운데에 — 전엔 위에 붙어서 아래 줄과 사이가 크게 비었음
+   아래 줄은 칸 맨 아래(position:absolute)라 그 높이(--fh, clock-modes.js cmFoot)와 사이 1.2rem(fitClock cmH와 같은 값)을 아래 여백으로 */
+body.sb.digi-pl .cm{grid-template-rows:auto auto auto;align-content:center;padding-bottom:calc(var(--fh, 0px) + 1.2rem)}
 /* 버튼: 둥근 키 대신 로고 [ 03 ]처럼 대괄호로 감싼 로고 글꼴 영어 [ start ] [ reset ] [ + ] — 판에서 낮게 솟고 윗면은 진한 인쇄 색(흰 판에서도 읽힘)
    도는지는 글자 pause·resume으로, 글자는 clock-modes.js cmL
    알람 목록은 고른 알람만 솟고 나머지는 판에 인쇄한 글자 */
@@ -241,6 +246,6 @@ body.digi-pl:not(.sb) .clock{position:relative}   /* 판(.dg, inset:0)이 시계
 @media (orientation: portrait){
   body.digi-pl .clock{padding-bottom:6rem}
   body.digi-pl .dg{bottom:2.8rem}
-  body.digi-pl .cm{bottom:6rem}
-  body.digi-pl:is(:not([data-cm="clock"]), .cm-moving) .cm-dots{top:1.1rem}
+  body.sb.digi-pl .cm{bottom:6rem}
+  body.sb.digi-pl:is(:not([data-cm="clock"]), .cm-moving) .cm-dots{top:1.1rem}   /* 판 위 여백 안에 (판 테두리에 걸리지 않게) */
 }

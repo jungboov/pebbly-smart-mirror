@@ -159,8 +159,12 @@ function fitClock() {
     const padC = document.body.classList.contains('digi-bare') ? padX : 0;
     const wc = (!portrait && !fill ? lbl + span * size * .99 + side : w) + padC;
     // 스톱워치 1/100초는 초 숫자 옆(폭이 듦)과 아래(높이가 듦) 중 숫자가 더 커지는 쪽에 (cm-d3s: 옆) — 옆이면 .4em 두 자리 + 사이 .15×.4em
-    const wb = (wc - lbl - cmSide) / (2 * wmax + .02), under = Math.min(wb, cmH(h, rem, false));
-    const beside3 = Math.min(wb, (wc - lbl - gap) / (2.8 * wmax + .08), cmH(h, rem, true));
+    // 양각 가로는 시계 칸 아래 여백이 0이라(시계 판이 칸을 채움) 스톱워치 등은 판 안쪽 아래 여백(위와 같은 3.2rem)만큼 더 뺌 — 세로는 pb에 들어 있음
+    // 세로(세 줄)는 시계 칸이 위 칸 가운데에 시계 높이만큼만 서서(.half .clock align-self:center) 스톱워치 등의 칸도 시계 높이(세 줄 × 글자) —
+    // 폭에 막혀 시계가 위 칸보다 낮은 화면(폰 세로 시계 크게)은 위 칸 높이로 재면 1/100초가 아래 줄 버튼에 걸렸음
+    const hc = Math.min(h - (digi && !portrait ? padT : 0), portrait && !solo && !oneLine ? .99 * size * rows : Infinity);
+    const wb = (wc - lbl - cmSide) / (2 * wmax + .02), under = Math.min(wb, cmH(hc, rem, false));
+    const beside3 = Math.min(wb, (wc - lbl - gap) / (2.8 * wmax + .08), cmH(hc, rem, true));
     document.body.classList.toggle('cm-d3s', beside3 > under * 1.01);
     cmSize = Math.max(under, beside3);
     if (oneLine) cmSize = cmLine(h, size, rem);
@@ -191,6 +195,7 @@ function clockVars(size, cmSize, rem, wmax) {
   if (cmSize) $('clock').style.setProperty('--cm', (cmSize / rem * .99) + 'rem');
   else $('clock').style.removeProperty('--cm');
   $('clock').style.setProperty('--dw', wmax + 'em');
+  cmFoot();   // 스톱워치·타이머·알람 아래 줄 높이 (양각 판 가운데 맞춤, clock-modes.js)
   dgRender();   // 디지털 양각 판은 정해진 시계 칸 크기로 다시 그림 (digi.js)
 }
 
