@@ -118,21 +118,43 @@ $('tr-sec').addEventListener('click', e => {
 });
 $('tr-q').addEventListener('keydown', e => { if (e.key === 'Enter') trSearch(); });
 
-// 도착 정보: 교통 위젯이 보일 때, 그리고 보이는 동안 30초마다 새로 받음 (서버도 30초 캐시)
-// 그 사이에는 받아 온 뒤 지난 시간만큼 남은 분을 줄여서 보여줌. 제목에 받아 온 시각, 새로고침 버튼
-let board = null, boardAt = 0, boardBusy = false, boardErr = false;
+// 도착 정보: 정류장·역마다 따로 받아서 오는 대로 그림 — 경기 버스 서버는 한동안 안 부르다 부르면 첫 응답이 20초쯤 걸릴 때가 있어
+// 한 요청으로 묶으면 다른 정류장·지하철까지 그만큼 기다렸음. 받은 것은 정류장·역마다 받은 시각과 함께 두고(trGot),
+// 이번에 못 받은 곳은 지난번 것을 그 뒤 지난 시간만큼 줄여서 보여 줌(5분까지). 남은 분도 받은 뒤 지난 시간만큼 줄임
+// 받는 때: 교통 위젯이 보일 때, 보이는 동안 30초마다, 넘김 순서상 교통 위젯이 나오기 25초 전(trAhead) — 서버도 30초 캐시
+let trGot = {}, boardAt = 0, boardBusy = false, boardErr = false, trPre;
+const TR_KEEP = 5 * 6e4;
+const trKey = it => it.t === 'bus' ? `${it.src}:${it.id}` : 'sub:' + it.station;
+// 등록 항목 하나의 도착 목록과 받은 뒤 지난 분 — 아직 없거나 너무 오래됐으면 null
+// trNone: 도착 목록이 비었을 때 글자 — 아직 못 받은 정류장은 받는 동안 '받는 중'
+const trNone = g => g || !boardBusy ? '정보 없음' : '받는 중';
+function trArr(it) {
+  const g = trGot[trKey(it)];
+  if (!g || Date.now() - g.at > TR_KEEP) return null;
+  return { list: it.t === 'bus' ? g.list : g.list.filter(a => a.sid === it.sid && a.updn === it.updn).slice(0, 2), past: (Date.now() - g.at) / 6e4 };
+}
+// 제목 줄 '… 기준' 시각: 보이는 것 중 가장 먼저 받은 것
+function trAt() {
+  const t = S.transit.map(it => trGot[trKey(it)]).filter(g => g && Date.now() - g.at <= TR_KEEP).map(g => g.at);
+  return t.length ? new Date(Math.min(...t)) : null;
+}
 async function loadBoard() {
   if (!S.transit.length || boardBusy) return;
   boardBusy = true;
   $('tr-reload').disabled = true;
   window.pwDraw?.('transit');   // 판의 [ refresh ] → [ ··· ]
-  const bus = [...new Set(S.transit.filter(t => t.t === 'bus').map(t => `${t.src}:${t.id}`))].join(',');
-  const sub = [...new Set(S.transit.filter(t => t.t === 'sub').map(t => t.station))].join(',');
-  try {
-    board = await trCall({ op: 'board', bus, sub });
-    boardAt = Date.now();
-    boardErr = false;
-  } catch (e) { boardErr = true; console.warn('교통 정보 확인 실패', e); }
+  let fail = 0;
+  await Promise.all([...new Set(S.transit.map(trKey))].map(async k => {
+    const sub = k.startsWith('sub:'), name = sub ? k.slice(4) : k;
+    try {
+      const r = await trCall({ op: 'board', [sub ? 'sub' : 'bus']: name }), list = (sub ? r.sub : r.bus)[name];
+      if (!list) throw new Error((r.errors || []).join(' / ') || '응답 없음');
+      trGot[k] = { at: Date.now(), list };
+    } catch (e) { fail++; console.warn('교통 정보 확인 실패', name, e); }
+    renderBoard();   // 먼저 온 정류장부터
+  }));
+  boardAt = Date.now() - (fail ? 20e3 : 0);   // 못 받은 곳이 있으면 10초 뒤에 다시
+  boardErr = fail > 0;
   boardBusy = false;
   $('tr-reload').disabled = false;
   renderBoard();
@@ -143,33 +165,41 @@ setInterval(() => {
   if (Date.now() - boardAt > 30e3) loadBoard();
   else renderBoard();   // 남은 분 줄이기
 }, 10e3);
+// 넘김 순서상 교통 위젯이 나오기 25초 전에 미리 받아 둠 (schedulePanel이 위젯이 바뀔 때마다 부름) — 나올 때 이미 새 정보가 있게.
+// 나올 때 정보가 40초보다 오래되지 않을 거면 안 받음. 사진 액자가 여러 장 넘기는 동안 등으로 늦게 나오면 나올 때 다시 받음
+function trAhead() {
+  clearTimeout(trPre);
+  if (!S.focus || !S.transit.length || !(S.rotate > 0)) return;
+  const list = panelList(), i = list.indexOf('transit'), steps = (i - panel + list.length) % list.length;
+  if (i < 0 || !steps) return;
+  const due = Date.now() + steps * S.rotate * 1000;
+  trPre = setTimeout(() => { if (!document.hidden && due - boardAt > 40e3) loadBoard(); }, Math.max(0, due - 25e3 - Date.now()));
+}
 
 function renderBoard() {
   if (!S.transit.length) { $('tr-board').innerHTML = ''; return; }
-  const at = boardAt ? new Date(boardAt) : null;
+  const at = trAt();
   $('tr-at').textContent = (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())}:${pad(at.getSeconds())} 기준` : '')
     + (boardErr ? ' · 연결 확인 중' : '');
-  const past = (Date.now() - boardAt) / 6e4;
-  // '3분' 옆에 작게 '2정거장' (몇 정거장 전인지 알 때만, 곧 도착이면 생략)
-  const when = (min, text, st) => {
+  // '3분' 옆에 작게 '2정거장' (몇 정거장 전인지 알 때만, 곧 도착이면 생략). past: 받은 뒤 지난 분
+  const when = (past, min, text, st) => {
     if (min == null) return esc(text || '-');
     const m = Math.round(min - past);
     return m <= 0 ? '<em>곧 도착</em>' : `${m}분${st ? `<small class="tr-st">${st}정거장</small>` : ''}`;
   };
-  const times = list => list.length ? list.join(' · ') : '정보 없음';
+  const times = (list, g) => list.length ? list.join(' · ') : trNone(g);
   $('tr-board').innerHTML = S.transit.map(it => {
+    const g = trArr(it), arr = g ? g.list : [], p = g ? g.past : 0;
     if (it.t === 'bus') {
-      const arr = (board && board.bus[`${it.src}:${it.id}`]) || [];
       const rows = it.routes.slice(0, 4).map(r => {
         const a = arr.find(x => x.routeId === r.id);
-        const t = a ? [when(a.min1, a.msg1, a.st1), ...(a.min2 != null || a.msg2 ? [when(a.min2, a.msg2, a.st2)] : [])] : [];
-        return `<div class="tr-row"><b>${esc(r.name)}</b><span>${times(t)}</span></div>`;
+        const t = a ? [when(p, a.min1, a.msg1, a.st1), ...(a.min2 != null || a.msg2 ? [when(p, a.min2, a.msg2, a.st2)] : [])] : [];
+        return `<div class="tr-row"><b>${esc(r.name)}</b><span>${times(t, g)}</span></div>`;
       }).join('');
       return `<div class="tr-item"><div class="tr-head">${esc(it.name)}<small>${esc(it.no)}</small></div>${rows}</div>`;
     }
-    const arr = ((board && board.sub[it.station]) || []).filter(a => a.sid === it.sid && a.updn === it.updn).slice(0, 2);
     return `<div class="tr-item"><div class="tr-head">${esc(it.station)}역<small>${esc(it.label)}</small></div>`
-      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')))}</span></div></div>`;
-  }).join('') + (board ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
+      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(p, a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')), g)}</span></div></div>`;
+  }).join('') + (S.transit.some(it => trArr(it)) ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
   window.pwDraw?.('transit');   // 양각·음각 위젯 판 (plate-wg.js)
 }

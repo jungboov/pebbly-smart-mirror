@@ -300,29 +300,28 @@ function pwAir(k, W, H) {
 //   제목 줄 오른쪽 끝 새로고침 [ refresh ] — 집중 타이머 판 버튼처럼 낮게 솟은 로고 글꼴(받아 오는 동안 [ ··· ])
 //   누르는 건 위에 겹친 평면 버튼 #tr-reload(판에선 투명 — 자리는 여기서 --x·--y·--w·--h로, count.css)
 function pwTransit(k, W, H) {
-  const at = boardAt ? new Date(boardAt) : null, rw = S.transit.length ? pwW('[ refresh ]', 11, 600) : 0;
+  const at = trAt(), rw = S.transit.length ? pwW('[ refresh ]', 11, 600) : 0;
   let o = pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : ''), rw && rw + 12);
   if (!S.transit.length) return o;
   // 누르는 칸: 판 위 끝 ~ 첫 정류장 위(46), 글자 왼쪽 8 ~ 판 오른쪽 끝
   const bt = plText(W - 20, 28, 11, boardBusy ? '[ ··· ]' : '[ refresh ]', 600, 'end'), hit = [W - 28 - rw, 0, rw + 28, 44];
   o += k.up(bt, .6) + k.ink(bt);
   Object.entries({ x: hit[0] / W, y: hit[1] / H, w: hit[2] / W, h: hit[3] / H }).forEach(([n, v]) => $('tr-reload').style.setProperty('--' + n, (v * 100).toFixed(2) + '%'));
-  const x1 = W - 20, past = (Date.now() - boardAt) / 6e4;
-  const when = (min, text, st) => {
+  const x1 = W - 20;
+  const when = (past, min, text, st) => {   // past: 받은 뒤 지난 분 (transit.js trArr)
     if (min == null) return { t: text || '-', soon: false };
     const m = Math.round(min - past);
     return m <= 0 ? { t: '곧 도착', soon: true } : { t: m + '분', st: st ? st + '정거장' : '', soon: false };
   };
   const items = S.transit.map(it => {
+    const g = trArr(it), arr = g ? g.list : [], p = g ? g.past : 0;
     if (it.t === 'bus') {
-      const arr = (board && board.bus[`${it.src}:${it.id}`]) || [];
-      return { head: it.name, no: it.no, rows: it.routes.slice(0, 4).map(r => {
+      return { head: it.name, no: it.no, none: trNone(g), rows: it.routes.slice(0, 4).map(r => {
         const x = arr.find(v => v.routeId === r.id);
-        return { name: r.name, times: x ? [when(x.min1, x.msg1, x.st1), ...(x.min2 != null || x.msg2 ? [when(x.min2, x.msg2, x.st2)] : [])] : [] };
+        return { name: r.name, times: x ? [when(p, x.min1, x.msg1, x.st1), ...(x.min2 != null || x.msg2 ? [when(p, x.min2, x.msg2, x.st2)] : [])] : [] };
       }) };
     }
-    const arr = ((board && board.sub[it.station]) || []).filter(v => v.sid === it.sid && v.updn === it.updn).slice(0, 2);
-    return { head: it.station + '역', no: it.label, rows: [{ name: it.label.split(' ')[0], times: arr.map(v => ({ ...when(v.min, v.text, v.st), x: v.express })) }] };
+    return { head: it.station + '역', no: it.label, none: trNone(g), rows: [{ name: it.label.split(' ')[0], times: arr.map(v => ({ ...when(p, v.min, v.text, v.st), x: v.express })) }] };
   });
   // 한 단(xa~xb)에 정류장들: 이름 줄 / 노선 줄들, 정류장 사이 점선. 줄 높이는 그 단의 줄 수로
   const col = (list, xa, xb) => {
@@ -338,10 +337,10 @@ function pwTransit(k, W, H) {
         if (y + rh > H - 8) return;
         const by = y + rh / 2 + rs * .36, nw = pwW(r.name, rs, 700);
         t += k.up(plText(xa, by, rs, esc(r.name), 700), .9);
-        const soon = r.times.some(v => v.soon), plain = r.times.map(v => v.t + (v.st ? ' ' + v.st : '')).join(' · ') || '정보 없음';
+        const soon = r.times.some(v => v.soon), plain = r.times.map(v => v.t + (v.st ? ' ' + v.st : '')).join(' · ') || it.none;
         const fs = pwFit(plain, rs * .9, xb - xa - nw - 14, 500);
         const txt = r.times.length ? r.times.map(v => esc(v.t) + (v.st ? `<tspan font-size="${pf(fs * .5)}" dx="2">${esc(v.st)}</tspan>` : '')
-          + (v.x ? `<tspan font-size="${pf(fs * .5)}" dx="2">급행</tspan>` : '')).map((v, i) => i ? `<tspan dx="4">·</tspan><tspan dx="4">${v}</tspan>` : v).join('') : '정보 없음';
+          + (v.x ? `<tspan font-size="${pf(fs * .5)}" dx="2">급행</tspan>` : '')).map((v, i) => i ? `<tspan dx="4">·</tspan><tspan dx="4">${v}</tspan>` : v).join('') : it.none;
         t += r.times.length ? k.tx(plText(xb, by, fs, txt, soon ? 700 : 500, 'end'), soon ? .9 : .6) : k.ink(plText(xb, by, fs, txt, 600, 'end'));
         y += rh;
       });
@@ -353,7 +352,7 @@ function pwTransit(k, W, H) {
     const half = Math.ceil(items.length / 2), xm = (20 + x1) / 2;
     o += col(items.slice(0, half), 20, xm - 14) + k.up(plDash(xm, 46, xm, H - 16), .45) + col(items.slice(half), xm + 14, x1);
   } else o += col(items, 20, x1);
-  if (!board) o += k.ink(plText(20, H - 16, 10, '도착 정보를 불러오는 중', 600));
+  if (!S.transit.some(it => trArr(it))) o += k.ink(plText(20, H - 16, 10, '도착 정보를 불러오는 중', 600));
   return o;
 }
 

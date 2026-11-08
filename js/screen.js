@@ -206,6 +206,7 @@ function showPanel(p, dir, axis, from) {
 function schedulePanel() {
   clearTimeout(panelTimer);
   if (S.rotate > 0) panelTimer = setTimeout(autoNext, S.rotate * 1000);
+  window.trAhead?.();   // 교통 위젯이 곧 나오면 미리 받아 둠 (transit.js)
 }
 // 자동 넘김: 가로 화면은 위로(세로 점과 같은 방향), 세로 화면은 옆으로
 // 사진 액자는 한 번 올 때 정한 장수(설정 > 사진)만큼 사진을 넘긴 뒤 다음 위젯으로, 다음 차례엔 이어서
