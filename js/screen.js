@@ -194,7 +194,7 @@ function showPanel(p, dir, axis, from) {
   document.body.classList.toggle('alt', panel % 2 === 1);
   $('sb-dots').innerHTML = list.map(() => '<i></i>').join('');
   dotWorm($('sb-dots'), panel);   // 넘어가는 모습이 있으면 wp.go가 이어서 움직임
-  if (panelName === 'transit') { renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }
+  if (panelName === 'transit') { if (old !== 'transit') window.trEnter?.(); renderBoard(); if (Date.now() - boardAt > 30e3) loadBoard(); }   // 새로 나오면 첫 쪽부터 (transit.js)
   if (panelName === 'photo') { phShow(dir); if (old !== 'photo') phVisit = 1; }
   else if (old === 'photo') phLeave();   // 동영상 멈춤
   if (panelName === 'logo' && old !== 'logo') lgSpin();   // 로고: 들어올 때마다 숫자 한 바퀴

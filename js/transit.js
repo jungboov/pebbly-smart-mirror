@@ -176,11 +176,24 @@ function trAhead() {
   trPre = setTimeout(() => { if (!document.hidden && due - boardAt > 40e3) loadBoard(); }, Math.max(0, due - 25e3 - Date.now()));
 }
 
+// 쪽 넘기기: 노선 줄이 다 안 들어가면 정류장째로 쪽을 나눠 교통 위젯이 보이는 동안 넘김 (판은 plate-wg.js pwTransit, 평면은 renderBoard가 나눔)
+// 한 번 보이는 동안(넘김 주기) 모든 쪽이 지나가게 주기를 쪽 수로 나눔(쪽마다 3초 이상), 넘김을 꺼 뒀으면 6초마다. 위젯이 새로 나오면 첫 쪽부터(trEnter, screen.js)
+let trPage = 0, trPages = 1, trPageAt = 0;
+const trPageSec = () => S.rotate > 0 ? Math.max(3, S.rotate / trPages) : 6;
+function trEnter() { trPage = 0; trPageAt = Date.now(); }
+setInterval(() => {
+  if (trPages < 2 || !S.focus || panelName !== 'transit' || document.hidden) return;
+  if (Date.now() - trPageAt < trPageSec() * 1e3) return;
+  trPage = (trPage + 1) % trPages; trPageAt = Date.now();
+  renderBoard();
+}, 500);
+
+// 평면: 노선마다 한 줄 — 정류장(역) 이름 · 노선 | 도착(3분 2정거장 · 14분). 한 정류장의 둘째 노선부터는 노선만 들여 씀, 정류장 사이 줄
+// 좁은 칸은 두 줄(.tr-two — 도착이 아래 줄 오른쪽). 칸에 다 안 들어가면 정류장째로 쪽을 나눔(제목 줄에 1 / 2, 아래 쪽 점). 판 테마일 땐 이 글자는 자리만 잡고 숨겨서 나누지 않음
 function renderBoard() {
-  if (!S.transit.length) { $('tr-board').innerHTML = ''; return; }
+  const box = $('tr-board');
+  if (!S.transit.length) { box.innerHTML = ''; trPages = 1; return; }
   const at = trAt();
-  $('tr-at').textContent = (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())}:${pad(at.getSeconds())} 기준` : '')
-    + (boardErr ? ' · 연결 확인 중' : '');
   // '3분' 옆에 작게 '2정거장' (몇 정거장 전인지 알 때만, 곧 도착이면 생략). past: 받은 뒤 지난 분
   const when = (past, min, text, st) => {
     if (min == null) return esc(text || '-');
@@ -188,18 +201,38 @@ function renderBoard() {
     return m <= 0 ? '<em>곧 도착</em>' : `${m}분${st ? `<small class="tr-st">${st}정거장</small>` : ''}`;
   };
   const times = (list, g) => list.length ? list.join(' · ') : trNone(g);
-  $('tr-board').innerHTML = S.transit.map(it => {
+  const line = (first, name, lab, t) => first ? `<div class="tr-ln"><i><b>${esc(name)}</b><small>${esc(lab)}</small></i><span>${t}</span></div>`
+    : `<div class="tr-ln tr-sub"><small>${esc(lab)}</small><span>${t}</span></div>`;
+  const groups = S.transit.map(it => {
     const g = trArr(it), arr = g ? g.list : [], p = g ? g.past : 0;
-    if (it.t === 'bus') {
-      const rows = it.routes.slice(0, 4).map(r => {
-        const a = arr.find(x => x.routeId === r.id);
-        const t = a ? [when(p, a.min1, a.msg1, a.st1), ...(a.min2 != null || a.msg2 ? [when(p, a.min2, a.msg2, a.st2)] : [])] : [];
-        return `<div class="tr-row"><b>${esc(r.name)}</b><span>${times(t, g)}</span></div>`;
-      }).join('');
-      return `<div class="tr-item"><div class="tr-head">${esc(it.name)}<small>${esc(it.no)}</small></div>${rows}</div>`;
+    if (it.t === 'bus') return '<div class="tr-g">' + it.routes.slice(0, 4).map((r, i) => {
+      const a = arr.find(x => x.routeId === r.id);
+      const t = a ? [when(p, a.min1, a.msg1, a.st1), ...(a.min2 != null || a.msg2 ? [when(p, a.min2, a.msg2, a.st2)] : [])] : [];
+      return line(!i, it.name, r.name + '번', times(t, g));
+    }).join('') + '</div>';
+    return '<div class="tr-g">' + line(true, it.station + '역', it.label, times(arr.map(a => when(p, a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')), g)) + '</div>';
+  });
+  const tail = S.transit.some(it => trArr(it)) ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>';
+  box.innerHTML = groups.join('') + tail;
+  let pages = null;
+  if (!document.body.classList.contains('pw-on')) {
+    // 한 줄로 그려서 이름이 절반 넘게 잘리는 줄이 있으면(좁은 칸 — 가로 화면 오른쪽 칸 등) 모두 두 줄: 이름 · 노선 / 도착(오른쪽)
+    box.classList.remove('tr-two');
+    if ([...box.querySelectorAll('.tr-ln b')].some(b => b.clientWidth < b.scrollWidth * .55)) box.classList.add('tr-two');
+    const tr = $('transit'), tb = tr.getBoundingClientRect(), avail = tb.bottom - (parseFloat(getComputedStyle(tr).paddingBottom) || 0) - box.getBoundingClientRect().top;
+    if (tb.height && avail > 0 && box.scrollHeight > avail + 1) {
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), room = avail - 4.4 * rem;   // 쪽 점 줄
+      const hs = [...box.querySelectorAll('.tr-g')].map(e => e.getBoundingClientRect().height);
+      pages = [];
+      let cur = [], h = 0;
+      hs.forEach((v, i) => { if (cur.length && h + v > room) { pages.push(cur); cur = []; h = 0; } cur.push(i); h += v; });
+      if (cur.length) pages.push(cur);
     }
-    return `<div class="tr-item"><div class="tr-head">${esc(it.station)}역<small>${esc(it.label)}</small></div>`
-      + `<div class="tr-row"><b>${esc(it.label.split(' ')[0])}</b><span>${times(arr.map(a => when(p, a.min, a.text, a.st) + (a.express ? '<small class="tr-x">급행</small>' : '')), g)}</span></div></div>`;
-  }).join('') + (S.transit.some(it => trArr(it)) ? '' : '<div class="tr-none">도착 정보를 불러오는 중</div>');
-  window.pwDraw?.('transit');   // 양각·음각 위젯 판 (plate-wg.js)
+    trPages = pages ? pages.length : 1;
+  }
+  const pg = pages ? trPage % pages.length : 0;
+  if (pages) box.innerHTML = pages[pg].map(i => groups[i]).join('') + tail + `<div class="tr-dots">${pages.map((_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}</div>`;
+  $('tr-at').textContent = (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())}:${pad(at.getSeconds())} 기준` : '')
+    + (pages ? ` · ${pg + 1} / ${pages.length}` : '') + (boardErr ? ' · 연결 확인 중' : '');
+  window.pwDraw?.('transit');   // 양각·음각 위젯 판 (plate-wg.js) — 판 테마면 여기서 쪽 수(trPages)를 정함
 }
