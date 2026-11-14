@@ -333,14 +333,15 @@ function pwTransit(k, W, H) {
     // 칸 사이 점선: 왼쪽(첫 단 말고) · 위(첫 줄 말고) — 칸마다 따로, 끝을 조금 짧게 해서 서로 만나지(교차하지) 않게 (만나는 자리 둘레 11씩 빔)
     if (c) o += k.up(plDash(x - TR_GAP / 2, y + 4, x - TR_GAP / 2, y + ch - 4), .35);
     if (r) o += k.up(plDash(c ? x + 4 : x, y - TR_GAP / 2, c < cols - 1 ? x + cw - 4 : x + cw, y - TR_GAP / 2), .35);
-    const [nt, f] = pwClip(t.name, nf, cw, 700);
+    // 이름·노선은 칸마다 같은 크기로 — 길면 줄이지 않고 뒤를 … (전엔 긴 이름만 0.8배로 줄어 옆 칸 이름과 높이가 안 맞았음)
+    const [nt, f] = pwClip(t.name, nf, cw, 700, nf);
     o += k.tx(plText(x, y + nf + 2, f, esc(nt), 700), .7);
     const bb = y + ch - 3, mid = (y + nf + 6 + bb - f3 - 4) / 2;
     if (t.a) { const ff = Math.min(f1, f1 * cw / Math.max(1, aW(t.a, f1))); o += k.tx(plText(x, mid + ff * .36, ff, aTxt(t.a, ff), 700), .9, bright); }
     else o += k.ink(plText(x, mid + nf * .36, nf, esc(t.none), 600));
     const nx = t.b ? '다음 ' + (t.b.n != null ? t.b.n + '분' : t.b.soon ? '곧 도착' : t.b.t) : '', nw = nx ? pwW(nx, f3, 600) : 0;
     if (nx) o += k.ink(plText(x + cw, bb, f3, esc(nx), 600, 'end'));
-    const [lt, lf] = pwClip(t.lab, f3, cw - nw - (nx ? 8 : 0), 600, Math.min(f3, 8.5));
+    const [lt, lf] = pwClip(t.lab, f3, cw - nw - (nx ? 8 : 0), 600, f3);
     o += k.ink(plText(x, bb, lf, esc(lt), 600));
   });
   if (L.pages > 1) {   // 쪽 점 (아래 가운데)
