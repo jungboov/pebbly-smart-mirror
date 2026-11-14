@@ -296,15 +296,11 @@ function pwAir(k, W, H) {
   return o;
 }
 
-// ── 교통: 노선마다 한 줄 — 정류장(역) 이름 · 노선 | 도착(3분 2정거장 · 14분), 곧 도착은 높이 솟음. 정류장 사이 점선
-//   한 정류장의 둘째 노선부터는 이름 없이 노선만 들여 씀. 줄 높이는 남는 높이 ÷ 줄 수(24~30), 글자는 줄 높이에 맞춤
-//   (전엔 정류장마다 이름 줄 / 노선 줄 두 줄이라 여러 곳을 등록하면 노선 줄이 남는 높이를 나눠 써서 글자가 점처럼 작아졌음)
-//   좁은 판(가로 화면 오른쪽 칸 등 — 한 줄이면 이름이 절반 넘게 잘림)은 두 줄: 이름 · 노선(인쇄) / 노선 | 도착 (높이가 넉넉한 판이라)
-//   줄이 최소 높이보다 낮아질 만큼 많으면 정류장째로 쪽을 나눠 넘김(transit.js trPage — 제목 줄에 1 / 2, 아래 가운데 쪽 점)
-//   아주 납작한 판(태블릿 세로 등)은 한 단에 안 들면 왼쪽·오른쪽 두 단(줄 수가 반씩 되게, 정류장은 나누지 않음) — 단 폭이 넉넉할 때만
+// ── 교통: 노선마다 한 칸(타일) — 위 정류장(역) 이름(별칭이 있으면 별칭) / 가운데 이번 도착(아주 크게, 다크 판은 밝게) / 아래 노선 · 다음 도착. 칸 사이 점선
+//   (전엔 노선마다 한 줄 — 정류장 이름 · 노선 | 도착이 같은 크기·같은 회색이라 도착이 한눈에 안 들어왔음. 정거장 수는 뺌)
+//   칸 수·배치는 transit.js trGrid(칸이 가장 크게 되는 단 수) — 칸이 최소(100×58)보다 작아질 만큼 많으면 쪽을 나눠 넘김(trPage — 제목 줄에 1 / 2, 아래 가운데 쪽 점)
 //   제목 줄 오른쪽 끝 새로고침 [ refresh ] — 집중 타이머 판 버튼처럼 낮게 솟은 로고 글꼴(받아 오는 동안 [ ··· ])
 //   누르는 건 위에 겹친 평면 버튼 #tr-reload(판에선 투명 — 자리는 여기서 --x·--y·--w·--h로, count.css)
-const TR_RH = [24, 30], TR_RH2 = [22, 26], TR_HH = 20, TR_GAP = 12;   // 한 줄 배치 줄 높이 최소·최대 / 두 줄 배치 노선 줄 최소·최대, 이름 줄, 정류장 사이
 // 칸 폭(maxW)에 맞춘 글자: 크기를 lo까지 줄이고, 그래도 넘치면 뒤를 잘라 … — [글자, 크기]
 function pwClip(txt, size, maxW, w = 600, lo = size * .8) {
   const f = pwFit(txt, size, maxW, w);
@@ -313,123 +309,44 @@ function pwClip(txt, size, maxW, w = 600, lo = size * .8) {
   while (t.length > 1 && pwW(t + '…', lo, w) > maxW) t = t.slice(0, -1);
   return [t + '…', lo];
 }
+const TR_GAP = 14, TR_MIN = [100, 58];   // 칸 사이(점선 자리) · 칸 최소 폭·높이(판 단위)
 function pwTransit(k, W, H) {
   const at = trAt(), rw = S.transit.length ? pwW('[ refresh ]', 11, 600) : 0;
   if (!S.transit.length) { trPages = 1; return pwHead(k, W, 'transit'); }
-  const when = (past, min, text, st) => {   // past: 받은 뒤 지난 분 (transit.js trArr)
-    if (min == null) return { t: text || '-', soon: false };
-    const m = Math.round(min - past);
-    return m <= 0 ? { t: '곧 도착', soon: true } : { t: m + '분', st: st ? st + '정거장' : '', soon: false };
-  };
-  // 정류장마다 줄들: { head(이름), sub(두 줄 배치 이름 옆: 역은 노선·방면, 버스는 정류소 번호), lab(한 줄 배치 노선), short(두 줄 배치 노선), times, first }
-  const groups = S.transit.map(it => {
-    const g = trArr(it), arr = g ? g.list : [], p = g ? g.past : 0, none = trNone(g);
-    if (it.t === 'bus') return it.routes.slice(0, 4).map((r, i) => {
-      const x = arr.find(v => v.routeId === r.id);
-      return { head: it.name, sub: it.no, none, first: !i, lab: r.name + '번', short: r.name, times: x ? [when(p, x.min1, x.msg1, x.st1), ...(x.min2 != null || x.msg2 ? [when(p, x.min2, x.msg2, x.st2)] : [])] : [] };
-    });
-    return [{ head: it.station + '역', sub: it.label, none, first: true, lab: it.label, short: it.label.split(' ')[0], times: arr.map(v => ({ ...when(p, v.min, v.text, v.st), x: v.express })) }];
-  });
-  // 도착 글자 폭(판 단위)·글자
-  const tW = (times, f) => times.reduce((n, v, i) => n + pwW(v.t, f, 500) + (v.st ? pwW(v.st, f * .55, 500) + 2 : 0) + (v.x ? pwW('급행', f * .55, 500) + 2 : 0) + (i ? pwW('·', f, 500) + 8 : 0), 0);
-  const tTxt = (times, f) => times.map(v => esc(v.t) + (v.st ? `<tspan font-size="${pf(f * .55)}" dx="2">${esc(v.st)}</tspan>` : '')
-    + (v.x ? `<tspan font-size="${pf(f * .55)}" dx="2">급행</tspan>` : '')).map((v, i) => i ? `<tspan dx="4">·</tspan><tspan dx="4">${v}</tspan>` : v).join('');
-  // 도착(오른쪽 끝 xb): 폭 maxW까지 — 그래도 많이 줄어야 하면 그다음 도착은 뺌. 그린 폭을 돌려줌
-  const drawTimes = (r, xb, by, fs, maxW) => {
-    let ts = r.times, tf = ts.length ? Math.min(fs, fs * maxW / Math.max(1, tW(ts, fs))) : fs * .8;
-    if (ts.length > 1 && tf < fs * .75) { ts = ts.slice(0, 1); tf = Math.min(fs, fs * maxW / Math.max(1, tW(ts, fs))); }
-    const soon = ts.some(v => v.soon);
-    return [ts.length ? k.tx(plText(xb, by, tf, tTxt(ts, tf), soon ? 700 : 500, 'end'), soon ? .9 : .6) : k.ink(plText(xb, by, tf, r.none, 600, 'end')), ts.length ? tW(ts, tf) : pwW(r.none, tf, 600)];
-  };
-  const top = 44, x0 = 20, x1 = W - 20, total = groups.reduce((n, g) => n + g.length, 0);
-  // 배치: 한 줄로 그리면 이름이 절반 넘게 잘리는 정류장이 있으면 두 줄 (글자 14 기준으로 어림)
-  const two = groups.some(g => {
-    const r = g[0], tw = Math.min(tW(r.times.slice(0, 2), 14), (x1 - x0) * .42), room = x1 - x0 - tw - 14;
-    return room - Math.min(pwW(r.lab, 10, 600), room * .4) - 6 < pwW(r.head, 14, 700) * .55;
-  });
-  let o = '', pages, bottom = H - 10, cap = 0;
-  if (!two) {
-    // 쪽·단 나누기: 한 쪽에 다 들면 그대로(아주 납작한 판은 두 단으로 나눠야 들 때만 두 단), 안 들면 정류장째로 단(cap 줄)에 채우고 단 cols개가 한 쪽
-    cap = Math.max(1, Math.floor((bottom - top) / TR_RH[0]));
-    const cols = total > cap && W > H * 1.55 && (x1 - x0) / 2 - 14 >= 170 ? 2 : 1;
-    if (total <= cap * cols) {
-      if (cols === 1) pages = [[groups.flat()]];
-      else {   // 두 단: 왼쪽 단 줄 수가 반에 가장 가깝게 (정류장은 나누지 않음)
-        let best = 1, n = 0;
-        groups.forEach((g, i) => { n += g.length; if (i < groups.length - 1 && Math.abs(total / 2 - n) < Math.abs(total / 2 - groups.slice(0, best).flat().length)) best = i + 1; });
-        pages = [[groups.slice(0, best).flat(), groups.slice(best).flat()]];
-      }
-    } else {
-      bottom = H - 18; cap = Math.max(1, Math.floor((bottom - top) / TR_RH[0]));   // 아래 쪽 점 자리
-      const list = [];
-      let cur = [];
-      for (const g of groups) { const gg = g.slice(0, cap); if (cur.length && cur.length + gg.length > cap) { list.push(cur); cur = []; } cur.push(...gg); }
-      if (cur.length) list.push(cur);
-      pages = [];
-      for (let i = 0; i < list.length; i += cols) pages.push(list.slice(i, i + cols));
-    }
-  } else {
-    // 두 줄: 정류장째로 쪽에 채움 (정류장 높이 = 이름 줄 + 노선 줄 × 최소 높이, 사이 TR_GAP)
-    const need = gs => gs.reduce((n, g, i) => n + (i ? TR_GAP : 0) + TR_HH + g.length * TR_RH2[0], 0);
-    if (need(groups) <= bottom - 46) pages = [groups];
-    else {
-      bottom = H - 18; pages = [];
-      let cur = [];
-      for (const g of groups) { if (cur.length && need([...cur, g]) > bottom - 46) { pages.push(cur); cur = []; } cur.push(g); }
-      if (cur.length) pages.push(cur);
-    }
-  }
-  trPages = pages.length;
-  const pg = trPage % pages.length, page = pages[pg];
-  o += pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : '') + (pages.length > 1 ? ` · ${pg + 1} / ${pages.length}` : ''), rw && rw + 12);
-  // 누르는 칸: 판 위 끝 ~ 첫 줄 위(44), 글자 왼쪽 8 ~ 판 오른쪽 끝
-  const bt = plText(W - 20, 28, 11, boardBusy ? '[ ··· ]' : '[ refresh ]', 600, 'end'), hit = [W - 28 - rw, 0, rw + 28, 44];
+  const tiles = trTiles(), x0 = 20, x1 = W - 20, top = 42;
+  const L = trGrid(tiles.length, x1 - x0, H - 8 - top, H - 20 - top, TR_GAP, ...TR_MIN);
+  trPages = L.pages;
+  const pg = trPage % L.pages, page = tiles.slice(pg * L.per, pg * L.per + L.per), { cols, cw, ch } = L;
+  let o = pwHead(k, W, 'transit' + (at ? ` · ${pad(at.getHours())}:${pad(at.getMinutes())} 기준` : '') + (L.pages > 1 ? ` · ${pg + 1} / ${L.pages}` : ''), rw && rw + 12);
+  // 누르는 칸: 판 위 끝 ~ 첫 줄 위(42), 글자 왼쪽 8 ~ 판 오른쪽 끝
+  const bt = plText(W - 20, 28, 11, boardBusy ? '[ ··· ]' : '[ refresh ]', 600, 'end'), hit = [W - 28 - rw, 0, rw + 28, top];
   o += k.up(bt, .6) + k.ink(bt);
   Object.entries({ x: hit[0] / W, y: hit[1] / H, w: hit[2] / W, h: hit[3] / H }).forEach(([n, v]) => $('tr-reload').style.setProperty('--' + n, (v * 100).toFixed(2) + '%'));
-  if (!two) {
-    // 줄 높이: 한 쪽이면 남는 높이 ÷ 가장 긴 단의 줄 수(최대 30), 여러 쪽이면 쪽마다 같게(cap 줄)
-    const rh = Math.min(TR_RH[1], (bottom - top) / (pages.length > 1 ? cap : Math.max(1, ...page.map(c => c.length)))), fs = Math.min(15, rh * .5);
-    const col = (rows, xa, xb) => {
-      let t = '';
-      rows.forEach((r, i) => {
-        const y = top + i * rh, by = y + rh / 2 + fs * .36, cw = xb - xa;
-        if (i && r.first) t += k.up(plDash(xa, y, xb, y), .45);
-        const [tt, tw] = drawTimes(r, xb, by, fs, cw * .42), room = cw - tw - 14;
-        t += tt;
-        if (r.first) {   // 이름(솟음) + 노선(인쇄) — 노선 자리는 남는 폭의 40%까지 남기고 이름을 맞춤(줄이다 안 되면 …), 노선은 남는 자리에(좁으면 …)
-          const lw = pwW(r.lab, fs * .72, 600), [nt, nf] = pwClip(r.head, fs, room - Math.min(lw, room * .4) - 6, 700), nw = pwW(nt, nf, 700);
-          t += k.up(plText(xa, by, nf, esc(nt), 700), .9);
-          if (room - nw - 6 >= Math.min(lw * .99, fs * 2)) { const [lt, lf] = pwClip(r.lab, fs * .72, room - nw - 6, 600, fs * .6); t += k.ink(plText(xa + nw + 6, by, lf, esc(lt), 600)); }   // 짧은 노선(6번)은 늘 들어감
-        } else { const [lt, lf] = pwClip(r.lab, fs * .85, room - 14, 700); t += k.up(plText(xa + 14, by, lf, esc(lt), 700), .7); }
-      });
-      return t;
-    };
-    if (page.length > 1) {
-      const xm = (x0 + x1) / 2;
-      o += col(page[0], x0, xm - 14) + k.up(plDash(xm, top, xm, bottom - 4), .45) + col(page[1], xm + 14, x1);
-    } else o += col(page[0], x0, x1);
-  } else {
-    // 두 줄: 이름(인쇄 위 솟음) · 번호·노선(인쇄) / 노선(솟음) | 도착. 노선 줄 높이는 이 쪽의 남는 높이 ÷ 줄 수(22~26)
-    const nRows = page.reduce((n, g) => n + g.length, 0), rh = Math.min(TR_RH2[1], (bottom - 46 - page.length * (TR_HH + TR_GAP) + TR_GAP) / Math.max(1, nRows)), rs = Math.min(17, rh * .7);
-    let y = 46;
-    page.forEach((g, n) => {
-      if (n) { o += k.up(plDash(x0, y, x1, y), .45); y += TR_GAP; }
-      const [nt, nf] = pwClip(g[0].head, 12, x1 - x0 - Math.min(pwW(g[0].sub, 9, 600), (x1 - x0) * .4) - 6, 700), nw = pwW(nt, nf, 700);
-      o += k.tx(plText(x0, y + 12, nf, esc(nt), 700), .5);
-      if (x1 - x0 - nw - 6 >= 20) { const [st, sf] = pwClip(g[0].sub, 9, x1 - x0 - nw - 6, 600); o += k.ink(plText(x0 + nw + 4, y + 12, sf, esc(st), 600)); }
-      y += TR_HH;
-      g.forEach(r => {
-        const by = y + rh / 2 + rs * .36, [st, sf] = pwClip(r.short, rs, (x1 - x0) * .4, 700), sw = pwW(st, sf, 700);
-        o += k.up(plText(x0, by, sf, esc(st), 700), .9) + drawTimes(r, x1, by, rs * .9, x1 - x0 - sw - 14)[0];
-        y += rh;
-      });
-    });
+  // 도착: 숫자 크게 + '분' 작게(급행이면 옆에 작게) / 곧 도착·글자(운행종료·5정거장 전 등)는 작게
+  const U = .48, aW = (v, f) => v.n != null ? pwW(v.n, f, 700) + 1.5 + pwW('분', f * U, 600) + (v.x ? 3 + pwW('급행', f * .34, 600) : 0) : pwW(v.soon ? '곧 도착' : v.t, f * (v.soon ? .6 : .5), 700);
+  const aTxt = (v, f) => v.n != null ? `${v.n}<tspan font-size="${pf(f * U)}" dx="1.5" style="font-weight:600">분</tspan>` + (v.x ? `<tspan font-size="${pf(f * .34)}" dx="3" style="font-weight:600">급행</tspan>` : '')
+    : `<tspan font-size="${pf(f * (v.soon ? .6 : .5))}">${esc(v.soon ? '곧 도착' : v.t)}</tspan>`;
+  const bright = LG_INK[S.plate] && LG_INK[S.plate].dark ? '#e4e4ea' : null;   // 다크 판: 큰 도착 숫자를 이름·노선보다 밝게
+  const nf = Math.min(15, ch * .2, cw * .12), f1 = Math.min(ch * .5, cw * .3, 40), f3 = Math.min(10.5, Math.max(9, ch * .15));
+  page.forEach((t, i) => {
+    const c = i % cols, r = Math.floor(i / cols), x = x0 + c * (cw + TR_GAP), y = top + r * (ch + TR_GAP);
+    // 칸 사이 점선: 왼쪽(첫 단 말고) · 위(첫 줄 말고) — 옆·아래 칸이 있으면 틈까지 이어 그림
+    if (c) o += k.up(plDash(x - TR_GAP / 2, r ? y - TR_GAP / 2 : y + 2, x - TR_GAP / 2, page[i + cols] ? y + ch + TR_GAP / 2 : y + ch - 2), .35);
+    if (r) o += k.up(plDash(c ? x - TR_GAP / 2 : x, y - TR_GAP / 2, c < cols - 1 && page[i + 1] ? x + cw + TR_GAP / 2 : x + cw, y - TR_GAP / 2), .35);
+    const [nt, f] = pwClip(t.name, nf, cw, 700);
+    o += k.tx(plText(x, y + nf + 2, f, esc(nt), 700), .7);
+    const bb = y + ch - 3, mid = (y + nf + 6 + bb - f3 - 4) / 2;
+    if (t.a) { const ff = Math.min(f1, f1 * cw / Math.max(1, aW(t.a, f1))); o += k.tx(plText(x, mid + ff * .36, ff, aTxt(t.a, ff), 700), .9, bright); }
+    else o += k.ink(plText(x, mid + nf * .36, nf, esc(t.none), 600));
+    const nx = t.b ? '다음 ' + (t.b.n != null ? t.b.n + '분' : t.b.soon ? '곧 도착' : t.b.t) : '', nw = nx ? pwW(nx, f3, 600) : 0;
+    if (nx) o += k.ink(plText(x + cw, bb, f3, esc(nx), 600, 'end'));
+    const [lt, lf] = pwClip(t.lab, f3, cw - nw - (nx ? 8 : 0), 600, Math.min(f3, 8.5));
+    o += k.ink(plText(x, bb, lf, esc(lt), 600));
+  });
+  if (L.pages > 1) {   // 쪽 점 (아래 가운데)
+    const dx = 10, xs = W / 2 - (L.pages - 1) * dx / 2;
+    for (let i = 0; i < L.pages; i++) { const d = pwDot(xs + i * dx, H - 8, 2.2); o += i === pg ? k.up(d, .8) : k.ink(d); }
   }
-  if (pages.length > 1) {   // 쪽 점 (아래 가운데)
-    const dx = 10, xs = W / 2 - (pages.length - 1) * dx / 2;
-    pages.forEach((_, i) => { const d = pwDot(xs + i * dx, H - 8, 2.2); o += i === pg ? k.up(d, .8) : k.ink(d); });
-  }
-  if (!S.transit.some(it => trArr(it))) o += k.ink(plText(20, H - 16, 10, '도착 정보를 불러오는 중', 600));
   return o;
 }
 

@@ -1,24 +1,26 @@
 /* Pebbly Mirror — 교통 위젯 */
-/* 교통 위젯: 노선마다 한 줄 — 정류장(역) 이름 · 노선 ……… 도착까지 남은 시간. 한 정류장의 둘째 노선부터는 노선만 들여 씀, 정류장 사이 줄
-   (전엔 정류장마다 이름 줄 / 노선 줄 두 줄이라 여러 곳을 등록하면 칸 밖으로 잘렸음) 칸에 다 안 들면 쪽을 나눔 — 아래 쪽 점(transit.js renderBoard) */
+/* 교통 위젯: 노선마다 한 칸(타일) — 위 정류장(역) 이름(별칭) / 가운데 이번 도착(크게) / 아래 노선 · 다음 도착, 칸 사이 줄
+   (전엔 노선마다 한 줄이라 이름·도착이 같은 크기여서 도착이 한눈에 안 들어왔음) 단 수·칸 높이·글자 크기(--nf·--f1·--f3)는 transit.js renderBoard가
+   위젯 칸 크기에 맞춰 정함(.tr-fix) — 그 전에 저절로 맞는 크기(아래 기본값)로 한 번 그려 위젯 칸 높이를 잡음. 칸에 다 안 들면 쪽을 나눔 — 아래 쪽 점 */
 .transit{display:none}
 body.sb.has-tr .transit{display:block}
-.tr-g{border-top:1px solid var(--line)}
-.tr-g:first-child{border-top:0}
-.tr-ln{display:flex;align-items:baseline;gap:1.6rem;padding:1.5rem 0;white-space:nowrap}
-/* 이름 · 노선 묶음(i): 폭이 모자라면 이름이 먼저 줄어(…) 노선(6번·7호선 신중동방면)은 되도록 그대로 */
-.tr-ln > i{flex:0 1 auto;min-width:0;display:flex;align-items:baseline;gap:1.6rem;font-style:normal}
-.tr-ln b{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:3.6rem;font-weight:700;color:var(--text-muted)}
-.tr-ln > i > small, .tr-ln.tr-sub > small{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:2.6rem;color:var(--text-dim)}
-.tr-ln.tr-sub > small{padding-left:3rem;font-size:3rem;font-weight:700;color:var(--text-muted)}
-.tr-ln > span{margin-left:auto;flex:none;padding-left:1.6rem;font-size:4.2rem;font-weight:300;font-variant-numeric:tabular-nums}
-.tr-ln em{font-style:normal;font-weight:600;color:var(--bad)}
-.tr-ln .tr-x{margin-left:.6rem;font-size:2.4rem;font-weight:600;color:var(--rain)}
-.tr-ln .tr-st{margin-left:.6rem;font-size:2.4rem;font-weight:400;color:var(--text-dim)}
-/* 좁은 칸(transit.js가 한 줄이면 이름이 절반 넘게 잘릴 때 붙임): 이름 · 노선 / 아래 줄 오른쪽에 도착. 둘째 노선부터는 노선 | 도착 한 줄 그대로 */
-.tr-two .tr-ln:not(.tr-sub){flex-wrap:wrap;row-gap:.6rem}
-.tr-two .tr-ln:not(.tr-sub) > i{flex-basis:100%}
-.tr-two .tr-ln:not(.tr-sub) > span{flex-basis:100%;text-align:right;padding-left:0}
+.tr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30rem,1fr));--nf:3.4rem;--f1:8rem;--f3:2.4rem}
+.tr-tile{min-width:0;min-height:18rem;display:flex;flex-direction:column;padding:1.2rem 2.4rem;overflow:hidden}
+.tr-fix .tr-tile{min-height:0}
+.tr-tile.c0{padding-left:0}
+.tr-tile.ce{padding-right:0}
+.tr-tile.cl{border-left:1px solid var(--line)}
+.tr-tile.rt{border-top:1px solid var(--line)}
+.tr-tile > b{font-size:var(--nf);line-height:1.25;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-big{flex:1;min-height:0;display:flex;align-items:center;font-size:var(--f1);line-height:1;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text)}
+.tr-big > *{min-width:0}
+.tr-big small{margin-left:.12em;font-size:.4em;font-weight:500;color:var(--text-muted)}
+.tr-big .tr-x{margin-left:.4em;font-size:.3em;font-weight:600;color:var(--rain)}
+.tr-big em{font-style:normal;font-size:.55em;font-weight:600;color:var(--bad)}
+.tr-big i{font-style:normal;font-size:.45em;font-weight:400;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis}
+.tr-ft{display:flex;gap:1.6rem;font-size:var(--f3);line-height:1.3;color:var(--text-dim);white-space:nowrap}
+.tr-ft > :first-child{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tr-ft > :last-child:not(:first-child){margin-left:auto;flex:none}
 .tr-dots{display:flex;justify-content:center;gap:1.2rem;margin-top:1.6rem}
 .tr-dots i{width:1rem;height:1rem;border-radius:50%;background:var(--dot)}
 .tr-dots i.on{background:var(--accent)}
@@ -31,4 +33,3 @@ body.sb.has-tr .transit{display:block}
 #tr-reload svg{width:2.8rem;height:2.8rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #tr-reload:disabled svg{animation:tr-spin .8s linear infinite}
 @keyframes tr-spin{to{transform:rotate(360deg)}}
-.tr-none{font-size:3rem;color:var(--text-dim)}
