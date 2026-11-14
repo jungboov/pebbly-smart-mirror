@@ -18,21 +18,21 @@ export async function onRequestGet({ request, env }) {
   try {
     const [nx, ny] = toGrid(lat, lon), at = { nx, ny };
     const kst = new Date(Date.now() + 9 * 3600e3);   // 아래 계산은 모두 한국 시각 (getUTC*로 읽음)
+    // 기상청 호출은 한꺼번에 (전엔 하나씩 차례로 받아서 처음 보는 격자는 4~5초 걸렸음 — 위치를 옮기면 화면이 그만큼 '불러오는 중')
     // 단기예보: 02·05·08·11·14·17·20·23시 발표, 10분쯤 뒤부터 나옴. 아직 없으면(NO_DATA) 한 번 앞 발표
-    const vil = await withFallback(back => vilBase(kst, back), b => call(env, 'getVilageFcst', b, at, 3 * 3600));
     // 오늘 최저(06시)는 02시 발표(05시 발표엔 오늘 최저가 빠져 있음), 최고(15시)는 14시 발표가 그 값이 들어 있는 마지막 발표
     // → 지났으면 그것도 받음 (그 전이면 최신 발표에 들어 있음. 02시 10분 전엔 전날 23시 발표에 둘 다). 오늘 지난 시간 기온도 여기서
-    const today = ymd(new Date(kst.getTime() - 10 * 60e3)), older = [];
-    for (const time of ['0200', '0500', '1400']) {
-      if (today + time >= vil.base.date + vil.base.time) continue;
-      const src = await call(env, 'getVilageFcst', { date: today, time }, at, 24 * 3600).catch(() => null);
-      if (src) older.push(src);
-    }
+    //   어느 발표가 지났는지는 최신 발표 시각(아직 안 나왔으면 앞 발표로 내려감)으로 정하는데, 기다리지 않게 최신 발표 기준으로 미리 받고 뒤에서 거름
     // 초단기: 실황은 매시 정각 자료가 40분쯤, 예보는 매시 30분 발표가 45분쯤 나옴. 없어도 단기예보로 그림
-    const [obs, ultra] = await Promise.all([
+    const today = ymd(new Date(kst.getTime() - 10 * 60e3)), b0 = vilBase(kst, 0);
+    const [vil, prev, obs, ultra] = await Promise.all([
+      withFallback(back => vilBase(kst, back), b => call(env, 'getVilageFcst', b, at, 3 * 3600)),
+      Promise.all(['0200', '0500', '1400'].filter(time => today + time < b0.date + b0.time)
+        .map(time => call(env, 'getVilageFcst', { date: today, time }, at, 24 * 3600).catch(() => null))),
       withFallback(back => hourBase(kst, 40, 0, back), b => call(env, 'getUltraSrtNcst', b, at, 3600)).catch(() => null),
       withFallback(back => hourBase(kst, 45, 30, back), b => call(env, 'getUltraSrtFcst', b, at, 3600)).catch(() => null)
     ]);
+    const older = prev.filter(src => src && src.base.date + src.base.time < vil.base.date + vil.base.time);
 
     // 시간별: 앞 발표 → 최신 단기예보 → 초단기예보 순으로 덮어씀 (가까운 발표일수록 정확)
     const hours = new Map();
@@ -116,20 +116,19 @@ async function call(env, op, base, { nx, ny }, ttl) {
   if (!res) {
     const raw = env.DATA_GO_KR_KEY || env.AIRKOREA_KEY;
     const key = raw.includes('%') ? decodeURIComponent(raw) : raw;   // 'Encoding' 키를 넣었어도 동작
-    // 단기예보는 1000줄이 넘을 수 있어(약 3일 × 12항목) 쪽을 넘겨 가며 다 받음
-    const items = [];
-    for (let page = 1; page <= 3; page++) {
-      const r = await fetch(`${API}/${op}?${qs}&pageNo=${page}&numOfRows=1000&serviceKey=${encodeURIComponent(key)}`);
+    // 단기예보는 1000줄이 넘을 수 있어(약 3일 × 12항목) 첫 쪽의 전체 줄 수를 보고 나머지 쪽(3쪽까지)을 한꺼번에 받음
+    const page = async n => {
+      const r = await fetch(`${API}/${op}?${qs}&pageNo=${n}&numOfRows=1000&serviceKey=${encodeURIComponent(key)}`);
       const text = await r.text();
       let data;
       try { data = JSON.parse(text); } catch (e) { throw new Error('기상청 응답 오류: ' + text.replace(/\s+/g, ' ').slice(0, 200)); }
       const head = data.response && data.response.header, body = data.response && data.response.body;
       if (head && head.resultCode === '03') throw Object.assign(new Error('기상청 ' + op + ' 아직 발표 전'), { noData: true });
       if (!head || head.resultCode !== '00') throw new Error(`기상청 ${head && head.resultCode} ${head && head.resultMsg}`);
-      const got = (body.items && body.items.item) || [];
-      items.push(...got);
-      if (!got.length || items.length >= Number(body.totalCount)) break;
-    }
+      return { got: (body.items && body.items.item) || [], total: Number(body.totalCount) || 0 };
+    };
+    const first = await page(1), more = Math.min(3, Math.ceil(first.total / 1000));
+    const items = [...first.got, ...(first.got.length ? (await Promise.all(Array.from({ length: Math.max(0, more - 1) }, (_, i) => page(i + 2)))).flatMap(x => x.got) : [])];
     if (!items.length) throw Object.assign(new Error('기상청 ' + op + ' 자료 없음'), { noData: true });
     res = new Response(JSON.stringify(items), { headers: { 'content-type': 'application/json', 'cache-control': `max-age=${ttl}` } });
     await caches.default.put(cacheKey, res.clone());

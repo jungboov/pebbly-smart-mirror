@@ -60,7 +60,7 @@ async function checkVersion() {
   if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
   // 마지막으로 받은 날씨·공기는 하루까지 보여 줌 (인터넷이 끊겨도 빈 화면 대신)
   const cw = load('weather', 24 * 3600e3);
-  if (cw) { state.weather = cw.data; state.weatherAt = cw.at; }
+  if (cw) { state.weather = cw.data; state.weatherAt = cw.at; state.weatherLoc = CONFIG.lat + ',' + CONFIG.lon; }   // 저장본은 위치마다 (weather.js cacheKey)
   const ca = load('air2', 24 * 3600e3);
   if (ca) state.air = ca.data;
   renderWeather();

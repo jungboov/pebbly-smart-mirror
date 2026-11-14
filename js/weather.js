@@ -76,14 +76,21 @@ async function loadWeather() {
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
     hourly: 'temperature_2m,weather_code,precipitation_probability,is_day'
   });
+  const here = at.lat + ',' + at.lon, kmaP = getJSON('/api/weather?' + new URLSearchParams({ lat: at.lat, lon: at.lon })).catch(() => null);
   try {
-    const [data, kma] = await Promise.all([getJSON(url),
-      getJSON('/api/weather?' + new URLSearchParams({ lat: at.lat, lon: at.lon })).catch(() => null)]);
+    const data = await getJSON(url);
+    if (!sameLoc(at)) return;
+    // 이 위치 날씨가 아직 화면에 없으면(처음 켬·위치를 옮김) 기상청을 기다리지 않고 Open-Meteo로 먼저 그림 — 기상청 값(첫 격자는 몇 초,
+    // 서버가 기상청에 처음 연결할 땐 가끔 15초 넘게)은 오면 덮어씀. 이미 이 위치 날씨가 있으면 숫자가 오락가락하지 않게 기상청까지 기다렸다 한 번에
+    if (state.weatherLoc !== here) {
+      Object.assign(state, { weather: data, weatherLoc: here, weatherAt: Date.now(), weatherErr: false });
+      renderWeather();
+      renderFoot();
+    }
+    const kma = await kmaP;
     if (!sameLoc(at)) return;
     if (kma && kma.hours && kma.hours.length) useKma(data, kma);
-    state.weather = data;
-    state.weatherAt = Date.now();
-    state.weatherErr = false;
+    Object.assign(state, { weather: data, weatherLoc: here, weatherAt: Date.now(), weatherErr: false });
     save('weather', state.weather);
   } catch (e) {
     state.weatherErr = true;

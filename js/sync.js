@@ -163,4 +163,4 @@ function remoteGo(id) {
 }
 $('remote-bar').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'rm-name') remoteRename(REMOTE, e.target.value); });
 
-const state = { weather: null, air: null, weatherAt: 0, weatherErr: false, airErr: false };
+const state = { weather: null, air: null, weatherAt: 0, weatherErr: false, airErr: false, weatherLoc: '' };   // weatherLoc: 지금 날씨가 어느 위치 것인지 ('위도,경도')
