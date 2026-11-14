@@ -5,12 +5,16 @@
 .transit{display:none}
 body.sb.has-tr .transit{display:block}
 .tr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30rem,1fr));--nf:3.4rem;--f1:8rem;--f3:2.4rem}
-.tr-tile{min-width:0;min-height:18rem;display:flex;flex-direction:column;padding:1.2rem 2.4rem;overflow:hidden}
+.tr-tile{position:relative;min-width:0;min-height:18rem;display:flex;flex-direction:column;padding:1.2rem 2.4rem;overflow:hidden}
 .tr-fix .tr-tile{min-height:0}
 .tr-tile.c0{padding-left:0}
 .tr-tile.ce{padding-right:0}
-.tr-tile.cl{border-left:1px solid var(--line)}
-.tr-tile.rt{border-top:1px solid var(--line)}
+/* 칸 사이 줄: 왼쪽(첫 단 말고) · 위(첫 줄 말고) — 칸마다 따로, 끝을 조금 짧게 해서 서로 만나지(교차하지) 않게 */
+.tr-tile.cl::before, .tr-tile.rt::after{content:'';position:absolute}
+.tr-tile.cl::before{left:0;top:1.6rem;bottom:1.6rem;border-left:1px solid var(--line)}
+.tr-tile.rt::after{top:0;left:1.6rem;right:1.6rem;border-top:1px solid var(--line)}
+.tr-tile.c0.rt::after{left:0}
+.tr-tile.ce.rt::after{right:0}
 .tr-tile > b{font-size:var(--nf);line-height:1.25;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tr-big{flex:1;min-height:0;display:flex;align-items:center;font-size:var(--f1);line-height:1;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text)}
 .tr-big > *{min-width:0}

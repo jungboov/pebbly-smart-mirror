@@ -330,9 +330,9 @@ function pwTransit(k, W, H) {
   const nf = Math.min(15, ch * .2, cw * .12), f1 = Math.min(ch * .5, cw * .3, 40), f3 = Math.min(10.5, Math.max(9, ch * .15));
   page.forEach((t, i) => {
     const c = i % cols, r = Math.floor(i / cols), x = x0 + c * (cw + TR_GAP), y = top + r * (ch + TR_GAP);
-    // 칸 사이 점선: 왼쪽(첫 단 말고) · 위(첫 줄 말고) — 옆·아래 칸이 있으면 틈까지 이어 그림
-    if (c) o += k.up(plDash(x - TR_GAP / 2, r ? y - TR_GAP / 2 : y + 2, x - TR_GAP / 2, page[i + cols] ? y + ch + TR_GAP / 2 : y + ch - 2), .35);
-    if (r) o += k.up(plDash(c ? x - TR_GAP / 2 : x, y - TR_GAP / 2, c < cols - 1 && page[i + 1] ? x + cw + TR_GAP / 2 : x + cw, y - TR_GAP / 2), .35);
+    // 칸 사이 점선: 왼쪽(첫 단 말고) · 위(첫 줄 말고) — 칸마다 따로, 끝을 조금 짧게 해서 서로 만나지(교차하지) 않게 (만나는 자리 둘레 11씩 빔)
+    if (c) o += k.up(plDash(x - TR_GAP / 2, y + 4, x - TR_GAP / 2, y + ch - 4), .35);
+    if (r) o += k.up(plDash(c ? x + 4 : x, y - TR_GAP / 2, c < cols - 1 ? x + cw - 4 : x + cw, y - TR_GAP / 2), .35);
     const [nt, f] = pwClip(t.name, nf, cw, 700);
     o += k.tx(plText(x, y + nf + 2, f, esc(nt), 700), .7);
     const bb = y + ch - 3, mid = (y + nf + 6 + bb - f3 - 4) / 2;
