@@ -77,7 +77,8 @@ async function stored(req) {
   const cache = await caches.open(CACHE);
   const hit = await cache.match(req);
   if (hit) return hit;
-  const res = await fetch(req);
+  // 글꼴 서버가 대답 없이 매달려도(기기 네트워크) 붙잡고 있지 않게 8초에 끊음 — 화면은 글꼴 CSS를 기다리지 않고 뜸(index.html)
+  const res = await Promise.race([fetch(req), new Promise((_, no) => setTimeout(() => no(new Error('글꼴 서버 응답 없음')), 8000))]);
   if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
   return res;
 }

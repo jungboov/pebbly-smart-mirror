@@ -9,5 +9,9 @@
   let quiet = false;
   try { quiet = sessionStorage.getItem('quietStart') === '1'; sessionStorage.removeItem('quietStart'); } catch (e) {}
   if (quiet || new URLSearchParams(location.search).has('remote')) { el.remove(); return; }
-  pebblyIntro(el, { no: 3, name: 'pebbly mirror', onStart: () => el.classList.add('go') }).play();
+  // 로고 글꼴 CSS는 화면을 막지 않게 늦게 붙여서(index.html #font-logo) 그 CSS가 오기를 1.5초까지 기다렸다 재생 — 안 오면 대신 글꼴로
+  //   (그동안은 첫 장면 [ 03 ] 상자 그대로 — 안드로이드 시작 화면과 같은 모습)
+  const ip = pebblyIntro(el, { no: 3, name: 'pebbly mirror', onStart: () => el.classList.add('go') }), css = document.getElementById('font-logo');
+  const got = !css || css.media === 'all' ? Promise.resolve() : new Promise(r => { css.addEventListener('load', r); css.addEventListener('error', r); });
+  Promise.race([got, new Promise(r => setTimeout(r, 1500))]).then(() => ip.play());
 })();
