@@ -37,7 +37,10 @@ async function checkVersion() {
   if (REMOTE || Date.now() - verAt < 60e3 || !navigator.onLine) return;
   verAt = Date.now();
   try {
-    const html = await (await fetch('/?ver=' + Date.now(), { cache: 'no-store' })).text();
+    // 대답 없이 매달리는 네트워크(2026-11-22 태블릿)에서 붙잡혀 있지 않게 15초에 끊음 — 다음 확인 때 다시
+    const ctl = new AbortController(), stop = setTimeout(() => { ctl.abort(); verAt = 0; }, 15e3);
+    const html = await (await fetch('/?ver=' + Date.now(), { cache: 'no-store', signal: ctl.signal })).text();
+    clearTimeout(stop);
     const v = (html.match(/js\/main\.js\?v=([^"&]+)/) || [])[1];
     if (!v || v === APP_V) return;
     if (!$('settings').hidden || sw.run || tm.run || !$('ring').hidden) { verAt = 0; return; }   // 다음 확인 때 다시
@@ -82,7 +85,8 @@ async function checkVersion() {
   phoneMQ.addEventListener('change', applyMode);
   // 인터넷이 끊겼다 돌아오면 바로 새로 받음. 화면 파일·글꼴은 서비스 워커(sw.js)가 기기에 저장해 둬서 끊긴 채로 켜도 뜸
   window.addEventListener('offline', renderAlert);
-  window.addEventListener('online', () => { renderAlert(); loadWeather(); loadAir(); loadBoard(); });
+  // 새 판도 그때 확인 — 와이파이를 끄고 켠 뒤 다시 켜면 그 자리에서 새 판으로 (전엔 끊긴 채 켜면 10분 뒤에야 확인했음)
+  window.addEventListener('online', () => { renderAlert(); loadWeather(); loadAir(); loadBoard(); checkVersion(); });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(e => console.warn('서비스 워커 등록 실패', e));
 
   loadWeather();

@@ -46,7 +46,8 @@ async function page(req, url, e) {
   const net = fetch(req).then(res => { if (res.ok) cache.put(key, res.clone()); return res; });
   e.waitUntil(net.catch(() => {}));
   const hit = await cache.match(key);
-  if (!hit) return net.catch(() => Response.error());
+  // 저장본이 없으면 인터넷을 기다리되 20초까지만 — 대답 없이 매달리는 네트워크에서 시작 화면에 끝없이 멈춰 있지 않게(오류 화면이라도 뜸)
+  if (!hit) return Promise.race([net, new Promise(r => setTimeout(r, 20e3, Response.error()))]).catch(() => Response.error());
   return Promise.race([net.then(res => res.ok ? res : hit, () => hit), new Promise(r => setTimeout(() => r(hit), NAV_WAIT))]);
 }
 // 판 번호가 붙은 CSS·JS: 저장본 먼저, 없으면 받아서 저장하고 같은 파일의 옛 판은 지움. 끊겼는데 이 판이 없으면 옛 판이라도
