@@ -7,9 +7,72 @@ document.addEventListener('mousemove', () => {
   idleTimer = setTimeout(() => document.body.classList.add('idle'), CONFIG.cursorIdle);
 });
 
+// ===== 닫힘 기록 =====
+// 밤사이 앱이 닫혀 아침에 바탕화면이던 일(2026-11-23 태블릿 — 앱 코드엔 스스로 닫는 데가 없음)의 원인을 가르려고 기기에 적어 둠:
+// 1분마다(그리고 가려질 때·떠날 때) 살아 있던 때·배터리, 화면이 꺼지거나 가려진 때, 보이는 채로 화면 켜 두기가 풀린 때(기기가 거둬 감)·켜 두기를 못 잡은 까닭
+// 다음에 켤 때 새로고침(새벽 4시·새 판 — 같은 화면이 이어짐)이 아니면 앱이 닫혔다 다시 열린 것 → 한 줄로 남겨(최근 5개) 설정 아래 판 번호 밑에 보여 줌
+// 기록은 가장 나중에 켜진 화면만 씀(크롬 탭과 설치한 앱을 같이 열어 둬도 서로 덮지 않게). 폰 설정 화면(?remote)은 안 씀
+const LIFE = 'mirror3_life', OFFS = 'mirror3_offs';
+const life = { id: Date.now(), a: Date.now(), h: 0, w: 0, wf: '', b: -1, c: false, tab: matchMedia('(display-mode: browser)').matches };
+let battery = null;
+function lifeSave() {
+  if (REMOTE) return;
+  try {
+    const cur = JSON.parse(localStorage.getItem(LIFE) || 'null');
+    if (cur && cur.id > life.id) return;   // 뒤에 켜진 화면이 있으면 그쪽이 씀
+    if (battery) { life.b = Math.round(battery.level * 100); life.c = battery.charging; }
+    life.a = Date.now();
+    localStorage.setItem(LIFE, JSON.stringify(life));
+  } catch (e) {}
+}
+function lifeStart() {
+  if (REMOTE) return;
+  try {
+    const prev = JSON.parse(localStorage.getItem(LIFE) || 'null'), nav = (performance.getEntriesByType('navigation')[0] || {}).type;
+    if (prev && nav !== 'reload') {
+      const offs = JSON.parse(localStorage.getItem(OFFS) || '[]');
+      offs.unshift({ a: prev.a, h: prev.h, w: prev.w, wf: prev.wf, b: prev.b, c: prev.c, tab: prev.tab, on: life.id });
+      localStorage.setItem(OFFS, JSON.stringify(offs.slice(0, 5)));
+    }
+  } catch (e) {}
+  lifeSave();
+  if (navigator.getBattery) navigator.getBattery().then(b => { battery = b; lifeSave(); }).catch(() => {});
+  setInterval(lifeSave, 60e3);
+  document.addEventListener('visibilitychange', () => { life.h = document.visibilityState === 'hidden' ? Date.now() : 0; lifeSave(); });
+  window.addEventListener('pagehide', lifeSave);
+  renderLife();
+}
+// 설정 아래: 11/23 03:12쯤 닫힘 (화면 켜진 채로 · 배터리 80% 충전 중) → 07:40 다시 켬 — 최근 3개
+function renderLife() {
+  const el = $('set-life');
+  let offs = [];
+  try { offs = JSON.parse(localStorage.getItem(OFFS) || '[]'); } catch (e) {}
+  el.hidden = REMOTE || (!offs.length && !life.wf);
+  if (el.hidden) return;
+  const hm = ms => { const d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const dt = ms => { const d = new Date(ms); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm(ms); };
+  const day = ms => new Date(ms).toDateString();
+  el.innerHTML = (life.wf ? `지금 화면 켜 두기를 못 잡음 (${life.wf})` : '') + (offs.length ? (life.wf ? '<br>' : '') + '닫힌 기록' : '') + offs.slice(0, 3).map(o =>
+    '<br>' + dt(o.a) + (o.h ? ` 뒤 닫힘 (${hm(o.h)} 화면 꺼짐·가려짐` : '쯤 닫힘 (화면 켜진 채로') +
+    (o.w ? ` · ${hm(o.w)} 켜 두기 풀림` : '') + (o.wf ? ` · 켜 두기 못 잡음 ${o.wf}` : '') +
+    (o.b >= 0 ? ` · 배터리 ${o.b}%${o.c ? ' 충전 중' : ''}` : '') + (o.tab ? ' · 크롬 탭' : '') +
+    `) → ${day(o.on) === day(o.a) ? hm(o.on) : dt(o.on)} 다시 켬`).join('');
+}
+
 // ===== 화면 유지 / 자동 새로고침 =====
+// 보이는 채로 풀리면(기기가 거둬 감 — 배터리 절약 등) 기록하고 5초 뒤 다시 잡아 봄. 가려질 때 풀리는 건 원래 그래서 다시 보일 때 잡음
+let wakeLock = null;
 async function keepAwake() {
-  try { if (navigator.wakeLock) await navigator.wakeLock.request('screen'); } catch (e) {}
+  if (!navigator.wakeLock || (wakeLock && !wakeLock.released) || document.visibilityState !== 'visible') return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    life.wf = '';
+    wakeLock.addEventListener('release', () => {
+      if (document.visibilityState !== 'visible') return;
+      life.w = Date.now(); lifeSave(); setTimeout(keepAwake, 5e3);
+    });
+  } catch (e) { life.wf = e.name || 'error'; }
+  lifeSave(); renderLife();
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') keepAwake();
@@ -58,6 +121,7 @@ async function checkVersion() {
 
 // ===== 시작 =====
 (function init() {
+  lifeStart();   // 지난번 기록을 먼저 읽고 나서 이번 기록을 씀
   applyMode();
   applySettings();
   if (!MANUAL_LOC && savedLoc()) useLoc(savedLoc());
