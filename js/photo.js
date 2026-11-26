@@ -183,7 +183,7 @@ function phJpeg(img, max, q) {
 //   (아이폰 동영상(HEVC)은 그대로면 안 나오는 기기도 있음). 미러는 소리 없이 트니까 소리는 뺌
 //   줄이는 도구 Mediabunny(브라우저 WebCodecs로 빠르게 다시 저장)는 동영상을 처음 고를 때 받음 (서비스 워커가 보관)
 //   서버엔 두 번에: 작은 그림(첫 장면)으로 번호를 받고 → 그 번호에 동영상. 동영상이 실패하면 작은 그림도 지움
-const VID_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.61.6/dist/bundles/mediabunny.min.mjs';
+const VID_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.66.4/dist/bundles/mediabunny.min.mjs';
 let vidLib = null;
 const phIsVideo = f => /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm|3gp)$/i.test(f.name);
 async function phUploadVideo(file, tag) {
